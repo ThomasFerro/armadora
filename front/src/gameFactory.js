@@ -15,6 +15,8 @@ const goldCell = {
 	type: GOLD,
 }
 
+// TODO: Create a game with various players
+// TODO: Put the gold pile randomly
 export const createGame = () => ({
     palisadesCount: 35,
     players: [
@@ -49,5 +51,6 @@ export const createGame = () => ({
         [ { ...emptyCell }, { ...emptyCell }, { ...emptyCell }, { ...emptyCell }, { ...emptyCell }, { ...emptyCell }, { ...emptyCell }, { ...emptyCell } ],
         [ { ...goldCell, pile: 5 }, { ...emptyCell }, { ...emptyCell }, { ...emptyCell }, { ...goldCell, pile: 6 }, { ...emptyCell }, { ...emptyCell }, { ...emptyCell } ],
         [ { ...emptyCell }, { ...emptyCell }, { ...goldCell, pile: 4 }, { ...emptyCell }, { ...emptyCell }, { ...emptyCell }, { ...goldCell, pile: 5 }, { ...emptyCell } ],
-    ]
+    ],
+    currentPlayer: 0,
 })

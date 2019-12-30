@@ -1,15 +1,15 @@
 <script>
-    export let cell;
+    export let value;
 </script>
 
-<!-- TODO: Change tag -->
+<!-- TODO: Change tag ? -->
 <div
     class="cell"
-    class:palisade-left={cell.palisades.left}
-    class:palisade-top={cell.palisades.top}
-    class:palisade-right={cell.palisades.right}
-    class:palisade-bottom={cell.palisades.bottom}
->{cell.type}</div>
+    class:palisade-left={value.palisades.left}
+    class:palisade-top={value.palisades.top}
+    class:palisade-right={value.palisades.right}
+    class:palisade-bottom={value.palisades.bottom}
+>{value.type}</div>
 
 <style>
     .cell {

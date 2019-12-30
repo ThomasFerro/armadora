@@ -1,29 +1,33 @@
 <script>
-	import Grid from './Grid.svelte';
+	import { onMount } from 'svelte';
+	import Game from './Game.svelte';
+	import { createGame } from './gameFactory';
 
-	export let game;
+	let game;
+
+	const newGame = () => {
+		game = createGame();
+	}
+
+	// FIXME: Remove
+	onMount(newGame);
 </script>
+
+<!-- TODO:
+- Gérer un tour de jeu:
+	- Ajouter une ou deux palisade(s)
+	- Ajouter un combattant
+- Gérer la fin de partie
+ -->
 
 <main>
 	<h1>Armadöra</h1>
-	<article>
-		<h2>Summary</h2>
-		<ul>
-			<li>
-				Players:
-				<ol>
-					{#each game.players as player}
-						<li>{player.race}: {player.warriors}</li>
-					{/each}
-				</ol>
-			</li>
-			<li>Palisages: {game.palisadesCount}</li>
-			<li>
-				Grid:
-				<Grid grid={game.grid}></Grid>
-			</li>
-		</ul>
-	</article>
+	{#if game}
+		<Game {...game}></Game>
+	{:else}
+		<!-- TODO: New game form -->
+		<button on:click={newGame}>Start a game</button>
+	{/if}
 </main>
 
 <style>

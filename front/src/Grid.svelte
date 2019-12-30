@@ -1,13 +1,13 @@
 <script>
     import Cell from './Cell.svelte';
 
-    export let grid;
+    export let value;
 </script>
 
 <section class="grid">
-    {#each grid as line}
+    {#each value as line}
         {#each line as cell}
-            <Cell cell={cell}></Cell>
+            <Cell value={cell}></Cell>
         {/each}
     {/each}
 </section>
