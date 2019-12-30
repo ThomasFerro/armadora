@@ -1,30 +1,30 @@
 <script>
-	export let name;
+	import Grid from './Grid.svelte';
+
+	export let game;
 </script>
 
 <main>
-	<h1>Hello {name}!</h1>
-	<p>Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte apps.</p>
+	<h1>Armadöra</h1>
+	<article>
+		<h2>Summary</h2>
+		<ul>
+			<li>
+				Players:
+				<ol>
+					{#each game.players as player}
+						<li>{player.race}: {player.warriors}</li>
+					{/each}
+				</ol>
+			</li>
+			<li>Palisages: {game.palisadesCount}</li>
+			<li>
+				Grid:
+				<Grid grid={game.grid}></Grid>
+			</li>
+		</ul>
+	</article>
 </main>
 
 <style>
-	main {
-		text-align: center;
-		padding: 1em;
-		max-width: 240px;
-		margin: 0 auto;
-	}
-
-	h1 {
-		color: #ff3e00;
-		text-transform: uppercase;
-		font-size: 4em;
-		font-weight: 100;
-	}
-
-	@media (min-width: 640px) {
-		main {
-			max-width: none;
-		}
-	}
 </style>

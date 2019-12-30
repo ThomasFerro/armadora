@@ -1,9 +1,10 @@
 import App from './App.svelte';
+import { createGame } from './gameFactory';
 
 const app = new App({
 	target: document.body,
 	props: {
-		name: 'world'
+		game: createGame()
 	}
 });
 
