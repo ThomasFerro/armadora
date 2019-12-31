@@ -1,13 +1,17 @@
 <script>
+    import { createEventDispatcher } from 'svelte';
     import Grid from './Grid.svelte';
     import Players from './Players.svelte';
     import ActionChoice from './ActionChoice.svelte';
     import { WARRIORS, PALISADES } from './editMode';
+    import { PUT_WARRIOR } from './actionTypes';
 
     export let players;
     export let palisadesCount;
     export let grid;
     export let currentPlayer;
+
+    const dispatch = createEventDispatcher();
 
     let editMode;
 
@@ -25,14 +29,17 @@
         selectedWarrior = event.detail.warriorIndex
         warriorsEditMode()
     }
-    $: currentPlayerWarriors = players[currentPlayer].warriors
+
+    $: currentPlayerWarriors = players[currentPlayer] && players[currentPlayer].warriors
 
     const cellClicked = ({ x, y }) => {
         if (editMode === WARRIORS) {
-            // TODO
-            console.log(`Put warrior ${selectedWarrior} (${currentPlayerWarriors[selectedWarrior]}) of player ${currentPlayer} in the cell ${x},${y}`);
-
-            console.log('Next turn')
+            dispatch('play-turn', {
+                type: PUT_WARRIOR,
+                selectedWarrior,
+                x,
+                y
+            })
         }
     }
 </script>

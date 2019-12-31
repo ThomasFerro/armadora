@@ -16,7 +16,7 @@
 </script>
 
 <section class="action">
-    <!-- TODO: Only show if there is palisades left -->
+    <!-- TODO: Only show if there are palisades left -->
     <button on:click={palisadesEditMode}>Put palisades</button>
     {#each currentPlayerWarriors as currentPlayerWarrior, warriorIndex}
         <label>

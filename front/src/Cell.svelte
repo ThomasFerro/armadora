@@ -5,8 +5,8 @@
     export let editMode;
 
     $: cellClasses = `cell ${editMode}`
-    // TODO : || cell already taken
-    $: disabled = !editMode || value.type != LAND
+    $: disabled = !editMode || value.type != LAND || value.warrior
+    $: cellValue = value.warrior ? value.warrior.playerDisplayName : value.type
 </script>
 
 <button
@@ -17,7 +17,7 @@
     class:palisade-bottom={value.palisades.bottom}
     {disabled}
     on:click
->{value.type}</button>
+>{cellValue}</button>
 
 <style>
     .cell {
