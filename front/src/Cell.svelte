@@ -1,11 +1,23 @@
 <script>
     import { LAND } from './cellTypes';
+    import { PALISADES, WARRIORS } from './editModes';
 
     export let value;
-    export let editMode;
+    export let mode;
 
+    const landCell = (cell) => cell && cell.type === LAND
+
+    $: editMode = (() => {        
+        if (mode === WARRIORS &&
+            !landCell(value)) {
+
+            return ''
+        }
+
+        return mode
+    })()
     $: cellClasses = `cell ${editMode}`
-    $: disabled = !editMode || value.type != LAND || value.warrior
+    $: disabled = editMode !== WARRIORS || value.type != LAND || value.warrior
     $: cellValue = value.warrior ? value.warrior.playerDisplayName : value.type
 </script>
 
@@ -22,6 +34,7 @@
 <style>
     .cell {
         border: 1px solid black;
+        --palisade-width: 2px;
     }
 
     .palisade-left {

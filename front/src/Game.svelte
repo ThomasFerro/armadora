@@ -3,7 +3,7 @@
     import Grid from './Grid.svelte';
     import Players from './Players.svelte';
     import ActionChoice from './ActionChoice.svelte';
-    import { WARRIORS, PALISADES } from './editMode';
+    import { WARRIORS, PALISADES } from './editModes';
     import { PUT_WARRIOR } from './actionTypes';
 
     export let players;
@@ -62,8 +62,8 @@
     </ul>
     <ActionChoice
         selectedWarrior={selectedWarrior}
-        on:warrior-selected={selectWarrior}
         currentPlayerWarriors={currentPlayerWarriors}
+        on:warrior-selected={selectWarrior}
         on:palisades-edit-mode={palisadesEditMode}
     ></ActionChoice>
 </article>
