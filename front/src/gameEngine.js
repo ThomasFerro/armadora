@@ -18,7 +18,6 @@ const nextCurrentPlayer = ({ currentPlayer, players }) => {
 }
 
 const putWarrior = (game, {selectedWarrior, x, y}) => {
-    console.log('putWarrior', game, x, y);
     const currentPlayerInformation = game.players[game.currentPlayer]
     const currentPlayerWarriors = currentPlayerInformation.warriors
     if (currentPlayerWarriors[selectedWarrior]) {
@@ -36,7 +35,6 @@ const putWarrior = (game, {selectedWarrior, x, y}) => {
 const putPalisade = (game) => ({x, y, vertical}) => {
     if (game.palisadesCount > 0) {
         const cell = game.grid[x][y]
-        console.log('putPalisade', game.palisades, cell);
         if (vertical) {
             cell.palisades = {
                 ...cell.palisades,

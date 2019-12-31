@@ -5,6 +5,7 @@
     export let currentPlayerWarriors;
     export let selectedWarrior;
     export let hasPalisadesLeft = false;
+    export let ongoingPalisadeSelection = false;
 
     const dispatch = createEventDispatcher();
 
@@ -15,22 +16,36 @@
     const selectPalisades = () => {
         dispatch('palisades-selected')
     }
+
+    const validatePalisadeSelection = () => {
+        dispatch('validate-palisade-selection')
+    }
+
+    const cancelPalisadeSelection = () => {
+        dispatch('cancel-palisade-selection')
+    }
 </script>
 
 <section class="action">
-    <label>
-        <input
-            type=radio bind:group={selectedWarrior}
-            value={undefined}
-            disabled={!hasPalisadesLeft}
-            on:input={() => selectPalisades()}
-        >
-        Palisades
-    </label>
-    {#each currentPlayerWarriors as currentPlayerWarrior, warriorIndex}
+    {#if ongoingPalisadeSelection}
+        Ongoing palisade selection
+        <button on:click={validatePalisadeSelection}>Validate</button>
+        <button on:click={cancelPalisadeSelection}>Cancel</button>
+    {:else}
         <label>
-            <input type=radio bind:group={selectedWarrior} value={warriorIndex} on:input={() => selectWarrior(warriorIndex)}>
-            {currentPlayerWarrior}
+            <input
+                type=radio bind:group={selectedWarrior}
+                value={undefined}
+                disabled={!hasPalisadesLeft}
+                on:input={() => selectPalisades()}
+            >
+            Palisades
         </label>
-    {/each}
+        {#each currentPlayerWarriors as currentPlayerWarrior, warriorIndex}
+            <label>
+                <input type=radio bind:group={selectedWarrior} value={warriorIndex} on:input={() => selectWarrior(warriorIndex)}>
+                {currentPlayerWarrior}
+            </label>
+        {/each}
+    {/if}
 </section>

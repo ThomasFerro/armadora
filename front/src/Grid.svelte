@@ -8,6 +8,7 @@
 
     export let grid;
     export let mode;
+    export let selectedPalisades = []
 
     $: lastHorizontalPalisade = (index) => {
         return index === grid[0].length - 1
@@ -22,6 +23,12 @@
             return grid[x][y].palisades.right
         }
         return grid[x][y].palisades.bottom
+    }
+
+    $: isPalisadeSelected = (x, y, vertical) => {
+        return selectedPalisades.find(palisade => {
+            return palisade.x === x && palisade.y === y && palisade.vertical === vertical
+        })
     }
 
     const cellClicked = (x, y) => {
@@ -45,6 +52,7 @@
             {#if cellIndex < line.length - 1}
             <Palisade
                 present={isPalisadePresent(lineIndex, cellIndex, true)}
+                selected={isPalisadeSelected(lineIndex, cellIndex, true)}
                 vertical={true}
                 {mode}
                 last={lastVerticalPalisade(cellIndex)}
@@ -57,6 +65,7 @@
                 {#if cellIndex < line.length}
                 <Palisade
                     present={isPalisadePresent(lineIndex, cellIndex)}
+                selected={isPalisadeSelected(lineIndex, cellIndex)}
                     vertical={false}
                     {mode}
                     last={lastHorizontalPalisade(cellIndex)}

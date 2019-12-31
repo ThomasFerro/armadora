@@ -15,7 +15,7 @@
 
 <!-- TODO:
 - Gérer un tour de jeu:
-	- Ajouter une ou deux palisade(s)
+	- Empêcher l'ajout d'une palisade si ça ferme une zone à moins de 4 cellules
 - Gérer la fin de partie
  -->
 

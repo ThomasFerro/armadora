@@ -3,6 +3,7 @@
 
     export let present = undefined;
     export let disabled = false;
+    export let selected = false;
     export let vertical;
     export let last;
     export let mode;
@@ -23,6 +24,7 @@
     on:click
     class="palisade"
     class:present={present}
+    class:selected={selected}
     class:vertical-palisade={vertical}
     class:horizontal-palisade={!vertical}
     class:last-vertical-palisade={lastVerticalPalisade()}
@@ -42,5 +44,9 @@
 
 .present {
     background-color: burlywood;
+}
+
+.selected {
+    background-color: gray;
 }
 </style>

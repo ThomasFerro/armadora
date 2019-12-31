@@ -42,17 +42,30 @@
         }
     }
 
-    // TODO: Manage two palisades
+    let selectedPalisades = []
+
+    $: ongoingPalisadeSelection = selectedPalisades.length > 0
+
     const palisadeClicked = (information) => {
-        if (editMode === PALISADES) {
+        if (selectedPalisades.length < 2) {
+            selectedPalisades = [
+                ...selectedPalisades,
+                information
+            ]
+        }
+    }
+
+    const clearPalisadeSelection = () => {
+        selectedPalisades = []
+    }
+
+    const validatePalisades = () => {
+        if (editMode === PALISADES && selectedPalisades.length > 0) {
             dispatch('play-turn', {
                 type: PUT_PALISADES,
-                palisades: [
-                    {
-                        ...information
-                    }
-                ]
+                palisades: selectedPalisades
             })
+            selectedPalisades = []
         }
     }
 </script>
@@ -63,6 +76,7 @@
     <Grid
         {grid}
         mode={editMode}
+        {selectedPalisades}
         on:cell-clicked={(event) => cellClicked(event.detail)}
         on:palisade-clicked={(event) => palisadeClicked(event.detail)}
     ></Grid>
@@ -70,7 +84,10 @@
         selectedWarrior={selectedWarrior}
         currentPlayerWarriors={currentPlayerWarriors}
         hasPalisadesLeft={palisadesCount > 0}
+        ongoingPalisadeSelection={ongoingPalisadeSelection}
         on:warrior-selected={selectWarrior}
         on:palisades-selected={palisadesEditMode}
+        on:cancel-palisade-selection={clearPalisadeSelection}
+        on:validate-palisade-selection={validatePalisades}
     ></ActionChoice>
 </article>
