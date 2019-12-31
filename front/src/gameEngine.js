@@ -34,32 +34,30 @@ const putWarrior = (game, {selectedWarrior, x, y}) => {
 }
 
 const putPalisade = (game) => ({x, y, vertical}) => {
-    
-    const cell = game.grid[x][y]
-    console.log('putPalisade', game.palisades, cell);
-    if (vertical) {
-        cell.palisades = {
-            ...cell.palisades,
-            right: true
-        }
-        const rightNeighbor = game.grid[x][y + 1]
-        rightNeighbor.palisades = {
-            ...rightNeighbor.palisades,
-            left: true
-        }
-    } else {
-        cell.palisades = {
-            ...cell.palisades,
-            bottom: true
-        }
-        const bottomNeighbor = game.grid[x + 1][y]
-        bottomNeighbor.palisades = {
-            ...bottomNeighbor.palisades,
-            top: true
-        }
-    }
-    
     if (game.palisadesCount > 0) {
+        const cell = game.grid[x][y]
+        console.log('putPalisade', game.palisades, cell);
+        if (vertical) {
+            cell.palisades = {
+                ...cell.palisades,
+                right: true
+            }
+            const rightNeighbor = game.grid[x][y + 1]
+            rightNeighbor.palisades = {
+                ...rightNeighbor.palisades,
+                left: true
+            }
+        } else {
+            cell.palisades = {
+                ...cell.palisades,
+                bottom: true
+            }
+            const bottomNeighbor = game.grid[x + 1][y]
+            bottomNeighbor.palisades = {
+                ...bottomNeighbor.palisades,
+                top: true
+            }
+        }
         game.palisadesCount--
     }
 }
@@ -75,9 +73,10 @@ export const playTurn = (actualGame, {type, selectedWarrior, x, y, palisades}) =
     }
 
     if (type === PUT_PALISADES) {
-        palisades.forEach(putPalisade(game))
-        // TODO : Error management
-        game.currentPlayer = nextCurrentPlayer(game)
+        if (game.palisadesCount >= palisades.length) {
+            palisades.forEach(putPalisade(game))
+            game.currentPlayer = nextCurrentPlayer(game)
+        }
     }
 
     return game
