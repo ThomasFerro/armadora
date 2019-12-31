@@ -1,9 +1,11 @@
 <script>
     export let players;
     export let currentPlayer;
+
+    $: currentPlayerDisplay = currentPlayer < players.length ? players[currentPlayer].race : 'N/A'
 </script>
 
-Players: {currentPlayer}
+Current player: {currentPlayerDisplay}
 <ol>
     {#each players as player, index}
         {#if index === currentPlayer}

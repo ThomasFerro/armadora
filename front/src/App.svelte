@@ -9,7 +9,6 @@
 		game = createGame();
 	}
 
-	// FIXME: Remove
 	onMount(newGame);
 </script>
 

@@ -1,5 +1,4 @@
-const LAND = 'land'
-const GOLD = 'gold'
+import { LAND, GOLD } from './cellTypes';
 
 const cell = {
     palisades: {}
