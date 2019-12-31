@@ -17,6 +17,13 @@
         return index + 1 === grid[0].length - 1
     }
 
+    $: isPalisadePresent = (x, y, vertical) => {
+        if (vertical) {
+            return grid[x][y].palisades.right
+        }
+        return grid[x][y].palisades.bottom
+    }
+
     const cellClicked = (x, y) => {
         dispatch('cell-clicked', { x, y })
     }
@@ -24,7 +31,6 @@
     const palisadeClicked = (x, y, vertical) => {
         dispatch('palisade-clicked', { x, y, vertical })
     }
-
 </script>
 
 <section class="grid">
@@ -38,6 +44,7 @@
             ></Cell>
             {#if cellIndex < line.length - 1}
             <Palisade
+                present={isPalisadePresent(lineIndex, cellIndex, true)}
                 vertical={true}
                 {mode}
                 last={lastVerticalPalisade(cellIndex)}
@@ -49,8 +56,9 @@
             {#each line as horizontalPalisade, cellIndex}
                 {#if cellIndex < line.length}
                 <Palisade
-                    {mode}
+                    present={isPalisadePresent(lineIndex, cellIndex)}
                     vertical={false}
+                    {mode}
                     last={lastHorizontalPalisade(cellIndex)}
                     on:click={() => palisadeClicked(lineIndex, cellIndex)}
                 ></Palisade>

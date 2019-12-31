@@ -28,12 +28,40 @@ const putWarrior = (game, {selectedWarrior, x, y}) => {
             strength: currentPlayerWarriors[selectedWarrior]
         }
         removeUsedWarrior(game, selectedWarrior)
+        return true
     }
+    return false
 }
 
-const putPalisade = (game) => (informationPalisade) => {
-    console.log('putPalisade', game.palisades, informationPalisade);
-
+const putPalisade = (game) => ({x, y, vertical}) => {
+    
+    const cell = game.grid[x][y]
+    console.log('putPalisade', game.palisades, cell);
+    if (vertical) {
+        cell.palisades = {
+            ...cell.palisades,
+            right: true
+        }
+        const rightNeighbor = game.grid[x][y + 1]
+        rightNeighbor.palisades = {
+            ...rightNeighbor.palisades,
+            left: true
+        }
+    } else {
+        cell.palisades = {
+            ...cell.palisades,
+            bottom: true
+        }
+        const bottomNeighbor = game.grid[x + 1][y]
+        bottomNeighbor.palisades = {
+            ...bottomNeighbor.palisades,
+            top: true
+        }
+    }
+    
+    if (game.palisadesCount > 0) {
+        game.palisadesCount--
+    }
 }
 
 export const playTurn = (actualGame, {type, selectedWarrior, x, y, palisades}) => {
@@ -41,12 +69,14 @@ export const playTurn = (actualGame, {type, selectedWarrior, x, y, palisades}) =
     const game = {...actualGame}
 
     if (type === PUT_WARRIOR) {
-        putWarrior(game, { selectedWarrior, x, y })
-        game.currentPlayer = nextCurrentPlayer(game)
+        if (putWarrior(game, { selectedWarrior, x, y })) {
+            game.currentPlayer = nextCurrentPlayer(game)
+        }
     }
 
     if (type === PUT_PALISADES) {
         palisades.forEach(putPalisade(game))
+        // TODO : Error management
         game.currentPlayer = nextCurrentPlayer(game)
     }
 

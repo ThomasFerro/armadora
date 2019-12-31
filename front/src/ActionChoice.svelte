@@ -17,7 +17,7 @@
 </script>
 
 <section class="action">
-    <!-- TODO: Only show if there are palisades left -->
+    <!-- TODO: disabled if there no palisade left -->
     <label>
         <input type=radio bind:group={selectedWarrior} value={undefined} on:input={() => selectPalisades()}>
         Palisades

@@ -58,21 +58,14 @@
 </script>
 
 <article class="game">
-    <h2>Summary</h2>
-    <ul>
-        <li>
-            <Players currentPlayer={currentPlayer} players={players}></Players>
-        </li>
-        <li>Palisades: {palisadesCount}</li>
-        <li>
-            <Grid
-                {grid}
-                mode={editMode}
-                on:cell-clicked={(event) => cellClicked(event.detail)}
-                on:palisade-clicked={(event) => palisadeClicked(event.detail)}
-            ></Grid>
-        </li>
-    </ul>
+    <Players currentPlayer={currentPlayer} players={players}></Players>
+    <p>Palisades: {palisadesCount}</p>
+    <Grid
+        {grid}
+        mode={editMode}
+        on:cell-clicked={(event) => cellClicked(event.detail)}
+        on:palisade-clicked={(event) => palisadeClicked(event.detail)}
+    ></Grid>
     <ActionChoice
         selectedWarrior={selectedWarrior}
         currentPlayerWarriors={currentPlayerWarriors}

@@ -1,6 +1,6 @@
 <script>
     import { LAND } from './cellTypes';
-    import { PALISADES, WARRIORS } from './editModes';
+    import { WARRIORS } from './editModes';
 
     export let value;
     export let mode;
@@ -23,10 +23,6 @@
 
 <button
     class={cellClasses}
-    class:palisade-left={value.palisades.left}
-    class:palisade-top={value.palisades.top}
-    class:palisade-right={value.palisades.right}
-    class:palisade-bottom={value.palisades.bottom}
     {disabled}
     on:click
 >{cellValue}</button>
@@ -38,22 +34,5 @@
         border: 1px solid black;
         margin: 0;
         padding: 0;
-        --palisade-width: 2px;
-    }
-
-    .palisade-left {
-        border-left: var(--palisade-width) solid burlywood;
-    }
-
-    .palisade-top {
-        border-top: var(--palisade-width) solid burlywood;
-    }
-
-    .palisade-right {
-        border-right: var(--palisade-width) solid burlywood;
-    }
-
-    .palisade-bottom {
-        border-bottom: var(--palisade-width) solid burlywood;
     }
 </style>

@@ -1,7 +1,8 @@
 <script>
     import { PALISADES } from './editModes';
 
-    export let value;
+    export let present = undefined;
+    export let disabled = false;
     export let vertical;
     export let last;
     export let mode;
@@ -14,16 +15,14 @@
         return !vertical && last
     }
 
-    $: disabled = mode !== PALISADES || (value && value.disabled)
-
-    $: active = value && value.active
+    $: isDisabled = mode !== PALISADES || disabled || present
 </script>
 
 <button
-    {disabled}
+    disabled={isDisabled}
     on:click
     class="palisade"
-    class:active={active}
+    class:present={present}
     class:vertical-palisade={vertical}
     class:horizontal-palisade={!vertical}
     class:last-vertical-palisade={lastVerticalPalisade()}
@@ -39,5 +38,9 @@
 .horizontal-palisade {
     width: 100%;
     height: var(--palisade-width);
+}
+
+.present {
+    background-color: burlywood;
 }
 </style>
