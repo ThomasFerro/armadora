@@ -4,7 +4,7 @@
     import Players from './Players.svelte';
     import ActionChoice from './ActionChoice.svelte';
     import { WARRIORS, PALISADES } from './editModes';
-    import { PUT_WARRIOR } from './actionTypes';
+    import { PUT_WARRIOR, PUT_PALISADES } from './actionTypes';
 
     export let players;
     export let palisadesCount;
@@ -13,9 +13,9 @@
 
     const dispatch = createEventDispatcher();
 
-    let editMode;
+    let editMode = PALISADES;
 
-    const palisadesEditMode = async () => {
+    const palisadesEditMode = () => {
         selectedWarrior = null
         editMode = PALISADES
     }
@@ -32,13 +32,26 @@
 
     $: currentPlayerWarriors = players[currentPlayer] && players[currentPlayer].warriors
 
-    const cellClicked = ({ x, y }) => {
+    const cellClicked = (information) => {
         if (editMode === WARRIORS) {
             dispatch('play-turn', {
                 type: PUT_WARRIOR,
                 selectedWarrior,
-                x,
-                y
+                ...information
+            })
+        }
+    }
+
+    // TODO: Manage two palisades
+    const palisadeClicked = (information) => {
+        if (editMode === PALISADES) {
+            dispatch('play-turn', {
+                type: PUT_PALISADES,
+                palisades: [
+                    {
+                        ...information
+                    }
+                ]
             })
         }
     }
@@ -52,11 +65,11 @@
         </li>
         <li>Palisades: {palisadesCount}</li>
         <li>
-            Grid:
             <Grid
-                value={grid}
+                {grid}
                 mode={editMode}
                 on:cell-clicked={(event) => cellClicked(event.detail)}
+                on:palisade-clicked={(event) => palisadeClicked(event.detail)}
             ></Grid>
         </li>
     </ul>
@@ -64,6 +77,6 @@
         selectedWarrior={selectedWarrior}
         currentPlayerWarriors={currentPlayerWarriors}
         on:warrior-selected={selectWarrior}
-        on:palisades-edit-mode={palisadesEditMode}
+        on:palisades-selected={palisadesEditMode}
     ></ActionChoice>
 </article>

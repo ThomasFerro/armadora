@@ -1,4 +1,4 @@
-import { PUT_WARRIOR } from './actionTypes';
+import { PUT_WARRIOR, PUT_PALISADES } from './actionTypes';
 
 const removeUsedWarrior = ({currentPlayer, players}, selectedWarrior) => {
     const warriors = players[currentPlayer].warriors
@@ -18,6 +18,7 @@ const nextCurrentPlayer = ({ currentPlayer, players }) => {
 }
 
 const putWarrior = (game, {selectedWarrior, x, y}) => {
+    console.log('putWarrior', game, x, y);
     const currentPlayerInformation = game.players[game.currentPlayer]
     const currentPlayerWarriors = currentPlayerInformation.warriors
     if (currentPlayerWarriors[selectedWarrior]) {
@@ -27,16 +28,26 @@ const putWarrior = (game, {selectedWarrior, x, y}) => {
             strength: currentPlayerWarriors[selectedWarrior]
         }
         removeUsedWarrior(game, selectedWarrior)
-        game.currentPlayer = nextCurrentPlayer(game)
     }
 }
 
-export const playTurn = (actualGame, {type, selectedWarrior, x, y}) => {
+const putPalisade = (game) => (informationPalisade) => {
+    console.log('putPalisade', game.palisades, informationPalisade);
+
+}
+
+export const playTurn = (actualGame, {type, selectedWarrior, x, y, palisades}) => {
     // TODO: deep copy
     const game = {...actualGame}
 
     if (type === PUT_WARRIOR) {
         putWarrior(game, { selectedWarrior, x, y })
+        game.currentPlayer = nextCurrentPlayer(game)
+    }
+
+    if (type === PUT_PALISADES) {
+        palisades.forEach(putPalisade(game))
+        game.currentPlayer = nextCurrentPlayer(game)
     }
 
     return game
