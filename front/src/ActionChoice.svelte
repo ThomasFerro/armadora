@@ -4,6 +4,7 @@
 
     export let currentPlayerWarriors;
     export let selectedWarrior;
+    export let hasPalisadesLeft = false;
 
     const dispatch = createEventDispatcher();
 
@@ -17,9 +18,13 @@
 </script>
 
 <section class="action">
-    <!-- TODO: disabled if there no palisade left -->
     <label>
-        <input type=radio bind:group={selectedWarrior} value={undefined} on:input={() => selectPalisades()}>
+        <input
+            type=radio bind:group={selectedWarrior}
+            value={undefined}
+            disabled={!hasPalisadesLeft}
+            on:input={() => selectPalisades()}
+        >
         Palisades
     </label>
     {#each currentPlayerWarriors as currentPlayerWarrior, warriorIndex}

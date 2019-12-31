@@ -69,6 +69,7 @@
     <ActionChoice
         selectedWarrior={selectedWarrior}
         currentPlayerWarriors={currentPlayerWarriors}
+        hasPalisadesLeft={palisadesCount > 0}
         on:warrior-selected={selectWarrior}
         on:palisades-selected={palisadesEditMode}
     ></ActionChoice>
