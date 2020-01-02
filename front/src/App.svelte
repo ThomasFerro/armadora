@@ -14,8 +14,6 @@
 </script>
 
 <!-- TODO:
-- Gérer un tour de jeu:
-	- Empêcher l'ajout d'une palisade si ça ferme une zone à moins de 4 cellules
 - Gérer la fin de partie
  -->
 
