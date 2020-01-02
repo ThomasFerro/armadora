@@ -1,4 +1,4 @@
-import { findAreas } from './areaFinder';
+import { findTerritories } from './territoriesFinder';
 import { createGame } from '../gameFactory';
 
 test('initial grid', () => {
@@ -6,19 +6,19 @@ test('initial grid', () => {
     const { grid } = createGame();
 
     // When
-    const gridWithAreas = findAreas(grid);
+    const gridWithTerritories = findTerritories(grid);
 
     // Then
-    expect(gridWithAreas.length).toBe(grid.length);
-    gridWithAreas.forEach((row, rowIndex) => {
+    expect(gridWithTerritories.length).toBe(grid.length);
+    gridWithTerritories.forEach((row, rowIndex) => {
         expect(row.length).toBe(grid[rowIndex].length)
         row.forEach(cell => {
-            expect(cell.areaId).toBe(0)
+            expect(cell.territoryId).toBe(0)
         })
     })
 })
 
-test('two areas', () => {
+test('two territories', () => {
     // Given
     const { grid } = createGame();
 
@@ -33,7 +33,7 @@ test('two areas', () => {
     grid[1][2].palisades.bottom = true;
 
     // When
-    const gridWithAreas = findAreas(grid);
+    const gridWithTerritories = findTerritories(grid);
 
     // Then
     let row;
@@ -41,13 +41,13 @@ test('two areas', () => {
     
     for (row = 0; row < 2; row++) {
         for (col = 0; col < 3; col++) {
-            expect(gridWithAreas[row][col].areaId).toBe(0);
+            expect(gridWithTerritories[row][col].territoryId).toBe(0);
         }
     }
 
-    for (; row < gridWithAreas.length; row++) {
-        for (; col < gridWithAreas[row].length; col++) {
-            expect(gridWithAreas[row][col].areaId).not.toBe(0);
+    for (; row < gridWithTerritories.length; row++) {
+        for (; col < gridWithTerritories[row].length; col++) {
+            expect(gridWithTerritories[row][col].territoryId).not.toBe(0);
         }
     }
 })

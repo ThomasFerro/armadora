@@ -1,5 +1,5 @@
-import { findAreas } from './area/areaFinder';
-import { validGrid } from './area/areaValidator';
+import { findTerritories } from './territory/territoriesFinder';
+import { validGrid } from './territory/territoriesValidator';
 import { PUT_WARRIOR, PUT_PALISADES } from './actionTypes';
 
 const removeUsedWarrior = ({currentPlayer, players}, selectedWarrior) => {
@@ -61,17 +61,17 @@ const putPalisade = (game) => ({x, y, vertical}) => {
     }
 }
 
-const computeGridAreas = (grid) => {
+const computeGridTerritories = (grid) => {
     const cleanGrid = grid.map(
         row => row.map(
             cell => ({
                 ...cell,
-                areaId: undefined
+                territoryId: undefined
             })
         )
     );
 
-    return findAreas(cleanGrid);
+    return findTerritories(cleanGrid);
 }
 
 export const playTurn = (actualGame, {type, selectedWarrior, x, y, palisades}) => {
@@ -86,7 +86,7 @@ export const playTurn = (actualGame, {type, selectedWarrior, x, y, palisades}) =
     if (type === PUT_PALISADES) {
         if (game.palisadesCount >= palisades.length) {
             palisades.forEach(putPalisade(game))
-            const newGrid = computeGridAreas(game.grid)
+            const newGrid = computeGridTerritories(game.grid)
             if (!validGrid(newGrid)) {
                 return actualGame;
             }
