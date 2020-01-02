@@ -42,6 +42,7 @@
         }
     }
 
+    // TODO : Extract in a palisade module
     let selectedPalisades = []
 
     $: ongoingPalisadeSelection = selectedPalisades.length > 0
