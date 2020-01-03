@@ -6,6 +6,7 @@
     import { WARRIORS, PALISADES } from '../editModes';
     import { PUT_WARRIOR, PUT_PALISADES } from '../actionTypes';
 
+    export let hidden = false;
     export let players;
     export let palisadesCount;
     export let grid;
@@ -78,7 +79,7 @@
     }
 </script>
 
-<article class="game">
+<article class="game" class:hidden>
     {#if !results}
     <Players currentPlayer={currentPlayer} players={players}></Players>
     <p>Palisades: {palisadesCount}</p>
@@ -104,3 +105,9 @@
     <button on:click={newGame}>New game</button>
     {/if}
 </article>
+
+<style>
+.game.hidden {
+    display: none;
+}
+</style>
