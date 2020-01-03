@@ -1,8 +1,8 @@
 <script>
 	import { onMount } from 'svelte';
-	import Game from './Game.svelte';
-	import { createGame } from './gameFactory';
-	import { playTurn } from './gameEngine';
+	import Game from './game/Game.svelte';
+	import { createGame } from './game/gameFactory';
+	import { playTurn } from './game/gameEngine';
 
 	let game;
 
@@ -12,10 +12,6 @@
 
 	onMount(newGame);
 </script>
-
-<!-- TODO:
-- Gérer la fin de partie
- -->
 
 <main>
 	<h1>Armadöra</h1>

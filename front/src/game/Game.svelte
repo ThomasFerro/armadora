@@ -1,10 +1,10 @@
 <script>
     import { createEventDispatcher } from 'svelte';
-    import Grid from './Grid.svelte';
-    import Players from './Players.svelte';
-    import ActionChoice from './ActionChoice.svelte';
-    import { WARRIORS, PALISADES } from './editModes';
-    import { PUT_WARRIOR, PUT_PALISADES } from './actionTypes';
+    import Grid from '../Grid.svelte';
+    import Players from '../Players.svelte';
+    import ActionChoice from '../ActionChoice.svelte';
+    import { WARRIORS, PALISADES } from '../editModes';
+    import { PUT_WARRIOR, PUT_PALISADES } from '../actionTypes';
 
     export let players;
     export let palisadesCount;

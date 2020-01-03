@@ -1,5 +1,5 @@
 import { findTerritories } from './territoriesFinder';
-import { createGame } from '../gameFactory';
+import { createGame } from '../game/gameFactory';
 
 test('initial grid', () => {
     // Given
