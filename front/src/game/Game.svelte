@@ -10,6 +10,7 @@
     export let palisadesCount;
     export let grid;
     export let currentPlayer;
+    export let results = undefined;
 
     const dispatch = createEventDispatcher();
 
@@ -69,9 +70,16 @@
             selectedPalisades = []
         }
     }
+
+    $: winner = results && players[results.winner] && players[results.winner].race
+
+    const newGame = () => {
+        dispatch('new-game')
+    }
 </script>
 
 <article class="game">
+    {#if !results}
     <Players currentPlayer={currentPlayer} players={players}></Players>
     <p>Palisades: {palisadesCount}</p>
     <Grid
@@ -91,4 +99,8 @@
         on:cancel-palisade-selection={clearPalisadeSelection}
         on:validate-palisade-selection={validatePalisades}
     ></ActionChoice>
+    {:else}
+    <span>{winner} wins !</span>
+    <button on:click={newGame}>New game</button>
+    {/if}
 </article>

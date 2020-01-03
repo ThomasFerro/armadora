@@ -17,8 +17,9 @@
 	<h1>Armadöra</h1>
 	{#if game}
 		<Game
-			on:play-turn={(event) => game = playTurn(game, event.detail)}
 			{...game}
+			on:play-turn={(event) => game = playTurn(game, event.detail)}
+			on:new-game={newGame}
 		></Game>
 	{:else}
 		<!-- TODO: New game form -->
