@@ -32,15 +32,16 @@
         <button on:click={validatePalisadeSelection}>Validate</button>
         <button on:click={cancelPalisadeSelection}>Cancel</button>
     {:else}
+        {#if hasPalisadesLeft}
         <label>
             <input
                 type=radio bind:group={selectedWarrior}
-                value={undefined}
-                disabled={!hasPalisadesLeft}
+                value={-1}
                 on:input={() => selectPalisades()}
             >
             Palisades
         </label>
+        {/if}
         {#each currentPlayerWarriors as currentPlayerWarrior, warriorIndex}
             <label>
                 <input type=radio bind:group={selectedWarrior} value={warriorIndex} on:input={() => selectWarrior(warriorIndex)}>

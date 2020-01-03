@@ -18,7 +18,7 @@
     let editMode = PALISADES;
 
     const palisadesEditMode = () => {
-        selectedWarrior = null
+        selectedWarrior = -1
         editMode = PALISADES
     }
 
@@ -26,7 +26,7 @@
         editMode = WARRIORS
     }
 
-    let selectedWarrior;
+    let selectedWarrior = -1;
     const selectWarrior = (event) => {
         selectedWarrior = event.detail.warriorIndex
         warriorsEditMode()
@@ -41,6 +41,7 @@
                 selectedWarrior,
                 ...information
             })
+            palisadesEditMode()
         }
     }
 
@@ -69,6 +70,7 @@
                 palisades: selectedPalisades
             })
             selectedPalisades = []
+            palisadesEditMode()
         }
     }
 
