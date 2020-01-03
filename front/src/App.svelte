@@ -1,16 +1,13 @@
 <script>
-	import { onMount } from 'svelte';
+	import NewGame from './NewGame.svelte';
 	import Game from './game/Game.svelte';
-	import { createGame } from './game/gameFactory';
 	import { playTurn } from './game/gameEngine';
 
 	let game;
 
 	const newGame = () => {
-		game = createGame();
+		game = null
 	}
-
-	onMount(newGame);
 
 	let nextPlayerMask = false
 	let turnInformation = undefined
@@ -42,8 +39,9 @@
 			on:new-game={newGame}
 		></Game>
 	{:else}
-		<!-- TODO: New game form -->
-		<button on:click={newGame}>Start a game</button>
+		<NewGame
+			on:new-game={({ detail }) => game = detail}
+		></NewGame>
 	{/if}
 
 	<!-- TODO: Licence -->

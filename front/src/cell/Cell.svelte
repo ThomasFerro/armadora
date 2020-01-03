@@ -1,5 +1,5 @@
 <script>
-    import { LAND } from './cellTypes';
+    import { LAND, GOLD } from './cellTypes';
     import { WARRIORS } from '../editModes';
 
     export let value;
@@ -18,14 +18,22 @@
     })()
     $: cellClasses = `cell ${editMode}`
     $: disabled = editMode !== WARRIORS || value.type != LAND || value.warrior
-    $: cellValue = value.warrior ? value.warrior.playerDisplayName : value.type
+    $: cellValue = () => {
+        if (value.warrior) {
+            return value.warrior.playerDisplayName
+        }
+        if (value.type === GOLD) {
+            return value.pile
+        }
+        return ''
+    }
 </script>
 
 <button
     class={cellClasses}
     {disabled}
     on:click
->{cellValue}</button>
+>{cellValue()}</button>
 
 <style>
     .cell {
