@@ -1,6 +1,6 @@
 <script>
     import { LAND } from './cellTypes';
-    import { WARRIORS } from './editModes';
+    import { WARRIORS } from '../editModes';
 
     export let value;
     export let mode;

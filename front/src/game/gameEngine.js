@@ -1,7 +1,7 @@
 import { findTerritories } from '../territory/territoriesFinder';
 import { validGrid } from '../territory/territoriesValidator';
-import { PUT_WARRIOR, PUT_PALISADES } from '../actionTypes';
-import { GOLD } from '../cellTypes';
+import { PUT_WARRIOR, PUT_PALISADES } from '../action/actionTypes';
+import { GOLD } from '../cell/cellTypes';
 
 const removeUsedWarrior = ({currentPlayer, players}, selectedWarrior) => {
     const warriors = players[currentPlayer].warriors

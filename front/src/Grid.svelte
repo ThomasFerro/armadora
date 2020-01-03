@@ -1,6 +1,6 @@
 <script>
     import { createEventDispatcher } from 'svelte';
-    import Cell from './Cell.svelte';
+    import Cell from './cell/Cell.svelte';
     import Palisade from './Palisade.svelte';
     import { WARRIORS } from './editModes';
 

@@ -1,6 +1,6 @@
 <script>
     import { createEventDispatcher } from 'svelte';
-    import { WARRIORS, PALISADES } from './editModes';
+    import { WARRIORS, PALISADES } from '../editModes';
 
     export let currentPlayerWarriors;
     export let selectedWarrior;

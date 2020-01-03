@@ -1,5 +1,5 @@
 import { computeResults } from './gameEngine';
-import { LAND, GOLD } from '../cellTypes';
+import { LAND, GOLD } from '../cell/cellTypes';
 
 const cell = () => ({
     palisades: {}
