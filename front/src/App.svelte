@@ -44,6 +44,8 @@
 		></NewGame>
 	{/if}
 
+	<!-- TODO: Design -->
+	<!-- TODO: Tuto / rules -->
 	<!-- TODO: Licence -->
 </main>
 

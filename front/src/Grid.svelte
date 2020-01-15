@@ -83,7 +83,6 @@
 
 <style>
     .grid {
-        /* TODO: responsive */
         --cell-width: 100px;
         --palisade-width: 20px;
 
