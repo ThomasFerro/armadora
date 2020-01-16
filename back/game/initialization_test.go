@@ -11,7 +11,7 @@ import (
 
 /*
 TODO:
-- Start the game
+- To determine: who can start the game ?
 - One player cannot start a game alone
 - A fifth player cannot join a game
 - Players cannot join a game once it started
@@ -36,7 +36,7 @@ func TestGameCreateInWaitingForPlayersState(t *testing.T) {
 	})
 
 	if newGame.State() != game.WaitingForPlayers {
-		t.Error("The new game is not in 'WaitingForPlayers state")
+		t.Error("The new game is not in 'WaitingForPlayers' state")
 	}
 }
 
@@ -107,5 +107,32 @@ func TestFourPlayersJoinAGame(t *testing.T) {
 			t.Error("One player's information does not match what was expected")
 			return
 		}
+	}
+}
+
+func TestStartTheGame(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+	}
+
+	history = append(history, command.StartTheGame(history)...)
+
+	newGame := game.ReplayHistory(history)
+
+	if newGame.State() != game.Started {
+		t.Error("The new game is not in 'Started' state")
+		return
+	}
+
+	if newGame.CurrentPlayer() != 0 {
+		t.Error("The current player is not the first one")
 	}
 }

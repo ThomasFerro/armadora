@@ -8,13 +8,16 @@ import (
 type Game interface {
 	State() State
 	Players() []Player
+	CurrentPlayer() int
 	ApplyGameCreated(event event.GameCreated) Game
 	ApplyPlayerJoined(event event.PlayerJoined) Game
+	ApplyGameStarted(event event.GameStarted) Game
 }
 
 type game struct {
-	state   State
-	players []Player
+	state         State
+	players       []Player
+	currentPlayer int
 }
 
 // State The game's current state
@@ -27,6 +30,11 @@ func (g game) Players() []Player {
 	return g.players
 }
 
+// CurrentPlayer The game's current player
+func (g game) CurrentPlayer() int {
+	return g.currentPlayer
+}
+
 func (g game) ApplyGameCreated(event event.GameCreated) Game {
 	g.state = WaitingForPlayers
 	return g
@@ -34,6 +42,11 @@ func (g game) ApplyGameCreated(event event.GameCreated) Game {
 
 func (g game) ApplyPlayerJoined(event event.PlayerJoined) Game {
 	g.players = append(g.players, NewPlayer(event.Nickname, event.Character))
+	return g
+}
+
+func (g game) ApplyGameStarted(event event.GameStarted) Game {
+	g.state = Started
 	return g
 }
 
@@ -49,6 +62,9 @@ func ReplayHistory(history []event.Event) Game {
 		case event.PlayerJoined:
 			playerJoinedEvent, _ := nextEvent.(event.PlayerJoined)
 			returnedGame = returnedGame.ApplyPlayerJoined(playerJoinedEvent)
+		case event.GameStarted:
+			gameStartedEvent, _ := nextEvent.(event.GameStarted)
+			returnedGame = returnedGame.ApplyGameStarted(gameStartedEvent)
 		}
 	}
 	return returnedGame
