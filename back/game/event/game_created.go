@@ -5,5 +5,5 @@ type GameCreated struct{}
 
 // EventMessage Indicate that the game has been created
 func (event GameCreated) EventMessage() string {
-	return "The game has been created"
+	return "The game has been created."
 }

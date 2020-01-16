@@ -12,7 +12,6 @@ import (
 /*
 TODO:
 - To determine: who can start the game ?
-- One player cannot start a game alone
 - A fifth player cannot join a game
 - Players cannot join a game once it started
 - A new player cannot select a race already chosen
@@ -134,5 +133,49 @@ func TestStartTheGame(t *testing.T) {
 
 	if newGame.CurrentPlayer() != 0 {
 		t.Error("The current player is not the first one")
+	}
+}
+
+func TestCannotStartAGameWhenThereIsNoPlayer(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+	}
+
+	history = append(history, command.StartTheGame(history)...)
+	lastEvent := history[len(history)-1]
+
+	newGame := game.ReplayHistory(history)
+
+	if _, isOfRightEventType := lastEvent.(event.NotEnoughPlayers); !isOfRightEventType {
+		t.Error("The error event was not sent")
+		return
+	}
+
+	if newGame.State() != game.WaitingForPlayers {
+		t.Error("The game's state has change, it is not waiting for players anymore")
+	}
+}
+
+func TestOnePlayerCannotStartAGameAlone(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+	}
+
+	history = append(history, command.StartTheGame(history)...)
+	lastEvent := history[len(history)-1]
+
+	newGame := game.ReplayHistory(history)
+
+	if _, isOfRightEventType := lastEvent.(event.NotEnoughPlayers); !isOfRightEventType {
+		t.Error("The error event was not sent")
+		return
+	}
+
+	if newGame.State() != game.WaitingForPlayers {
+		t.Error("The game's state has change, it is not waiting for players anymore")
 	}
 }

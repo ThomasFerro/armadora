@@ -14,5 +14,5 @@ type PlayerJoined struct {
 
 // EventMessage Indicate that a player has joined the game
 func (event PlayerJoined) EventMessage() string {
-	return fmt.Sprintf("%v has joined the game as %v", event.Nickname, event.Character)
+	return fmt.Sprintf("%v has joined the game as %v.", event.Nickname, event.Character)
 }
