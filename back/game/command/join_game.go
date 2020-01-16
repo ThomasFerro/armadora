@@ -16,6 +16,12 @@ type JoinGamePayload struct {
 func JoinGame(history []event.Event, joinGamePayload JoinGamePayload) []event.Event {
 	gameToJoin := game.ReplayHistory(history)
 
+	if gameToJoin.State() != game.WaitingForPlayers {
+		return []event.Event{
+			event.GameAlreadyStarted{},
+		}
+	}
+
 	if len(gameToJoin.Players()) == 4 {
 		return []event.Event{
 			event.GameAlreadyFull{},

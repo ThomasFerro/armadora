@@ -12,7 +12,6 @@ import (
 /*
 TODO:
 - To determine: who can start the game ?
-- Players cannot join a game once it started
 - Distribute the wariors based on the number of players
 - Distribute the gold
 */
@@ -255,5 +254,39 @@ func TestOnePlayerCannotStartAGameAlone(t *testing.T) {
 
 	if newGame.State() != game.WaitingForPlayers {
 		t.Error("The game's state has change, it is not waiting for players anymore")
+	}
+}
+
+func TestPlayersCannotJoinAGameOnceItStarted(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GameStarted{},
+	}
+
+	joinGameCommandPayload := command.JoinGamePayload{
+		Nickname:  "Kileek",
+		Character: character.Mage,
+	}
+
+	history = append(history, command.JoinGame(history, joinGameCommandPayload)...)
+	lastEvent := history[len(history)-1]
+
+	newGame := game.ReplayHistory(history)
+
+	if _, isOfRightEventType := lastEvent.(event.GameAlreadyStarted); !isOfRightEventType {
+		t.Error("The error event was not sent")
+		return
+	}
+
+	if len(newGame.Players()) != 2 {
+		t.Error("The player was added after the game started")
 	}
 }
