@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/ThomasFerro/armadora/game"
+	"github.com/ThomasFerro/armadora/game/event"
 )
 
 /*
@@ -30,7 +31,7 @@ func TestCreateAGame(t *testing.T) {
 func TestGameCreateInWaitingForPlayersState(t *testing.T) {
 	gameCreatedEvent := game.CreateGame()
 
-	newGame := game.ReplayHistory([]game.Event{
+	newGame := game.ReplayHistory([]event.Event{
 		gameCreatedEvent,
 	})
 
