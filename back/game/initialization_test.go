@@ -12,7 +12,6 @@ import (
 /*
 TODO:
 - To determine: who can start the game ?
-- Distribute the wariors based on the number of players
 - Distribute the gold
 */
 
@@ -288,5 +287,41 @@ func TestPlayersCannotJoinAGameOnceItStarted(t *testing.T) {
 
 	if len(newGame.Players()) != 2 {
 		t.Error("The player was added after the game started")
+	}
+}
+
+func TestWarriorsShouldBeDistributedOnGameStart(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GameStarted{},
+	}
+
+	history = append(history, command.StartTheGame(history)...)
+	warriorsDistributedEventFound := false
+
+	for _, nextEvent := range history {
+		if _, isOfRightEventType := nextEvent.(event.WarriorsDistributed); isOfRightEventType {
+			warriorsDistributedEventFound = true
+		}
+	}
+
+	if !warriorsDistributedEventFound {
+		t.Error("The warriors were not distributed")
+	}
+
+	newGame := game.ReplayHistory(history)
+	for _, player := range newGame.Players() {
+		if player.Warriors() == nil {
+			t.Error("A player has no warrior")
+			return
+		}
 	}
 }

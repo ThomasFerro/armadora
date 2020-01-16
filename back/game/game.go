@@ -11,6 +11,7 @@ type Game interface {
 	CurrentPlayer() int
 	ApplyGameCreated(event event.GameCreated) Game
 	ApplyPlayerJoined(event event.PlayerJoined) Game
+	ApplyWarriorsDistributed(event event.WarriorsDistributed) Game
 	ApplyGameStarted(event event.GameStarted) Game
 }
 
@@ -45,6 +46,15 @@ func (g game) ApplyPlayerJoined(event event.PlayerJoined) Game {
 	return g
 }
 
+func (g game) ApplyWarriorsDistributed(event event.WarriorsDistributed) Game {
+	players := []Player{}
+	for _, player := range g.Players() {
+		players = append(players, player.SetWarriors(event.WarriorsDistributed))
+	}
+	g.players = players
+	return g
+}
+
 func (g game) ApplyGameStarted(event event.GameStarted) Game {
 	g.state = Started
 	return g
@@ -62,6 +72,9 @@ func ReplayHistory(history []event.Event) Game {
 		case event.PlayerJoined:
 			playerJoinedEvent, _ := nextEvent.(event.PlayerJoined)
 			returnedGame = returnedGame.ApplyPlayerJoined(playerJoinedEvent)
+		case event.WarriorsDistributed:
+			warriorsDistributedEvent, _ := nextEvent.(event.WarriorsDistributed)
+			returnedGame = returnedGame.ApplyWarriorsDistributed(warriorsDistributedEvent)
 		case event.GameStarted:
 			gameStartedEvent, _ := nextEvent.(event.GameStarted)
 			returnedGame = returnedGame.ApplyGameStarted(gameStartedEvent)
