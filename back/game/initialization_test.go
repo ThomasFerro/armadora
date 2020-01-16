@@ -4,12 +4,12 @@ import (
 	"testing"
 
 	"github.com/ThomasFerro/armadora/game"
+	"github.com/ThomasFerro/armadora/game/command"
 	"github.com/ThomasFerro/armadora/game/event"
 )
 
 /*
 TODO:
-- Create a game
 - Join a game with a nickname and a race
 - Start the game
 - One player cannot start a game alone
@@ -21,7 +21,7 @@ TODO:
 */
 
 func TestCreateAGame(t *testing.T) {
-	gameCreatedEvent := game.CreateGame()
+	gameCreatedEvent := command.CreateGame()
 
 	if len(gameCreatedEvent.EventMessage()) == 0 {
 		t.Error("The game has not been created")
@@ -29,7 +29,7 @@ func TestCreateAGame(t *testing.T) {
 }
 
 func TestGameCreateInWaitingForPlayersState(t *testing.T) {
-	gameCreatedEvent := game.CreateGame()
+	gameCreatedEvent := command.CreateGame()
 
 	newGame := game.ReplayHistory([]event.Event{
 		gameCreatedEvent,

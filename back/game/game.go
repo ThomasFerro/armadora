@@ -24,11 +24,6 @@ func (g game) Apply(event event.GameCreated) Game {
 	return g
 }
 
-// CreateGame Create a new game
-func CreateGame() event.GameCreated {
-	return event.GameCreated{}
-}
-
 // ReplayHistory Replay the provided history to retrieve the game state
 func ReplayHistory(history []event.Event) Game {
 	var returnedGame Game
