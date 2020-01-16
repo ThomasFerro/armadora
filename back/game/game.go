@@ -7,11 +7,14 @@ import (
 // Game Instance of an Aramdora game
 type Game interface {
 	State() State
-	Apply(event event.GameCreated) Game
+	Players() []Player
+	ApplyGameCreated(event event.GameCreated) Game
+	ApplyPlayerJoined(event event.PlayerJoined) Game
 }
 
 type game struct {
-	state State
+	state   State
+	players []Player
 }
 
 // State The game's current state
@@ -19,8 +22,18 @@ func (g game) State() State {
 	return g.state
 }
 
-func (g game) Apply(event event.GameCreated) Game {
+// Player The game's Players
+func (g game) Players() []Player {
+	return g.players
+}
+
+func (g game) ApplyGameCreated(event event.GameCreated) Game {
 	g.state = WaitingForPlayers
+	return g
+}
+
+func (g game) ApplyPlayerJoined(event event.PlayerJoined) Game {
+	g.players = append(g.players, NewPlayer(event.Nickname, event.Character))
 	return g
 }
 
@@ -32,7 +45,10 @@ func ReplayHistory(history []event.Event) Game {
 		switch nextEvent.(type) {
 		case event.GameCreated:
 			gameCreatedEvent, _ := nextEvent.(event.GameCreated)
-			returnedGame = returnedGame.Apply(gameCreatedEvent)
+			returnedGame = returnedGame.ApplyGameCreated(gameCreatedEvent)
+		case event.PlayerJoined:
+			playerJoinedEvent, _ := nextEvent.(event.PlayerJoined)
+			returnedGame = returnedGame.ApplyPlayerJoined(playerJoinedEvent)
 		}
 	}
 	return returnedGame
