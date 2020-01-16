@@ -12,7 +12,6 @@ import (
 /*
 TODO:
 - To determine: who can start the game ?
-- A fifth player cannot join a game
 - Players cannot join a game once it started
 - A new player cannot select a race already chosen
 - Distribute the wariors based on the number of players
@@ -177,5 +176,53 @@ func TestOnePlayerCannotStartAGameAlone(t *testing.T) {
 
 	if newGame.State() != game.WaitingForPlayers {
 		t.Error("The game's state has change, it is not waiting for players anymore")
+	}
+}
+
+func TestAFifthPlayerCannotJoinAGame(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+	}
+
+	joinGameCommandPayloads := []command.JoinGamePayload{
+		command.JoinGamePayload{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		command.JoinGamePayload{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		command.JoinGamePayload{
+			Nickname:  "Kileek",
+			Character: character.Orc,
+		},
+		command.JoinGamePayload{
+			Nickname:  "LaNinjaBabané",
+			Character: character.Mage,
+		},
+	}
+
+	for _, nextCommand := range joinGameCommandPayloads {
+		history = append(history, command.JoinGame(history, nextCommand)...)
+	}
+
+	unauthorizedPlayerTryingToJoin := command.JoinGamePayload{
+		Nickname:  "TheFifthPlayer",
+		Character: character.Mage,
+	}
+
+	history = append(history, command.JoinGame(history, unauthorizedPlayerTryingToJoin)...)
+	lastEvent := history[len(history)-1]
+
+	newGame := game.ReplayHistory(history)
+
+	if _, isOfRightEventType := lastEvent.(event.GameAlreadyFull); !isOfRightEventType {
+		t.Error("The error event was not sent")
+		return
+	}
+
+	if len(newGame.Players()) != 4 {
+		t.Error("The fifth player was added to the game")
 	}
 }

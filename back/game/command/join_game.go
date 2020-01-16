@@ -1,6 +1,7 @@
 package command
 
 import (
+	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/event"
 )
@@ -13,7 +14,14 @@ type JoinGamePayload struct {
 
 // JoinGame Join a game
 func JoinGame(history []event.Event, joinGamePayload JoinGamePayload) []event.Event {
-	// TODO: Check if there is already 4 players
+	gameToJoin := game.ReplayHistory(history)
+
+	if len(gameToJoin.Players()) == 4 {
+		return []event.Event{
+			event.GameAlreadyFull{},
+		}
+	}
+
 	// TODO: Check if the character is already chosen
 	return []event.Event{
 		event.PlayerJoined{
