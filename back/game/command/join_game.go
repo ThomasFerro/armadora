@@ -22,7 +22,16 @@ func JoinGame(history []event.Event, joinGamePayload JoinGamePayload) []event.Ev
 		}
 	}
 
-	// TODO: Check if the character is already chosen
+	for _, player := range gameToJoin.Players() {
+		if player.Character() == joinGamePayload.Character {
+			return []event.Event{
+				event.CharacterAlreadyChosen{
+					Character: joinGamePayload.Character,
+				},
+			}
+		}
+	}
+
 	return []event.Event{
 		event.PlayerJoined{
 			Nickname:  joinGamePayload.Nickname,
