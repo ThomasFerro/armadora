@@ -12,7 +12,6 @@ import (
 /*
 TODO:
 - To determine: who can start the game ?
-- Distribute the gold
 */
 
 func TestCreateAGame(t *testing.T) {

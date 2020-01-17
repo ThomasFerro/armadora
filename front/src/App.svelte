@@ -1,53 +1,65 @@
 <script>
-	import NewGame from './NewGame.svelte';
-	import Game from './game/Game.svelte';
-	import { playTurn } from './game/gameEngine';
+	import { onMount } from 'svelte'
 
+	let ws;
+	let username;
+	let character;
 	let game;
 
-	const newGame = () => {
-		game = null
-	}
+	$: canConnect = username && character && game
+	// TODO: Real connection
+	$: connected = game && game.players && game.players.find(player => player.nickname === username)
+	$: availableCharacters = game && game.available_characters || []
 
-	let nextPlayerMask = false
-	let turnInformation = undefined
-	const turnPlayed = (information) => {
-		const currentPlayer = game.currentPlayer
-		game = playTurn(game, information)
-		if (currentPlayer != game.currentPlayer) {
-			nextPlayerMask = true
+	const connectToTheGame = () => {
+		if (!canConnect) {
+			return
 		}
+		ws.send(JSON.stringify({
+			command_type: 'JoinGame',
+			payload: {
+				Nickname: username,
+				Character: character,
+			}
+		}))
 	}
 
-	$: nextPlayer = game && game.players[game.currentPlayer]
-
-	const nextPlayerIsReady = () => {
-		nextPlayerMask = false
+	const startGame = () => {
+		ws.send(JSON.stringify({
+			command_type: 'StartTheGame',
+		}))
 	}
+
+	onMount(() => {
+		ws = new WebSocket('ws://' + window.location.host + '/ws');
+		ws.addEventListener('message', (e) => {
+			game = JSON.parse(e.data);
+		})
+	})
 </script>
 
 <main>
 	<h1>Armadöra</h1>
-	{#if game}
-		{#if nextPlayerMask}
-		<button on:click={nextPlayerIsReady}>Next player: {nextPlayer.race}</button>
-		{/if}
-		<Game
-			{...game}
-			hidden={nextPlayerMask}
-			on:play-turn={(event) => turnPlayed(event.detail)}
-			on:new-game={newGame}
-		></Game>
+	{#if !connected}
+	<form on:submit|preventDefault={connectToTheGame}>
+		<label>
+			Username:
+			<input type="text" bind:value={username}>
+		</label>
+		<label>
+			Character:
+			<select bind:value={character}>
+				<option disabled>Select a character</option>
+				{#each availableCharacters as availableCharacter}
+				<option value={availableCharacter}>{availableCharacter}</option>
+				{/each}
+			</select>
+		</label>
+		<input type="submit" value="Connect to the game" disabled={!canConnect}>
+	</form>
 	{:else}
-		<NewGame
-			on:new-game={({ detail }) => game = detail}
-		></NewGame>
+	Connected !!!!
+	<button on:click={startGame}>Start that game</button>
 	{/if}
-
-	<!-- TODO: Design -->
-	<!-- TODO: Tuto / rules -->
-	<!-- TODO: Licence -->
+	<pre>{JSON.stringify(game)}</pre>
 </main>
-
-<style>
-</style>
