@@ -325,3 +325,45 @@ func TestWarriorsShouldBeDistributedOnGameStart(t *testing.T) {
 		}
 	}
 }
+
+func TestGoldStacksShouldBeDistributedOnGameStart(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GameStarted{},
+	}
+
+	history = append(history, command.StartTheGame(history)...)
+	var goldStacksDistributed []int
+
+	for _, nextEvent := range history {
+		if rightEvent, isOfRightEventType := nextEvent.(event.GoldStacksDistributed); isOfRightEventType {
+			goldStacksDistributed = rightEvent.GoldStacks
+		}
+	}
+
+	if goldStacksDistributed == nil {
+		t.Error("The gold stacks were not distributed")
+		return
+	}
+
+	newGame := game.ReplayHistory(history)
+	boardGoldStacks := newGame.Board().GoldStacks()
+	if len(boardGoldStacks) != len(goldStacksDistributed) {
+		t.Error("The game's board did not receive all of the gold to distribute")
+		return
+	}
+	for index, stack := range boardGoldStacks {
+		if goldStacksDistributed[index] != stack {
+			t.Error("The distributed gold stack does not match with the board")
+			return
+		}
+	}
+}

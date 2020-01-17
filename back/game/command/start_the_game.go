@@ -3,6 +3,7 @@ package command
 import (
 	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/gold"
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
@@ -24,6 +25,12 @@ func StartTheGame(history []event.Event) []event.Event {
 
 	events = append(events, event.WarriorsDistributed{
 		warriorsToDistribute,
+	})
+
+	goldStacksToDistribute := gold.GoldToDistribute()
+
+	events = append(events, event.GoldStacksDistributed{
+		goldStacksToDistribute,
 	})
 
 	return append(events, event.GameStarted{})

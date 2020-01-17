@@ -1,6 +1,7 @@
 package game
 
 import (
+	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/event"
 )
 
@@ -9,16 +10,19 @@ type Game interface {
 	State() State
 	Players() []Player
 	CurrentPlayer() int
+	Board() board.Board
 	ApplyGameCreated(event event.GameCreated) Game
 	ApplyPlayerJoined(event event.PlayerJoined) Game
 	ApplyWarriorsDistributed(event event.WarriorsDistributed) Game
 	ApplyGameStarted(event event.GameStarted) Game
+	ApplyGoldStacksDistributed(event event.GoldStacksDistributed) Game
 }
 
 type game struct {
 	state         State
 	players       []Player
 	currentPlayer int
+	board         board.Board
 }
 
 // State The game's current state
@@ -34,6 +38,11 @@ func (g game) Players() []Player {
 // CurrentPlayer The game's current player
 func (g game) CurrentPlayer() int {
 	return g.currentPlayer
+}
+
+// Board The game's Board
+func (g game) Board() board.Board {
+	return g.board
 }
 
 func (g game) ApplyGameCreated(event event.GameCreated) Game {
@@ -60,6 +69,11 @@ func (g game) ApplyGameStarted(event event.GameStarted) Game {
 	return g
 }
 
+func (g game) ApplyGoldStacksDistributed(event event.GoldStacksDistributed) Game {
+	g.board = board.NewBoard(event.GoldStacks)
+	return g
+}
+
 // ReplayHistory Replay the provided history to retrieve the game state
 func ReplayHistory(history []event.Event) Game {
 	var returnedGame Game
@@ -78,6 +92,9 @@ func ReplayHistory(history []event.Event) Game {
 		case event.GameStarted:
 			gameStartedEvent, _ := nextEvent.(event.GameStarted)
 			returnedGame = returnedGame.ApplyGameStarted(gameStartedEvent)
+		case event.GoldStacksDistributed:
+			goldStacksDistributedEvent, _ := nextEvent.(event.GoldStacksDistributed)
+			returnedGame = returnedGame.ApplyGoldStacksDistributed(goldStacksDistributedEvent)
 		}
 	}
 	return returnedGame

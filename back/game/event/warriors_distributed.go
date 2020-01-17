@@ -6,7 +6,7 @@ import (
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
-// WarriorsDistributed The warriors distributed is done
+// WarriorsDistributed The warriors are distributed
 type WarriorsDistributed struct {
 	WarriorsDistributed warrior.Warriors
 }
