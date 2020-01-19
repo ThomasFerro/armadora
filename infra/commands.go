@@ -1,59 +1,28 @@
 package infra
 
 import (
-	"fmt"
 	"log"
 
-	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/command"
 	"github.com/ThomasFerro/armadora/game/event"
-	"github.com/google/uuid"
 )
 
 type Command struct {
-	Id          string            `json:"id"`
 	CommandType string            `json:"command_type"`
 	Payload     map[string]string `json:"payload"`
 }
 
-func ManageCommand(msg Command) GameDto {
-	fmt.Printf("Receiving command with id %v\n", msg.Id)
-	gameId := msg.Id
-	history := getHistory(gameId)
-	newEvents := []event.Event{}
+func ManageCommand(history []event.Event, msg Command) []event.Event {
 	switch msg.CommandType {
 	case "CreateGame":
-		gameId = generateNewId()
-		newEvents = createGame(history, msg)
+		return createGame(history, msg)
 	case "JoinGame":
-		newEvents = joinGame(history, msg)
+		return joinGame(history, msg)
 	case "StartTheGame":
-		newEvents = startTheGame(history, msg)
+		return startTheGame(history, msg)
 	}
-	saveNewEvents(gameId, newEvents)
-	return ToGameDto(
-		game.ReplayHistory(
-			append(
-				history,
-				newEvents...,
-			),
-		),
-	)
-}
-
-func generateNewId() string {
-	return uuid.New().String()
-}
-
-var gameHistory = map[string][]event.Event{}
-
-func saveNewEvents(id string, newEvents []event.Event) {
-	gameHistory[id] = append(gameHistory[id], newEvents...)
-}
-
-func getHistory(id string) []event.Event {
-	return gameHistory[id]
+	return []event.Event{}
 }
 
 func createGame(gameHistory []event.Event, msg Command) []event.Event {

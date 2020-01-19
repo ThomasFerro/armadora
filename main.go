@@ -66,17 +66,15 @@ func handleConnectionsToPartyWs(w http.ResponseWriter, r *http.Request) {
 	infra.AddClientToParty(partyId, ws)
 
 	for {
-		// TODO: Manage party commands
-		var msg string
+		var msg infra.Command
 		// Read in a new message as JSON and map it to a Message object
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("Error while reading party message: %v", err)
-			// delete(clients, ws)
+			infra.RemoveClientFromParty(partyId, ws)
 			break
 		}
-		// Send the newly received message to the broadcast channel
-		// broadcast <- msg
+		infra.ReceiveCommand(partyId, msg)
 	}
 }
 

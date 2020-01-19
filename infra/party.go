@@ -19,10 +19,26 @@ type Party struct {
 	Broadcast chan GameDto
 }
 
+func ReceiveCommand(partyId PartyId, command Command) {
+	log.Printf("Receiving the following command for party %v: %v\n", partyId, command)
+	party := Parties[partyId]
+	party.History = append(
+		party.History,
+		ManageCommand(party.History, command)...,
+	)
+	Parties[partyId] = party
+	party.Broadcast <- ToGameDto(
+		game.ReplayHistory(party.History),
+	)
+}
+
 func CreateParty() PartyId {
 	partyId := PartyId(uuid.New().String())
+	history := ManageCommand([]event.Event{}, Command{
+		CommandType: "CreateGame",
+	})
 	Parties[partyId] = Party{
-		History:   []event.Event{},
+		History:   history,
 		Clients:   make(map[*websocket.Conn]bool),
 		Broadcast: make(chan GameDto),
 	}
@@ -35,6 +51,10 @@ func AddClientToParty(partyId PartyId, ws *websocket.Conn) {
 	Parties[partyId].Broadcast <- ToGameDto(
 		game.ReplayHistory(Parties[partyId].History),
 	)
+}
+
+func RemoveClientFromParty(partyId PartyId, ws *websocket.Conn) {
+	delete(Parties[partyId].Clients, ws)
 }
 
 func HandleParty(party Party) {
