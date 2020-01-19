@@ -1,36 +1,31 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
-	"github.com/ThomasFerro/armadora/game"
-	"github.com/ThomasFerro/armadora/game/command"
-	"github.com/ThomasFerro/armadora/game/event"
 	"github.com/ThomasFerro/armadora/infra"
 	"github.com/gorilla/websocket"
 )
 
-var clients = make(map[*websocket.Conn]bool)
-var broadcast = make(chan infra.GameDto)
+var parties = map[infra.PartyId]infra.Party{}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
-// TODO: Manage multiple games
-// TODO: Manage reconnection
-var gameHistory = []event.Event{
-	command.CreateGame(),
-}
-
 func main() {
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 
-	http.HandleFunc("/ws", handleConnections)
+	http.HandleFunc("/games", handleGameCreation)
 
-	go handleMessages()
+	http.HandleFunc("/parties", handleGetParties)
+
+	http.HandleFunc("/parties/", handleConnectionsToPartyWs)
 
 	err := http.ListenAndServe(":8000", nil)
 	if err != nil {
@@ -38,13 +33,27 @@ func main() {
 	}
 }
 
-func currentGameState() infra.GameDto {
-	return infra.ToGameDto(
-		game.ReplayHistory(gameHistory),
+func handleGameCreation(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprintf(w, "invalid_http_method")
+		return
+	}
+
+	newParty := infra.CreateParty()
+	log.Printf("Creating a new party: %v\n", newParty)
+	w.Write(
+		[]byte(
+			fmt.Sprintf("{\"id\": \"%v\"}", newParty),
+		),
 	)
 }
 
-func handleConnections(w http.ResponseWriter, r *http.Request) {
+func handleConnectionsToPartyWs(w http.ResponseWriter, r *http.Request) {
+	urlParts := strings.Split(r.URL.String(), "/")
+	partyId := infra.PartyId(urlParts[len(urlParts)-1])
+	log.Printf("Connection to party %v\n", partyId)
+
 	// Upgrade initial GET request to a websocket
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -54,50 +63,42 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	defer ws.Close()
 
 	// Register our new client
-	clients[ws] = true
-
-	// Send the current state of the game
-	sendGameToClient(ws, currentGameState())
+	infra.AddClientToParty(partyId, ws)
 
 	for {
-		var msg infra.Command
-		// Read in a new message as JSON and map it to a Command object
+		// TODO: Manage party commands
+		var msg string
+		// Read in a new message as JSON and map it to a Message object
 		err := ws.ReadJSON(&msg)
 		if err != nil {
-			log.Printf("Error while reading the command: %v\n", err)
-			delete(clients, ws)
+			log.Printf("Error while reading party message: %v", err)
+			// delete(clients, ws)
 			break
 		}
-
-		gameHistory = append(
-			gameHistory,
-			infra.ManageCommand(gameHistory, msg)...,
-		)
-		// Send the new game state to the broadcast channel
-		gameDto := infra.ToGameDto(
-			game.ReplayHistory(gameHistory),
-		)
-		log.Printf("Sending new game state: %v\n", gameDto)
-		broadcast <- gameDto
+		// Send the newly received message to the broadcast channel
+		// broadcast <- msg
 	}
 }
 
-func sendGameToClient(client *websocket.Conn, gameDto infra.GameDto) {
-	err := client.WriteJSON(gameDto)
+func handleGetParties(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprintf(w, "invalid_http_method")
+		return
+	}
+
+	log.Printf("Returning the %v parties\n", len(infra.Parties))
+	partiesId := make([]infra.PartyId, 0, len(infra.Parties))
+	for partyId := range infra.Parties {
+		partiesId = append(partiesId, partyId)
+	}
+	partiesIdJson, err := json.Marshal(partiesId)
 	if err != nil {
-		log.Printf("Error while writing to the WS: %v\n", err)
-		client.Close()
-		delete(clients, client)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, err.Error())
+		return
 	}
-}
-
-func handleMessages() {
-	for {
-		// Grab the next message from the broadcast channel
-		gameDto := <-broadcast
-		// Send it out to every client that is currently connected
-		for client := range clients {
-			sendGameToClient(client, gameDto)
-		}
-	}
+	w.Write(
+		partiesIdJson,
+	)
 }

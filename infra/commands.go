@@ -1,38 +1,77 @@
 package infra
 
 import (
+	"fmt"
 	"log"
 
+	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/command"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/google/uuid"
 )
 
 type Command struct {
+	Id          string            `json:"id"`
 	CommandType string            `json:"command_type"`
 	Payload     map[string]string `json:"payload"`
 }
 
-func ManageCommand(history []event.Event, msg Command) []event.Event {
+func ManageCommand(msg Command) GameDto {
+	fmt.Printf("Receiving command with id %v\n", msg.Id)
+	gameId := msg.Id
+	history := getHistory(gameId)
+	newEvents := []event.Event{}
 	switch msg.CommandType {
+	case "CreateGame":
+		gameId = generateNewId()
+		newEvents = createGame(history, msg)
 	case "JoinGame":
-		return joinGame(history, msg)
+		newEvents = joinGame(history, msg)
 	case "StartTheGame":
-		return startTheGame(history, msg)
+		newEvents = startTheGame(history, msg)
 	}
-	return []event.Event{}
+	saveNewEvents(gameId, newEvents)
+	return ToGameDto(
+		game.ReplayHistory(
+			append(
+				history,
+				newEvents...,
+			),
+		),
+	)
 }
 
-func joinGame(gameHistory []event.Event, msg Command) []event.Event {
+func generateNewId() string {
+	return uuid.New().String()
+}
+
+var gameHistory = map[string][]event.Event{}
+
+func saveNewEvents(id string, newEvents []event.Event) {
+	gameHistory[id] = append(gameHistory[id], newEvents...)
+}
+
+func getHistory(id string) []event.Event {
+	return gameHistory[id]
+}
+
+func createGame(gameHistory []event.Event, msg Command) []event.Event {
+	return []event.Event{
+		command.CreateGame(),
+	}
+}
+
+func joinGame(history []event.Event, msg Command) []event.Event {
 	characterValue := getCharacter(msg.Payload["Character"])
-	return command.JoinGame(gameHistory, command.JoinGamePayload{
+	return command.JoinGame(history, command.JoinGamePayload{
 		Nickname:  msg.Payload["Nickname"],
 		Character: characterValue,
 	})
 }
 
-func startTheGame(gameHistory []event.Event, msg Command) []event.Event {
-	return command.StartTheGame(gameHistory)
+func startTheGame(history []event.Event, msg Command) []event.Event {
+	return command.StartTheGame(history)
 }
 
 func getCharacter(characterName string) character.Character {
