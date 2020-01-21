@@ -22,8 +22,6 @@ TODO:
 	- Unable to put a palisade on a already taken border
 	- Unable to put a palisade if it breaks grid validity (territory with less than 4 cells)
 - An action can only be make by the current player
-- After an action has been make, the current player change:
-	- End of a turn, current player = 0
 */
 
 func TestChangeTheCurrentPlayerWhenPuttingWarrior(t *testing.T) {
@@ -120,5 +118,54 @@ func TestChangeTheCurrentPlayerWhenPuttingPalisade(t *testing.T) {
 
 	if currentGame.CurrentPlayer() != 1 {
 		t.Errorf("The current player is invalid, should be 1 instead of %v", currentGame.CurrentPlayer())
+	}
+}
+
+func TestFirstPlayerAgainWhenTheTurnIsOver(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GameStarted{},
+		event.NextPlayer{},
+	}
+
+	turnCommand := command.PutPalisadesPayload{
+		Palisades: []palisade.Palisade{
+			palisade.Palisade{
+				X: 0,
+				Y: 0,
+			},
+		},
+	}
+
+	history = append(
+		history,
+		command.PutPalisades(history, turnCommand)...,
+	)
+
+	var nextPlayerEventFound = 0
+
+	for _, nextEvent := range history {
+		if _, isOfRightEventType := nextEvent.(event.NextPlayer); isOfRightEventType {
+			nextPlayerEventFound++
+		}
+	}
+
+	if nextPlayerEventFound != 2 {
+		t.Errorf("The \"NextPlayer\" event should have been dispatched twice but was only dispatched %v times", nextPlayerEventFound)
+		return
+	}
+
+	currentGame := game.ReplayHistory(history)
+
+	if currentGame.CurrentPlayer() != 0 {
+		t.Errorf("The current player is invalid, should be 0 instead of %v", currentGame.CurrentPlayer())
 	}
 }

@@ -76,7 +76,11 @@ func (g game) ApplyGoldStacksDistributed(event event.GoldStacksDistributed) Game
 }
 
 func (g game) ApplyNextPlayer(event event.NextPlayer) Game {
-	g.currentPlayer++
+	if g.currentPlayer == len(g.players)-1 {
+		g.currentPlayer = 0
+	} else {
+		g.currentPlayer++
+	}
 	return g
 }
 
