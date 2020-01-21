@@ -17,6 +17,7 @@ type Game interface {
 	ApplyGameStarted(event event.GameStarted) Game
 	ApplyGoldStacksDistributed(event event.GoldStacksDistributed) Game
 	ApplyNextPlayer(event event.NextPlayer) Game
+	ApplyWarriorPut(event event.WarriorPut) Game
 }
 
 type game struct {
@@ -84,6 +85,11 @@ func (g game) ApplyNextPlayer(event event.NextPlayer) Game {
 	return g
 }
 
+func (g game) ApplyWarriorPut(event event.WarriorPut) Game {
+	g.board = g.board.PutWarriorInCell(event.Position, event.Player, event.Strength)
+	return g
+}
+
 // ReplayHistory Replay the provided history to retrieve the game state
 func ReplayHistory(history []event.Event) Game {
 	var returnedGame Game
@@ -108,6 +114,9 @@ func ReplayHistory(history []event.Event) Game {
 		case event.NextPlayer:
 			nextPlayerEvent, _ := nextEvent.(event.NextPlayer)
 			returnedGame = returnedGame.ApplyNextPlayer(nextPlayerEvent)
+		case event.WarriorPut:
+			warriorPutEvent, _ := nextEvent.(event.WarriorPut)
+			returnedGame = returnedGame.ApplyWarriorPut(warriorPutEvent)
 		}
 	}
 	return returnedGame

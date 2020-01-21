@@ -25,6 +25,11 @@ func PutWarrior(history []event.Event, payload PutWarriorPayload) []event.Event 
 	}
 
 	return []event.Event{
+		event.WarriorPut{
+			Player:   payload.Player,
+			Strength: payload.Warrior,
+			Position: payload.Position,
+		},
 		event.NextPlayer{},
 	}
 }

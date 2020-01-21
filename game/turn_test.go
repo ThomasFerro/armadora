@@ -5,17 +5,19 @@ import (
 
 	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/board"
+	"github.com/ThomasFerro/armadora/game/board/cell"
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/command"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/gold"
 	"github.com/ThomasFerro/armadora/game/palisade"
 )
 
 /*
 TODO:
 - Put a warrior on the board:
-	- Put on an empty land
 	- Unable to put on a cell already taken (gold or another warrior)
+	- Can only put warrior that the player have left
 - Put a palisade:
 	- Put one palisade
 	- Put two palisades
@@ -33,6 +35,9 @@ func TestChangeTheCurrentPlayerWhenPuttingWarrior(t *testing.T) {
 		event.PlayerJoined{
 			Nickname:  "Javadoc",
 			Character: character.Elf,
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
 		},
 		event.GameStarted{},
 	}
@@ -253,5 +258,69 @@ func TestWarriorCanOnlyBePutByTheCurrentPlayer(t *testing.T) {
 
 	if currentGame.CurrentPlayer() != 1 {
 		t.Errorf("The current player is invalid, should be 1 instead of %v", currentGame.CurrentPlayer())
+	}
+}
+
+func TestPutAWarriorOnAnEmptyLand(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.GameStarted{},
+	}
+
+	turnCommand := command.PutWarriorPayload{
+		Player:  0,
+		Warrior: 3,
+		Position: board.Position{
+			X: 0,
+			Y: 0,
+		},
+	}
+
+	history = append(
+		history,
+		command.PutWarrior(history, turnCommand)...,
+	)
+
+	warriorPutEventFound := false
+
+	for _, nextEvent := range history {
+		if _, isOfRightEventType := nextEvent.(event.WarriorPut); !isOfRightEventType {
+			warriorPutEventFound = true
+			break
+		}
+	}
+
+	if !warriorPutEventFound {
+		t.Error("The \"WarriorPut\" event should have been dispatched")
+		return
+	}
+
+	currentGame := game.ReplayHistory(history)
+
+	cellToCheck := currentGame.Board().Cell(board.Position{
+		X: 0,
+		Y: 0,
+	})
+
+	warriorCell, isOfRightCellType := cellToCheck.(cell.Warrior)
+
+	if !isOfRightCellType {
+		t.Errorf("There is no warrior in the cell, %v instead", cellToCheck)
+		return
+	}
+
+	if warriorCell.Player() != 0 || warriorCell.Strength() != 3 {
+		t.Errorf("The warrior on the cell does not match the expected one, found %v", warriorCell)
 	}
 }
