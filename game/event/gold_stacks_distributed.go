@@ -13,3 +13,7 @@ type GoldStacksDistributed struct {
 func (event GoldStacksDistributed) EventMessage() string {
 	return fmt.Sprintf("The gold stacks are distributed as follow: %v.", event.GoldStacks)
 }
+
+func (event GoldStacksDistributed) String() string {
+	return event.EventMessage()
+}

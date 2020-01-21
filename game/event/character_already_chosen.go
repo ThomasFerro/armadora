@@ -15,3 +15,7 @@ type CharacterAlreadyChosen struct {
 func (event CharacterAlreadyChosen) EventMessage() string {
 	return fmt.Sprintf("The character %v has already been chosen by another player in the game.", event.Character)
 }
+
+func (event CharacterAlreadyChosen) String() string {
+	return event.EventMessage()
+}

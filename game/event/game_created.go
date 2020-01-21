@@ -7,3 +7,7 @@ type GameCreated struct{}
 func (event GameCreated) EventMessage() string {
 	return "The game has been created."
 }
+
+func (event GameCreated) String() string {
+	return event.EventMessage()
+}

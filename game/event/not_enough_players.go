@@ -11,3 +11,7 @@ type NotEnoughPlayers struct {
 func (event NotEnoughPlayers) EventMessage() string {
 	return fmt.Sprintf("Cannot start a game with %v player. At less two players are required.", event.NumberOfPlayers)
 }
+
+func (event NotEnoughPlayers) String() string {
+	return event.EventMessage()
+}

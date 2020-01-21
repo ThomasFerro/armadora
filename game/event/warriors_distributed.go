@@ -15,3 +15,7 @@ type WarriorsDistributed struct {
 func (event WarriorsDistributed) EventMessage() string {
 	return fmt.Sprintf("The following warriors are distributed: %v.", event.WarriorsDistributed)
 }
+
+func (event WarriorsDistributed) String() string {
+	return event.EventMessage()
+}

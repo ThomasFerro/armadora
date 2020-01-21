@@ -1,5 +1,11 @@
 package board
 
+// Position A position on the board
+type Position struct {
+	X int
+	Y int
+}
+
 // Board A board
 type Board interface {
 	GoldStacks() []int
