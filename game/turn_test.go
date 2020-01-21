@@ -21,7 +21,6 @@ TODO:
 	- Put two palisades
 	- Unable to put a palisade on a already taken border
 	- Unable to put a palisade if it breaks grid validity (territory with less than 4 cells)
-- An action can only be make by the current player
 */
 
 func TestChangeTheCurrentPlayerWhenPuttingWarrior(t *testing.T) {
@@ -137,6 +136,7 @@ func TestFirstPlayerAgainWhenTheTurnIsOver(t *testing.T) {
 	}
 
 	turnCommand := command.PutPalisadesPayload{
+		Player: 1,
 		Palisades: []palisade.Palisade{
 			palisade.Palisade{
 				X: 0,
@@ -167,5 +167,91 @@ func TestFirstPlayerAgainWhenTheTurnIsOver(t *testing.T) {
 
 	if currentGame.CurrentPlayer() != 0 {
 		t.Errorf("The current player is invalid, should be 0 instead of %v", currentGame.CurrentPlayer())
+	}
+}
+
+// TODO: Same for warrior
+func TestPalisadesCanOnlyBePutByTheCurrentPlayer(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GameStarted{},
+		event.NextPlayer{},
+	}
+
+	turnCommand := command.PutPalisadesPayload{
+		Player: 0,
+		Palisades: []palisade.Palisade{
+			palisade.Palisade{
+				X: 0,
+				Y: 0,
+			},
+		},
+	}
+
+	history = append(
+		history,
+		command.PutPalisades(history, turnCommand)...,
+	)
+	lastEvent := history[len(history)-1]
+
+	if _, isOfRightEventType := lastEvent.(event.NotThePlayerTurn); !isOfRightEventType {
+		t.Error("The \"NotThePlayerTurn\" event should have been dispatched")
+		return
+	}
+
+	currentGame := game.ReplayHistory(history)
+
+	if currentGame.CurrentPlayer() != 1 {
+		t.Errorf("The current player is invalid, should be 1 instead of %v", currentGame.CurrentPlayer())
+	}
+}
+
+func TestWarriorCanOnlyBePutByTheCurrentPlayer(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GameStarted{},
+		event.NextPlayer{},
+	}
+
+	turnCommand := command.PutWarriorPayload{
+		Player:  0,
+		Warrior: 1,
+		Position: board.Position{
+			X: 0,
+			Y: 0,
+		},
+	}
+
+	history = append(
+		history,
+		command.PutWarrior(history, turnCommand)...,
+	)
+	lastEvent := history[len(history)-1]
+
+	if _, isOfRightEventType := lastEvent.(event.NotThePlayerTurn); !isOfRightEventType {
+		t.Error("The \"NotThePlayerTurn\" event should have been dispatched")
+		return
+	}
+
+	currentGame := game.ReplayHistory(history)
+
+	if currentGame.CurrentPlayer() != 1 {
+		t.Errorf("The current player is invalid, should be 1 instead of %v", currentGame.CurrentPlayer())
 	}
 }
