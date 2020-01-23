@@ -1,7 +1,6 @@
 package game_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/ThomasFerro/armadora/game"
@@ -528,8 +527,6 @@ func TestCanOnlyPutWarriorThatThePlayerHaveLeft(t *testing.T) {
 	}
 
 	currentGame := game.ReplayHistory(history)
-
-	fmt.Println(currentGame)
 
 	cellToCheck := currentGame.Board().Cell(board.Position{
 		X: 2,

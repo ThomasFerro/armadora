@@ -1,8 +1,6 @@
 package command
 
 import (
-	"fmt"
-
 	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/board/cell"
@@ -45,8 +43,6 @@ func PutWarrior(history []event.Event, payload PutWarriorPayload) []event.Event 
 	}
 
 	currentPlayer := currentGame.Players()[currentGame.CurrentPlayer()]
-
-	fmt.Printf("payload %v player %v\n", payload, currentPlayer)
 
 	if getWarriorsLeft(currentPlayer.Warriors(), payload.Warrior) == 0 {
 		return []event.Event{

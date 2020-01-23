@@ -67,10 +67,10 @@ func toBoardDto(boardToMap board.Board) BoardDto {
 		Cells: make([][]CellDto, 0),
 	}
 
-	for x := 0; x < boardToMap.Width(); x++ {
+	for y := 0; y < boardToMap.Height(); y++ {
 		boardDto.Cells = append(boardDto.Cells, make([]CellDto, 0))
-		for y := 0; y < boardToMap.Height(); y++ {
-			boardDto.Cells[x] = append(boardDto.Cells[x], CellDto{
+		for x := 0; x < boardToMap.Width(); x++ {
+			boardDto.Cells[y] = append(boardDto.Cells[y], CellDto{
 				Type: cellType(boardToMap, x, y),
 			})
 		}

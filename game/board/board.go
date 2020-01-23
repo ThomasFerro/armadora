@@ -35,19 +35,19 @@ func (b board) GoldStacks() []int {
 }
 
 func (b board) Cell(position Position) cell.Cell {
-	return b.grid[position.X][position.Y]
+	return b.grid[position.Y][position.X]
 }
 
 func (b board) Width() int {
-	return len(b.grid)
-}
-
-func (b board) Height() int {
 	return len(b.grid[0])
 }
 
+func (b board) Height() int {
+	return len(b.grid)
+}
+
 func (b board) PutWarriorInCell(position Position, player, strength int) Board {
-	b.grid[position.X][position.Y] = cell.NewWarrior(player, strength)
+	b.grid[position.Y][position.X] = cell.NewWarrior(player, strength)
 	return b
 }
 
@@ -99,14 +99,14 @@ func initGrid(goldStacks []int) [][]cell.Cell {
 	var grid [][]cell.Cell
 	currentGoldStackIndex := 0
 
-	for x := 0; x < 8; x++ {
+	for y := 0; y < 5; y++ {
 		grid = append(grid, []cell.Cell{})
-		for y := 0; y < 5; y++ {
+		for x := 0; x < 8; x++ {
 			if goldCell(x, y) {
-				grid[x] = append(grid[x], cell.NewGold(goldStacks[currentGoldStackIndex]))
+				grid[y] = append(grid[y], cell.NewGold(goldStacks[currentGoldStackIndex]))
 				currentGoldStackIndex++
 			} else {
-				grid[x] = append(grid[x], cell.NewLand())
+				grid[y] = append(grid[y], cell.NewLand())
 			}
 		}
 	}
