@@ -1,5 +1,6 @@
 <script>
     import JoinAGame from './JoinAGame.svelte';
+    import Board from './board/Board.svelte';
     export let id = undefined;
 
     let partyWs
@@ -34,6 +35,8 @@
             "command_type": "StartTheGame",
         }))
     }
+
+    $: board = game && game.board
 </script>
 
 <h2>Party: {id}</h2>
@@ -41,10 +44,16 @@
     {#if !connected}
     <JoinAGame
         availableCharacters={availableCharacters}
-        players={players}
         on:connect={(e) => connectToTheGame(e.detail)}
     ></JoinAGame>
     {:else}
     <button on:click={startTheGame}>Start the game</button>
     {/if}
+    <ul class="players">
+        {#each players as player}
+        <li>{player.nickname} playing as {player.character}.</li>
+        {/each}
+    </ul>
+{:else}
+<Board value={board}></Board>
 {/if}

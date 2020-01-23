@@ -2,6 +2,8 @@ package infra
 
 import (
 	"github.com/ThomasFerro/armadora/game"
+	"github.com/ThomasFerro/armadora/game/board"
+	"github.com/ThomasFerro/armadora/game/board/cell"
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
@@ -24,7 +26,14 @@ type PlayerDto struct {
 	Warriors  WarriorsDto  `json:"warriors"`
 }
 
+type CellType string
+
+type CellDto struct {
+	Type CellType `json:"type"`
+}
+
 type BoardDto struct {
+	Cells [][]CellDto `json:"cells"`
 }
 
 type GameDto struct {
@@ -33,6 +42,41 @@ type GameDto struct {
 	CurrentPlayer       int         `json:"current_player"`
 	Board               BoardDto    `json:"board"`
 	AvailableCharacters []string    `json:"available_characters"`
+}
+
+func cellType(boardToMap board.Board, x, y int) CellType {
+	cellToMap := boardToMap.Cell(board.Position{
+		X: x,
+		Y: y,
+	})
+	switch cellToMap.(type) {
+	case cell.Warrior:
+		return CellType("warrior")
+	case cell.Gold:
+		return CellType("gold")
+	default:
+		return CellType("land")
+	}
+}
+
+func toBoardDto(boardToMap board.Board) BoardDto {
+	if boardToMap == nil {
+		return BoardDto{}
+	}
+	boardDto := BoardDto{
+		Cells: make([][]CellDto, 0),
+	}
+
+	for x := 0; x < boardToMap.Width(); x++ {
+		boardDto.Cells = append(boardDto.Cells, make([]CellDto, 0))
+		for y := 0; y < boardToMap.Height(); y++ {
+			boardDto.Cells[x] = append(boardDto.Cells[x], CellDto{
+				Type: cellType(boardToMap, x, y),
+			})
+		}
+	}
+
+	return boardDto
 }
 
 func toStateDto(state game.State) StateDto {
@@ -104,9 +148,9 @@ func getAvailableCharacters(players []PlayerDto) []string {
 }
 
 func ToGameDto(game game.Game) GameDto {
-	// TODO: Map the board
 	playersDto := toPlayersDto(game.Players())
 	return GameDto{
+		Board:               toBoardDto(game.Board()),
 		State:               toStateDto(game.State()),
 		Players:             playersDto,
 		CurrentPlayer:       game.CurrentPlayer(),

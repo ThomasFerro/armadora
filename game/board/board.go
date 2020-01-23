@@ -20,6 +20,8 @@ func (p Position) String() string {
 type Board interface {
 	GoldStacks() []int
 	Cell(position Position) cell.Cell
+	Width() int
+	Height() int
 	PutWarriorInCell(position Position, player int, strength int) Board
 }
 
@@ -34,6 +36,14 @@ func (b board) GoldStacks() []int {
 
 func (b board) Cell(position Position) cell.Cell {
 	return b.grid[position.X][position.Y]
+}
+
+func (b board) Width() int {
+	return len(b.grid)
+}
+
+func (b board) Height() int {
+	return len(b.grid[0])
 }
 
 func (b board) PutWarriorInCell(position Position, player, strength int) Board {

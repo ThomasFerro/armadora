@@ -2,7 +2,6 @@
     import { createEventDispatcher } from 'svelte'
     const dispatch = createEventDispatcher()
     export let availableCharacters = []
-    export let players = []
 
     let username;
     let character;
@@ -35,8 +34,3 @@
     </label>
     <input type="submit" value="Connect to the game" disabled={!canConnect}>
 </form>
-<ul class="players">
-    {#each players as player}
-    <li>{player.nickname} playing as {player.character}.</li>
-    {/each}
-</ul>
