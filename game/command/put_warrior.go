@@ -1,10 +1,13 @@
 package command
 
 import (
+	"fmt"
+
 	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/board/cell"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
 // PutWarriorPayload Data about the warrior to put on the board
@@ -14,6 +17,22 @@ type PutWarriorPayload struct {
 	Position board.Position
 }
 
+func getWarriorsLeft(warriors warrior.Warriors, selectedWarrior int) int {
+	switch selectedWarrior {
+	case 1:
+		return warriors.OnePoint()
+	case 2:
+		return warriors.TwoPoints()
+	case 3:
+		return warriors.ThreePoints()
+	case 4:
+		return warriors.FourPoints()
+	case 5:
+		return warriors.FivePoints()
+	}
+	return 0
+}
+
 func PutWarrior(history []event.Event, payload PutWarriorPayload) []event.Event {
 	currentGame := game.ReplayHistory(history)
 
@@ -21,6 +40,18 @@ func PutWarrior(history []event.Event, payload PutWarriorPayload) []event.Event 
 		return []event.Event{
 			event.NotThePlayerTurn{
 				PlayerWhoTriedToPlay: payload.Player,
+			},
+		}
+	}
+
+	currentPlayer := currentGame.Players()[currentGame.CurrentPlayer()]
+
+	fmt.Printf("payload %v player %v\n", payload, currentPlayer)
+
+	if getWarriorsLeft(currentPlayer.Warriors(), payload.Warrior) == 0 {
+		return []event.Event{
+			event.NoMoreWarriorOfThisStrength{
+				Strength: payload.Warrior,
 			},
 		}
 	}

@@ -1,6 +1,7 @@
 package game_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ThomasFerro/armadora/game"
@@ -11,12 +12,11 @@ import (
 	"github.com/ThomasFerro/armadora/game/event"
 	"github.com/ThomasFerro/armadora/game/gold"
 	"github.com/ThomasFerro/armadora/game/palisade"
+	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
 /*
 TODO:
-- Put a warrior on the board:
-	- Can only put warrior that the player have left
 - Put a palisade:
 	- Put one palisade
 	- Put two palisades
@@ -34,6 +34,9 @@ func TestChangeTheCurrentPlayerWhenPuttingWarrior(t *testing.T) {
 		event.PlayerJoined{
 			Nickname:  "Javadoc",
 			Character: character.Elf,
+		},
+		event.WarriorsDistributed{
+			WarriorsDistributed: warrior.NewWarriors(1, 0, 0, 0, 0),
 		},
 		event.GoldStacksDistributed{
 			gold.GoldStacks,
@@ -217,6 +220,47 @@ func TestPalisadesCanOnlyBePutByTheCurrentPlayer(t *testing.T) {
 	}
 }
 
+func TestDecrementWarriorsCountWhenPuttingWarrior(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.WarriorsDistributed{
+			WarriorsDistributed: warrior.NewWarriors(1, 0, 0, 0, 0),
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.GameStarted{},
+	}
+
+	turnCommand := command.PutWarriorPayload{
+		Warrior: 1,
+		Position: board.Position{
+			X: 0,
+			Y: 0,
+		},
+	}
+
+	history = append(
+		history,
+		command.PutWarrior(history, turnCommand)...,
+	)
+
+	currentGame := game.ReplayHistory(history)
+	firstPlayer := currentGame.Players()[0]
+
+	if firstPlayer.Warriors().OnePoint() != 0 {
+		t.Errorf("The warrior was not removed %v", firstPlayer)
+	}
+}
+
 func TestWarriorCanOnlyBePutByTheCurrentPlayer(t *testing.T) {
 	history := []event.Event{
 		event.GameCreated{},
@@ -269,6 +313,9 @@ func TestPutAWarriorOnAnEmptyLand(t *testing.T) {
 		event.PlayerJoined{
 			Nickname:  "Javadoc",
 			Character: character.Elf,
+		},
+		event.WarriorsDistributed{
+			WarriorsDistributed: warrior.NewWarriors(0, 0, 1, 0, 0),
 		},
 		event.GoldStacksDistributed{
 			gold.GoldStacks,
@@ -333,6 +380,9 @@ func TestUnableToPutOnACellAlreadyTaken(t *testing.T) {
 		event.PlayerJoined{
 			Nickname:  "Javadoc",
 			Character: character.Elf,
+		},
+		event.WarriorsDistributed{
+			WarriorsDistributed: warrior.NewWarriors(1, 0, 1, 0, 0),
 		},
 		event.GoldStacksDistributed{
 			gold.GoldStacks,
@@ -401,5 +451,94 @@ func TestUnableToPutOnACellAlreadyTaken(t *testing.T) {
 
 	if warriorCell.Player() != 0 || warriorCell.Strength() != 1 {
 		t.Errorf("The warrior on the cell does not match the expected one, found %v", warriorCell)
+	}
+}
+
+func TestCanOnlyPutWarriorThatThePlayerHaveLeft(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.WarriorsDistributed{
+			WarriorsDistributed: warrior.NewWarriors(0, 0, 0, 0, 1),
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.GameStarted{},
+		event.WarriorPut{
+			Player:   0,
+			Strength: 5,
+			Position: board.Position{
+				X: 0,
+				Y: 0,
+			},
+		},
+		event.NextPlayer{},
+		event.WarriorPut{
+			Player:   1,
+			Strength: 5,
+			Position: board.Position{
+				X: 1,
+				Y: 0,
+			},
+		},
+		event.NextPlayer{},
+	}
+
+	turnCommand := command.PutWarriorPayload{
+		Player:  0,
+		Warrior: 5,
+		Position: board.Position{
+			X: 2,
+			Y: 1,
+		},
+	}
+
+	history = append(
+		history,
+		command.PutWarrior(history, turnCommand)...,
+	)
+
+	eventFound := false
+	var noMoreWarriorOfThisStrengthEvent event.NoMoreWarriorOfThisStrength
+
+	for _, nextEvent := range history {
+		if typedEvent, isOfRightEventType := nextEvent.(event.NoMoreWarriorOfThisStrength); isOfRightEventType {
+			eventFound = true
+			noMoreWarriorOfThisStrengthEvent = typedEvent
+			break
+		}
+	}
+
+	if !eventFound {
+		t.Error("No 'NoMoreWarriorOfThisStrength' event found")
+		return
+	}
+
+	if noMoreWarriorOfThisStrengthEvent.Strength != 5 {
+		t.Errorf("The strength of the event does not match with the expected one, found %v", noMoreWarriorOfThisStrengthEvent.Strength)
+		return
+	}
+
+	currentGame := game.ReplayHistory(history)
+
+	fmt.Println(currentGame)
+
+	cellToCheck := currentGame.Board().Cell(board.Position{
+		X: 2,
+		Y: 1,
+	})
+
+	_, isOfRightCellType := cellToCheck.(cell.Land)
+
+	if !isOfRightCellType {
+		t.Errorf("The cell should be empty, %v instead", cellToCheck)
 	}
 }

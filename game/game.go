@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
 // Game Instance of an Aramdora game
@@ -87,6 +88,8 @@ func (g game) ApplyNextPlayer(event event.NextPlayer) Game {
 
 func (g game) ApplyWarriorPut(event event.WarriorPut) Game {
 	g.board = g.board.PutWarriorInCell(event.Position, event.Player, event.Strength)
+	currentPlayer := g.players[g.currentPlayer]
+	g.players[g.currentPlayer] = currentPlayer.SetWarriors(warrior.RemoveUsedWarrior(g.players[g.currentPlayer].Warriors(), event.Strength))
 	return g
 }
 
