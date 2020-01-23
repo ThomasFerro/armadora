@@ -7,6 +7,7 @@
     let game
     // TODO: Manage real authentication
     let connected = false
+    let nickname = ''
     
     $: {
 		partyWs = new WebSocket(`ws://${window.location.host}/parties/${id}`);
@@ -20,6 +21,7 @@
     $: waitingForPlayers = game && game.state && game.state === 'WaitingForPlayers'
 
     const connectToTheGame = ({username, character}) => {
+        nickname = username
         partyWs.send(JSON.stringify({
             "command_type": "JoinGame",
             "payload": {
@@ -37,6 +39,22 @@
     }
 
     $: board = game && game.board
+    // TODO: Pay tech debt after doing real authent
+    const sameNicknameAsConectedPlayer = (player) => player.nickname === nickname
+    $: connectedPlayer = game && game.players.find(sameNicknameAsConectedPlayer)
+    $: turnOfConnectedPlayer = game && game.players.indexOf(connectedPlayer) === game.current_player
+
+    const putWarrior = ({x, y, strength}) => {
+        // FIXME: Smothing smelly with the grid
+        partyWs.send(JSON.stringify({
+            "command_type": "PutWarrior",
+            "payload": {
+                "Warrior": strength,
+                "X": x.toString(),
+                "Y": y.toString(),
+            },
+        }))
+    }
 </script>
 
 <h2>Party: {id}</h2>
@@ -55,5 +73,10 @@
         {/each}
     </ul>
 {:else}
-<Board value={board}></Board>
+<Board
+    value={board}
+    active={turnOfConnectedPlayer}
+    connectedPlayer={connectedPlayer}
+    on:put-warrior={(e) => putWarrior(e.detail)}
+></Board>
 {/if}

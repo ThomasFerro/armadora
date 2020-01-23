@@ -1,36 +1,45 @@
 <script>
+    import { createEventDispatcher } from 'svelte'
+    import Grid from './Grid.svelte';
+    import WarriorSelection from './WarriorSelection.svelte';
+
+    export let active = false
     export let value = {}
+    export let connectedPlayer = {}
+
+    let selectedWarrior
+
+    const dispatch = createEventDispatcher()
 
     $: cells = value && value.cells || []
+
+    const cellSelected = (details) => {
+        if (!active) {
+            return
+        }
+        dispatch('put-warrior', {
+            ...details,
+            strength: selectedWarrior,
+        })
+    }
+
+    $: connectedPlayerWarriors = connectedPlayer && connectedPlayer.warriors
+
+    const warriorSelected = ({ strength }) => {
+        selectedWarrior = strength
+    }
 </script>
 
-<article class="grid">
-    {#each cells as columns}
-        {#each columns as cell}
-        <section class="cell">
-            {cell.type}
-        </section>
-        {/each}
-    {/each}
+<article class="board">
+    <Grid
+        {active}
+        {cells}
+        on:cell-selected={(e) => cellSelected(e.detail)}
+    ></Grid>
+    {#if active}
+    <WarriorSelection
+        warriors={connectedPlayerWarriors}
+        on:warrior-selected={(e) => warriorSelected(e.detail)}
+    ></WarriorSelection>
+    {/if}
 </article>
-
-<style>
-    .grid {
-        /* TODO: responsive */
-        --cell-width: 100px;
-        --palisade-width: 20px;
-        display: grid;
-        /* grid-template-columns: var(--cell-width) repeat(7, var(--palisade-width) var(--cell-width));
-        grid-template-rows: var(--cell-width) repeat(4, var(--palisade-width) var(--cell-width)); */
-        grid-template-columns: repeat(8, var(--cell-width));
-        grid-template-rows: repeat(5, var(--cell-width));
-    }
-    
-    .cell {
-        width: 100%;
-        height: 100%;
-        border: 1px solid black;
-        margin: 0;
-        padding: 0;
-    }
-</style>

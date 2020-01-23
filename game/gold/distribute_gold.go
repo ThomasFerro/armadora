@@ -19,7 +19,10 @@ var GoldStacks = []int{
 // GoldToDistribute Return the gold to be distributed
 func GoldToDistribute() []int {
 	// Shuffle method based on this example: https://yourbasic.org/golang/shuffle-slice-array/
-	gold := GoldStacks
+	gold := []int{}
+	for _, stack := range GoldStacks {
+		gold = append(gold, stack)
+	}
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(gold), func(i, j int) { gold[i], gold[j] = gold[j], gold[i] })
 	return gold

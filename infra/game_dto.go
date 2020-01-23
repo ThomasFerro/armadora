@@ -29,7 +29,9 @@ type PlayerDto struct {
 type CellType string
 
 type CellDto struct {
-	Type CellType `json:"type"`
+	Type      CellType `json:"type"`
+	Character string   `json:"character"`
+	Gold      int      `json:"gold"`
 }
 
 type BoardDto struct {
@@ -44,22 +46,32 @@ type GameDto struct {
 	AvailableCharacters []string    `json:"available_characters"`
 }
 
-func cellType(boardToMap board.Board, x, y int) CellType {
+func toCellDto(boardToMap board.Board, players []PlayerDto, x, y int) CellDto {
 	cellToMap := boardToMap.Cell(board.Position{
 		X: x,
 		Y: y,
 	})
-	switch cellToMap.(type) {
+	var cellType CellType
+	var character string
+	var gold int
+	switch typedCell := cellToMap.(type) {
 	case cell.Warrior:
-		return CellType("warrior")
+		cellType = CellType("warrior")
+		character = string(players[typedCell.Player()].Character)
 	case cell.Gold:
-		return CellType("gold")
+		cellType = CellType("gold")
+		gold = typedCell.Stack()
 	default:
-		return CellType("land")
+		cellType = CellType("land")
+	}
+	return CellDto{
+		Type:      cellType,
+		Character: character,
+		Gold:      gold,
 	}
 }
 
-func toBoardDto(boardToMap board.Board) BoardDto {
+func toBoardDto(boardToMap board.Board, players []PlayerDto) BoardDto {
 	if boardToMap == nil {
 		return BoardDto{}
 	}
@@ -70,9 +82,10 @@ func toBoardDto(boardToMap board.Board) BoardDto {
 	for y := 0; y < boardToMap.Height(); y++ {
 		boardDto.Cells = append(boardDto.Cells, make([]CellDto, 0))
 		for x := 0; x < boardToMap.Width(); x++ {
-			boardDto.Cells[y] = append(boardDto.Cells[y], CellDto{
-				Type: cellType(boardToMap, x, y),
-			})
+			boardDto.Cells[y] = append(
+				boardDto.Cells[y],
+				toCellDto(boardToMap, players, x, y),
+			)
 		}
 	}
 
@@ -150,7 +163,7 @@ func getAvailableCharacters(players []PlayerDto) []string {
 func ToGameDto(game game.Game) GameDto {
 	playersDto := toPlayersDto(game.Players())
 	return GameDto{
-		Board:               toBoardDto(game.Board()),
+		Board:               toBoardDto(game.Board(), playersDto),
 		State:               toStateDto(game.State()),
 		Players:             playersDto,
 		CurrentPlayer:       game.CurrentPlayer(),
