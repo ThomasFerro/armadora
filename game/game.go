@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/palisade"
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
@@ -17,8 +18,10 @@ type Game interface {
 	ApplyWarriorsDistributed(event event.WarriorsDistributed) Game
 	ApplyGameStarted(event event.GameStarted) Game
 	ApplyGoldStacksDistributed(event event.GoldStacksDistributed) Game
+	ApplyPalisadesDistributed(event event.PalisadesDistributed) Game
 	ApplyNextPlayer(event event.NextPlayer) Game
 	ApplyWarriorPut(event event.WarriorPut) Game
+	ApplyPalisadePut(event event.PalisadePut) Game
 }
 
 type game struct {
@@ -77,6 +80,11 @@ func (g game) ApplyGoldStacksDistributed(event event.GoldStacksDistributed) Game
 	return g
 }
 
+func (g game) ApplyPalisadesDistributed(event event.PalisadesDistributed) Game {
+	g.board = g.Board().SetPalisadesLeft(event.Count)
+	return g
+}
+
 func (g game) ApplyNextPlayer(event event.NextPlayer) Game {
 	if g.currentPlayer == len(g.players)-1 {
 		g.currentPlayer = 0
@@ -93,33 +101,40 @@ func (g game) ApplyWarriorPut(event event.WarriorPut) Game {
 	return g
 }
 
+func (g game) ApplyPalisadePut(event event.PalisadePut) Game {
+	g.board = g.Board().PutPalisade(palisade.Palisade{
+		X1: event.X1,
+		Y1: event.Y1,
+		X2: event.X2,
+		Y2: event.Y2,
+	})
+	return g
+}
+
 // ReplayHistory Replay the provided history to retrieve the game state
 func ReplayHistory(history []event.Event) Game {
 	var returnedGame Game
 	returnedGame = game{}
 	for _, nextEvent := range history {
-		switch nextEvent.(type) {
+		switch typedEvent := nextEvent.(type) {
 		case event.GameCreated:
-			gameCreatedEvent, _ := nextEvent.(event.GameCreated)
-			returnedGame = returnedGame.ApplyGameCreated(gameCreatedEvent)
+			returnedGame = returnedGame.ApplyGameCreated(typedEvent)
 		case event.PlayerJoined:
-			playerJoinedEvent, _ := nextEvent.(event.PlayerJoined)
-			returnedGame = returnedGame.ApplyPlayerJoined(playerJoinedEvent)
+			returnedGame = returnedGame.ApplyPlayerJoined(typedEvent)
 		case event.WarriorsDistributed:
-			warriorsDistributedEvent, _ := nextEvent.(event.WarriorsDistributed)
-			returnedGame = returnedGame.ApplyWarriorsDistributed(warriorsDistributedEvent)
+			returnedGame = returnedGame.ApplyWarriorsDistributed(typedEvent)
 		case event.GameStarted:
-			gameStartedEvent, _ := nextEvent.(event.GameStarted)
-			returnedGame = returnedGame.ApplyGameStarted(gameStartedEvent)
+			returnedGame = returnedGame.ApplyGameStarted(typedEvent)
 		case event.GoldStacksDistributed:
-			goldStacksDistributedEvent, _ := nextEvent.(event.GoldStacksDistributed)
-			returnedGame = returnedGame.ApplyGoldStacksDistributed(goldStacksDistributedEvent)
+			returnedGame = returnedGame.ApplyGoldStacksDistributed(typedEvent)
+		case event.PalisadesDistributed:
+			returnedGame = returnedGame.ApplyPalisadesDistributed(typedEvent)
 		case event.NextPlayer:
-			nextPlayerEvent, _ := nextEvent.(event.NextPlayer)
-			returnedGame = returnedGame.ApplyNextPlayer(nextPlayerEvent)
+			returnedGame = returnedGame.ApplyNextPlayer(typedEvent)
 		case event.WarriorPut:
-			warriorPutEvent, _ := nextEvent.(event.WarriorPut)
-			returnedGame = returnedGame.ApplyWarriorPut(warriorPutEvent)
+			returnedGame = returnedGame.ApplyWarriorPut(typedEvent)
+		case event.PalisadePut:
+			returnedGame = returnedGame.ApplyPalisadePut(typedEvent)
 		}
 	}
 	return returnedGame

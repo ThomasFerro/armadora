@@ -1,6 +1,9 @@
 package command
 
 import (
+	"fmt"
+	"math"
+
 	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/event"
 	"github.com/ThomasFerro/armadora/game/palisade"
@@ -12,6 +15,53 @@ type PutPalisadesPayload struct {
 	Palisades []palisade.Palisade
 }
 
+func validPalisade(palisadeToCheck palisade.Palisade) bool {
+	diff := 0.
+
+	diff += math.Abs(float64(palisadeToCheck.X1 - palisadeToCheck.X2))
+	diff += math.Abs(float64(palisadeToCheck.Y1 - palisadeToCheck.Y2))
+
+	return diff == 1.
+}
+
+func equals(firstPalisade, secondPalisade palisade.Palisade) bool {
+	return firstPalisade.X1 == secondPalisade.X1 &&
+		firstPalisade.Y1 == secondPalisade.Y1 &&
+		firstPalisade.X2 == secondPalisade.X2 &&
+		firstPalisade.Y2 == secondPalisade.Y2
+}
+
+func vacantBorder(currentGame game.Game, palisadeToCheck palisade.Palisade) bool {
+	for _, gridPalisade := range currentGame.Board().Palisades() {
+		if equals(palisadeToCheck, gridPalisade) {
+			return false
+		}
+	}
+	return true
+}
+
+func getDistinctPalisades(palisades []palisade.Palisade) []palisade.Palisade {
+	distinct := []palisade.Palisade{}
+
+	for _, nextPalisade := range palisades {
+		alreadyInSlice := false
+
+		for _, nextDistinctPalisade := range distinct {
+			if equals(nextDistinctPalisade, nextPalisade) {
+				alreadyInSlice = true
+				break
+			}
+		}
+
+		if !alreadyInSlice {
+			distinct = append(distinct, nextPalisade)
+		}
+	}
+
+	return distinct
+}
+
+// PutPalisades Put palisades on the board
 func PutPalisades(history []event.Event, payload PutPalisadesPayload) []event.Event {
 	currentGame := game.ReplayHistory(history)
 
@@ -23,7 +73,51 @@ func PutPalisades(history []event.Event, payload PutPalisadesPayload) []event.Ev
 		}
 	}
 
-	return []event.Event{
-		event.NextPlayer{},
+	events := []event.Event{}
+
+	distinctPalisades := getDistinctPalisades(payload.Palisades)
+
+	fmt.Printf("??%v %v", len(distinctPalisades), currentGame.Board().PalisadesLeft())
+
+	if len(distinctPalisades) > currentGame.Board().PalisadesLeft() {
+		return []event.Event{
+			event.NoMorePalisadeLeft{},
+		}
 	}
+
+	for _, palisade := range distinctPalisades {
+		if !validPalisade(palisade) {
+			return []event.Event{
+				event.InvalidPalisadePosition{
+					Player: payload.Player,
+					X1:     palisade.X1,
+					Y1:     palisade.Y1,
+					X2:     palisade.X2,
+					Y2:     palisade.Y2,
+				},
+			}
+		}
+
+		if !vacantBorder(currentGame, palisade) {
+			return []event.Event{
+				event.BorderAlreadyTaken{
+					Player: payload.Player,
+					X1:     palisade.X1,
+					Y1:     palisade.Y1,
+					X2:     palisade.X2,
+					Y2:     palisade.Y2,
+				},
+			}
+		}
+
+		events = append(events, event.PalisadePut{
+			Player: payload.Player,
+			X1:     palisade.X1,
+			Y1:     palisade.Y1,
+			X2:     palisade.X2,
+			Y2:     palisade.Y2,
+		})
+	}
+
+	return append(events, event.NextPlayer{})
 }

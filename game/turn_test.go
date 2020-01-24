@@ -14,15 +14,6 @@ import (
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
-/*
-TODO:
-- Put a palisade:
-	- Put one palisade
-	- Put two palisades
-	- Unable to put a palisade on a already taken border
-	- Unable to put a palisade if it breaks grid validity (territory with less than 4 cells)
-*/
-
 func TestChangeTheCurrentPlayerWhenPuttingWarrior(t *testing.T) {
 	history := []event.Event{
 		event.GameCreated{},
@@ -88,14 +79,22 @@ func TestChangeTheCurrentPlayerWhenPuttingPalisade(t *testing.T) {
 			Nickname:  "Javadoc",
 			Character: character.Elf,
 		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.PalisadesDistributed{
+			35,
+		},
 		event.GameStarted{},
 	}
 
 	turnCommand := command.PutPalisadesPayload{
 		Palisades: []palisade.Palisade{
 			palisade.Palisade{
-				X: 0,
-				Y: 0,
+				X1: 0,
+				Y1: 0,
+				X2: 1,
+				Y2: 0,
 			},
 		},
 	}
@@ -137,6 +136,12 @@ func TestFirstPlayerAgainWhenTheTurnIsOver(t *testing.T) {
 			Nickname:  "Javadoc",
 			Character: character.Elf,
 		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.PalisadesDistributed{
+			35,
+		},
 		event.GameStarted{},
 		event.NextPlayer{},
 	}
@@ -145,8 +150,10 @@ func TestFirstPlayerAgainWhenTheTurnIsOver(t *testing.T) {
 		Player: 1,
 		Palisades: []palisade.Palisade{
 			palisade.Palisade{
-				X: 0,
-				Y: 0,
+				X1: 0,
+				Y1: 0,
+				X2: 1,
+				Y2: 0,
 			},
 		},
 	}
@@ -187,6 +194,12 @@ func TestPalisadesCanOnlyBePutByTheCurrentPlayer(t *testing.T) {
 			Nickname:  "Javadoc",
 			Character: character.Elf,
 		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.PalisadesDistributed{
+			35,
+		},
 		event.GameStarted{},
 		event.NextPlayer{},
 	}
@@ -195,8 +208,10 @@ func TestPalisadesCanOnlyBePutByTheCurrentPlayer(t *testing.T) {
 		Player: 0,
 		Palisades: []palisade.Palisade{
 			palisade.Palisade{
-				X: 0,
-				Y: 0,
+				X1: 0,
+				Y1: 0,
+				X2: 0,
+				Y2: 0,
 			},
 		},
 	}
@@ -537,5 +552,371 @@ func TestCanOnlyPutWarriorThatThePlayerHaveLeft(t *testing.T) {
 
 	if !isOfRightCellType {
 		t.Errorf("The cell should be empty, %v instead", cellToCheck)
+	}
+}
+
+/*
+TODO:
+- Put a palisade:
+	- Unable to put a palisade if it breaks grid validity (territory with less than 4 cells)
+*/
+
+func TestPutOnePalisade(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.PalisadesDistributed{
+			35,
+		},
+		event.GameStarted{},
+	}
+
+	turnCommand := command.PutPalisadesPayload{
+		Player: 0,
+		Palisades: []palisade.Palisade{
+			palisade.Palisade{
+				X1: 0,
+				Y1: 0,
+				X2: 1,
+				Y2: 0,
+			},
+		},
+	}
+
+	history = append(history, command.PutPalisades(history, turnCommand)...)
+
+	palisadePutEvent := []event.PalisadePut{}
+
+	for _, nextEvent := range history {
+		if typedEvent, isOfRightEventType := nextEvent.(event.PalisadePut); isOfRightEventType {
+			palisadePutEvent = append(palisadePutEvent, typedEvent)
+		}
+	}
+
+	if len(palisadePutEvent) != 1 {
+		t.Errorf("Should have put one palisade, found %v palisade(s) instead", len(palisadePutEvent))
+		return
+	}
+
+	palisadePut := palisadePutEvent[0]
+
+	if palisadePut.X1 != 0 || palisadePut.Y1 != 0 || palisadePut.X2 != 1 || palisadePut.Y2 != 0 {
+		t.Errorf("The palisade does not match with the expected one, got this instead %v", palisadePut)
+	}
+}
+func TestPutTwoPalisades(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.PalisadesDistributed{
+			35,
+		},
+		event.GameStarted{},
+	}
+
+	turnCommand := command.PutPalisadesPayload{
+		Player: 0,
+		Palisades: []palisade.Palisade{
+			palisade.Palisade{
+				X1: 0,
+				Y1: 0,
+				X2: 1,
+				Y2: 0,
+			},
+			palisade.Palisade{
+				X1: 0,
+				Y1: 1,
+				X2: 0,
+				Y2: 2,
+			},
+		},
+	}
+
+	history = append(history, command.PutPalisades(history, turnCommand)...)
+
+	palisadePutEvent := []event.PalisadePut{}
+
+	for _, nextEvent := range history {
+		if typedEvent, isOfRightEventType := nextEvent.(event.PalisadePut); isOfRightEventType {
+			palisadePutEvent = append(palisadePutEvent, typedEvent)
+		}
+	}
+
+	if len(palisadePutEvent) != 2 {
+		t.Errorf("Should have put two palisades, found %v palisade(s) instead", len(palisadePutEvent))
+		return
+	}
+
+	firstPalisade := palisadePutEvent[0]
+
+	if firstPalisade.X1 != 0 || firstPalisade.Y1 != 0 || firstPalisade.X2 != 1 || firstPalisade.Y2 != 0 {
+		t.Errorf("The first palisade does not match with the expected one, got this instead %v", firstPalisade)
+		return
+	}
+
+	secondPalisade := palisadePutEvent[1]
+
+	if secondPalisade.X1 != 0 || secondPalisade.Y1 != 1 || secondPalisade.X2 != 0 || secondPalisade.Y2 != 2 {
+		t.Errorf("The second palisade does not match with the expected one, got this instead %v", secondPalisade)
+	}
+}
+
+func TestPalisadeInvalidIfNotBetweenToAdjacentCells(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.PalisadesDistributed{
+			35,
+		},
+		event.GameStarted{},
+	}
+
+	turnCommand := command.PutPalisadesPayload{
+		Player: 0,
+		Palisades: []palisade.Palisade{
+			palisade.Palisade{
+				X1: 1,
+				Y1: 1,
+				X2: 0,
+				Y2: 0,
+			},
+		},
+	}
+
+	history = append(history, command.PutPalisades(history, turnCommand)...)
+
+	eventFound := false
+
+	for _, nextEvent := range history {
+		if _, isOfRightEventType := nextEvent.(event.InvalidPalisadePosition); isOfRightEventType {
+			eventFound = true
+			break
+		}
+	}
+
+	if !eventFound {
+		t.Error("Event 'InvalidPalisadePosition' not dispatched")
+		return
+	}
+
+	currentGame := game.ReplayHistory(history)
+
+	if currentGame.CurrentPlayer() != 0 {
+		t.Error("The current player was changed after an invalid move")
+	}
+}
+
+func TestUnableToPutAPalisadeOnAAlreadyTakenBorder(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.PalisadesDistributed{
+			35,
+		},
+		event.GameStarted{},
+		event.PalisadePut{
+			Player: 0,
+			X1:     6,
+			Y1:     2,
+			X2:     7,
+			Y2:     2,
+		},
+		event.NextPlayer{},
+	}
+
+	turnCommand := command.PutPalisadesPayload{
+		Player: 1,
+		Palisades: []palisade.Palisade{
+			palisade.Palisade{
+				X1: 6,
+				Y1: 2,
+				X2: 7,
+				Y2: 2,
+			},
+		},
+	}
+
+	history = append(history, command.PutPalisades(history, turnCommand)...)
+
+	eventFound := false
+
+	for _, nextEvent := range history {
+		if _, isOfRightEventType := nextEvent.(event.BorderAlreadyTaken); isOfRightEventType {
+			eventFound = true
+			break
+		}
+	}
+
+	if !eventFound {
+		t.Error("Event 'BorderAlreadyTaken' not dispatched")
+		return
+	}
+
+	currentGame := game.ReplayHistory(history)
+
+	if currentGame.CurrentPlayer() != 1 {
+		t.Error("The current player was changed after an invalid move")
+	}
+}
+
+func TestOnlyOnePalisadePutForACommandWithTwiceTheSameBorder(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.PalisadesDistributed{
+			35,
+		},
+		event.GameStarted{},
+	}
+
+	turnCommand := command.PutPalisadesPayload{
+		Player: 0,
+		Palisades: []palisade.Palisade{
+			palisade.Palisade{
+				X1: 4,
+				Y1: 1,
+				X2: 5,
+				Y2: 1,
+			},
+			palisade.Palisade{
+				X1: 4,
+				Y1: 1,
+				X2: 5,
+				Y2: 1,
+			},
+		},
+	}
+
+	history = append(history, command.PutPalisades(history, turnCommand)...)
+
+	eventFound := 0
+
+	for _, nextEvent := range history {
+		if _, isOfRightEventType := nextEvent.(event.PalisadePut); isOfRightEventType {
+			eventFound++
+		}
+	}
+
+	if eventFound != 1 {
+		t.Errorf("Expected to find one 'PalisadePut' event but found %v", eventFound)
+	}
+}
+
+func TestUnableToPutAPalisadeIfThereIsNoMoreLeft(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.GameStarted{},
+		event.PalisadesDistributed{
+			1,
+		},
+		event.PalisadePut{
+			Player: 0,
+			X1:     2,
+			Y1:     1,
+			X2:     2,
+			Y2:     0,
+		},
+		event.NextPlayer{},
+	}
+
+	turnCommand := command.PutPalisadesPayload{
+		Player: 1,
+		Palisades: []palisade.Palisade{
+			palisade.Palisade{
+				X1: 6,
+				Y1: 1,
+				X2: 7,
+				Y2: 1,
+			},
+		},
+	}
+
+	history = append(history, command.PutPalisades(history, turnCommand)...)
+
+	eventFound := false
+
+	for _, nextEvent := range history {
+		if _, isOfRightEventType := nextEvent.(event.NoMorePalisadeLeft); isOfRightEventType {
+			eventFound = true
+			break
+		}
+	}
+
+	if !eventFound {
+		t.Error("No 'NoMorePalisadeLeft' event found")
+		return
+	}
+
+	currentGame := game.ReplayHistory(history)
+
+	for _, nextPalisade := range currentGame.Board().Palisades() {
+		if nextPalisade.X1 == 6 &&
+			nextPalisade.Y1 == 1 &&
+			nextPalisade.X2 == 7 &&
+			nextPalisade.Y2 == 1 {
+			t.Errorf("The palisade should not have been put: %v", nextPalisade)
+			return
+		}
 	}
 }
