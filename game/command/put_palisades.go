@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/ThomasFerro/armadora/game"
@@ -61,6 +60,10 @@ func getDistinctPalisades(palisades []palisade.Palisade) []palisade.Palisade {
 	return distinct
 }
 
+func breaksGridValidity(currentGame game.Game, palisadeToCheck palisade.Palisade) bool {
+	return false
+}
+
 // PutPalisades Put palisades on the board
 func PutPalisades(history []event.Event, payload PutPalisadesPayload) []event.Event {
 	currentGame := game.ReplayHistory(history)
@@ -76,8 +79,6 @@ func PutPalisades(history []event.Event, payload PutPalisadesPayload) []event.Ev
 	events := []event.Event{}
 
 	distinctPalisades := getDistinctPalisades(payload.Palisades)
-
-	fmt.Printf("??%v %v", len(distinctPalisades), currentGame.Board().PalisadesLeft())
 
 	if len(distinctPalisades) > currentGame.Board().PalisadesLeft() {
 		return []event.Event{
@@ -101,6 +102,18 @@ func PutPalisades(history []event.Event, payload PutPalisadesPayload) []event.Ev
 		if !vacantBorder(currentGame, palisade) {
 			return []event.Event{
 				event.BorderAlreadyTaken{
+					Player: payload.Player,
+					X1:     palisade.X1,
+					Y1:     palisade.Y1,
+					X2:     palisade.X2,
+					Y2:     palisade.Y2,
+				},
+			}
+		}
+
+		if breaksGridValidity(currentGame, palisade) {
+			return []event.Event{
+				event.InvalidPalisadePosition{
 					Player: payload.Player,
 					X1:     palisade.X1,
 					Y1:     palisade.Y1,

@@ -555,12 +555,6 @@ func TestCanOnlyPutWarriorThatThePlayerHaveLeft(t *testing.T) {
 	}
 }
 
-/*
-TODO:
-- Put a palisade:
-	- Unable to put a palisade if it breaks grid validity (territory with less than 4 cells)
-*/
-
 func TestPutOnePalisade(t *testing.T) {
 	history := []event.Event{
 		event.GameCreated{},
@@ -918,5 +912,77 @@ func TestUnableToPutAPalisadeIfThereIsNoMoreLeft(t *testing.T) {
 			t.Errorf("The palisade should not have been put: %v", nextPalisade)
 			return
 		}
+	}
+}
+
+func TestUnableToPutAPalisadeIfItBreaksGridValidity(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GoldStacksDistributed{
+			gold.GoldStacks,
+		},
+		event.GameStarted{},
+		event.PalisadesDistributed{
+			35,
+		},
+		event.PalisadePut{
+			Player: 0,
+			X1:     0,
+			Y1:     0,
+			X2:     1,
+			Y2:     0,
+		},
+		event.PalisadePut{
+			Player: 0,
+			X1:     0,
+			Y1:     1,
+			X2:     1,
+			Y2:     1,
+		},
+		event.NextPlayer{},
+		event.PalisadePut{
+			Player: 1,
+			X1:     0,
+			Y1:     2,
+			X2:     1,
+			Y2:     2,
+		},
+		event.NextPlayer{},
+	}
+
+	turnCommand := command.PutPalisadesPayload{
+		Player: 0,
+		Palisades: []palisade.Palisade{
+			palisade.Palisade{
+				X1: 0,
+				Y1: 2,
+				X2: 0,
+				Y2: 3,
+			},
+		},
+	}
+
+	history = append(history, command.PutPalisades(history, turnCommand)...)
+
+	eventFound := false
+
+	for _, nextEvent := range history {
+		if _, isOfRightEventType := nextEvent.(event.InvalidPalisadePosition); isOfRightEventType {
+			eventFound = true
+			break
+		}
+	}
+
+	if !eventFound {
+		t.Error("Event 'InvalidPalisadePosition' not dispatched")
+		return
 	}
 }
