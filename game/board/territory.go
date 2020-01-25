@@ -88,6 +88,21 @@ func manageGridCell(grid [][]cellWithTerritoryId, x, y int, nextTerritoryId int)
 		return
 	}
 	grid[y][x].territoryId = territoryId(nextTerritoryId)
+	// Left neighbor with no palisade
+	if x > 0 {
+		leftNeighbor := grid[y][x-1]
+		palisadeFound := false
+		for _, nextPalisade := range leftNeighbor.palisades {
+			if (nextPalisade.X1 == x && nextPalisade.Y1 == y && nextPalisade.X2 == x-1 && nextPalisade.Y2 == y) ||
+				(nextPalisade.X1 == x-1 && nextPalisade.Y1 == y && nextPalisade.X2 == x && nextPalisade.Y2 == y) {
+				palisadeFound = true
+				break
+			}
+		}
+		if !palisadeFound {
+			manageGridCell(grid, x-1, y, nextTerritoryId)
+		}
+	}
 	// Right neighbor with no palisade
 	if x < len(grid[y])-1 {
 		rightNeighbor := grid[y][x+1]
@@ -101,6 +116,21 @@ func manageGridCell(grid [][]cellWithTerritoryId, x, y int, nextTerritoryId int)
 		}
 		if !palisadeFound {
 			manageGridCell(grid, x+1, y, nextTerritoryId)
+		}
+	}
+	// Top neighbor with no palisade
+	if y > 0 {
+		topNeighbor := grid[y-1][x]
+		palisadeFound := false
+		for _, nextPalisade := range topNeighbor.palisades {
+			if (nextPalisade.X1 == x && nextPalisade.Y1 == y && nextPalisade.X2 == x && nextPalisade.Y2 == y-1) ||
+				(nextPalisade.X1 == x && nextPalisade.Y1 == y-1 && nextPalisade.X2 == x && nextPalisade.Y2 == y) {
+				palisadeFound = true
+				break
+			}
+		}
+		if !palisadeFound {
+			manageGridCell(grid, x, y-1, nextTerritoryId)
 		}
 	}
 	// Bottom neighbor with no palisade
@@ -177,8 +207,6 @@ func extractTerritories(boardToCompute Board) (map[territoryId][]cell.Cell, erro
 		initCellsWithTerritoryId(boardToCompute),
 	)
 
-	// TODO: Check if every territory is at least 4 cell wide
-
 	extractedTerritories := map[territoryId][]cell.Cell{}
 
 	for _, nextCell := range cells {
@@ -186,6 +214,14 @@ func extractTerritories(boardToCompute Board) (map[territoryId][]cell.Cell, erro
 			extractedTerritories[nextCell.territoryId] = []cell.Cell{}
 		}
 		extractedTerritories[nextCell.territoryId] = append(extractedTerritories[nextCell.territoryId], nextCell.cell)
+	}
+
+	for _, territory := range extractedTerritories {
+		if len(territory) < 4 {
+			return nil, BoardInvalid{
+				reason: "At least one territory is smaller than four cells",
+			}
+		}
 	}
 
 	return extractedTerritories, nil

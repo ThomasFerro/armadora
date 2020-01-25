@@ -608,6 +608,7 @@ func TestPutOnePalisade(t *testing.T) {
 		t.Errorf("The palisade does not match with the expected one, got this instead %v", palisadePut)
 	}
 }
+
 func TestPutTwoPalisades(t *testing.T) {
 	history := []event.Event{
 		event.GameCreated{},

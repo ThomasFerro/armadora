@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/ThomasFerro/armadora/game"
+	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/event"
 	"github.com/ThomasFerro/armadora/game/palisade"
 )
@@ -61,7 +62,8 @@ func getDistinctPalisades(palisades []palisade.Palisade) []palisade.Palisade {
 }
 
 func breaksGridValidity(currentGame game.Game, palisadeToCheck palisade.Palisade) bool {
-	return false
+	_, err := board.FindTerritories(currentGame.Board().PutPalisade(palisadeToCheck))
+	return err != nil
 }
 
 // PutPalisades Put palisades on the board
@@ -130,6 +132,7 @@ func PutPalisades(history []event.Event, payload PutPalisadesPayload) []event.Ev
 			X2:     palisade.X2,
 			Y2:     palisade.Y2,
 		})
+		currentGame = game.ReplayHistory(append(history, events...))
 	}
 
 	return append(events, event.NextPlayer{})

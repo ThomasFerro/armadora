@@ -8,11 +8,6 @@ import (
 	"github.com/ThomasFerro/armadora/game/palisade"
 )
 
-/*
-TODO:
-- Invalid territories
-*/
-
 func TestValidGridWithOneTerritory(t *testing.T) {
 	testedBoard := board.NewBoard(gold.GoldStacks)
 	testedBoard = testedBoard.PutWarriorInCell(
@@ -94,8 +89,8 @@ func TestValidFourCellsTerritory(t *testing.T) {
 			X: 0,
 			Y: 0,
 		},
-		0,
-		5,
+		1,
+		4,
 	)
 	testedBoard = testedBoard.PutWarriorInCell(
 		board.Position{
@@ -166,5 +161,60 @@ func TestValidFourCellsTerritory(t *testing.T) {
 		t.Errorf("Expecting to get two territories, got this instead: %v", territories)
 		return
 	}
-	// TODO: Vérifier que le premier territoire est gagné par le joueur 1 et que le second est gagné par le joueur 2 ?
+}
+
+func TestInvalidTerritory(t *testing.T) {
+	testedBoard := board.NewBoard(gold.GoldStacks)
+	testedBoard = testedBoard.PutWarriorInCell(
+		board.Position{
+			X: 0,
+			Y: 0,
+		},
+		1,
+		4,
+	)
+	testedBoard = testedBoard.PutWarriorInCell(
+		board.Position{
+			X: 5,
+			Y: 0,
+		},
+		1,
+		5,
+	)
+	palisadesToPut := []palisade.Palisade{
+		palisade.Palisade{
+			X1: 4,
+			Y1: 4,
+			X2: 5,
+			Y2: 4,
+		},
+		palisade.Palisade{
+			X1: 5,
+			Y1: 4,
+			X2: 5,
+			Y2: 3,
+		},
+		palisade.Palisade{
+			X1: 6,
+			Y1: 4,
+			X2: 6,
+			Y2: 3,
+		},
+		palisade.Palisade{
+			X1: 7,
+			Y1: 4,
+			X2: 7,
+			Y2: 3,
+		},
+	}
+
+	for _, palpalisadeToPut := range palisadesToPut {
+		testedBoard = testedBoard.PutPalisade(palpalisadeToPut)
+	}
+
+	territories, err := board.FindTerritories(testedBoard)
+
+	if err == nil {
+		t.Errorf("Invalid territory still computed %v", territories)
+	}
 }
