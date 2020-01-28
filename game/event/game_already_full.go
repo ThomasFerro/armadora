@@ -7,3 +7,7 @@ type GameAlreadyFull struct{}
 func (event GameAlreadyFull) EventMessage() string {
 	return "The game is already full, no more player can join it."
 }
+
+func (event GameAlreadyFull) String() string {
+	return event.EventMessage()
+}

@@ -16,3 +16,7 @@ type PlayerJoined struct {
 func (event PlayerJoined) EventMessage() string {
 	return fmt.Sprintf("%v has joined the game as %v.", event.Nickname, event.Character)
 }
+
+func (event PlayerJoined) String() string {
+	return event.EventMessage()
+}

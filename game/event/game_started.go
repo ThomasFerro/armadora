@@ -7,3 +7,7 @@ type GameStarted struct{}
 func (event GameStarted) EventMessage() string {
 	return "The game has started !"
 }
+
+func (event GameStarted) String() string {
+	return event.EventMessage()
+}

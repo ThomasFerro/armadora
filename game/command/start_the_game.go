@@ -33,5 +33,9 @@ func StartTheGame(history []event.Event) []event.Event {
 		goldStacksToDistribute,
 	})
 
+	events = append(events, event.PalisadesDistributed{
+		35,
+	})
+
 	return append(events, event.GameStarted{})
 }

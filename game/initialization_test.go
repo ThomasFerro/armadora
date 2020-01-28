@@ -366,3 +366,39 @@ func TestGoldStacksShouldBeDistributedOnGameStart(t *testing.T) {
 		}
 	}
 }
+
+func TestPalisadesShouldBeDistributedOnGameStart(t *testing.T) {
+	history := []event.Event{
+		event.GameCreated{},
+		event.PlayerJoined{
+			Nickname:  "README.md",
+			Character: character.Goblin,
+		},
+		event.PlayerJoined{
+			Nickname:  "Javadoc",
+			Character: character.Elf,
+		},
+		event.GameStarted{},
+	}
+
+	history = append(history, command.StartTheGame(history)...)
+
+	var palisadesDistributedEvent event.PalisadesDistributed
+
+	for _, nextEvent := range history {
+		if typedEvent, isOfRightEventType := nextEvent.(event.PalisadesDistributed); isOfRightEventType {
+			palisadesDistributedEvent = typedEvent
+		}
+	}
+
+	if palisadesDistributedEvent.Count != 35 {
+		t.Errorf("The palisades are not distributed, event: %v", palisadesDistributedEvent)
+		return
+	}
+
+	newGame := game.ReplayHistory(history)
+
+	if newGame.Board().PalisadesLeft() != 35 {
+		t.Errorf("The distributed palisades does not match with the rules, should have 35 but got %v", newGame.Board().PalisadesLeft())
+	}
+}

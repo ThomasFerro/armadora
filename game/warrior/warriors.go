@@ -37,6 +37,29 @@ func (w warriors) FivePoints() int {
 	return w.fivePoints
 }
 
+func RemoveUsedWarrior(previousWarriors Warriors, strengthOfTheUsedWarrior int) Warriors {
+	newWarriors := warriors{
+		previousWarriors.OnePoint(),
+		previousWarriors.TwoPoints(),
+		previousWarriors.ThreePoints(),
+		previousWarriors.FourPoints(),
+		previousWarriors.FivePoints(),
+	}
+	switch strengthOfTheUsedWarrior {
+	case 1:
+		newWarriors.onePoint--
+	case 2:
+		newWarriors.twoPoints--
+	case 3:
+		newWarriors.threePoints--
+	case 4:
+		newWarriors.fourPoints--
+	case 5:
+		newWarriors.fivePoints--
+	}
+	return newWarriors
+}
+
 // NewWarriors Create a new warriors pool
 func NewWarriors(onePoint, twoPoints, threePoints, fourPoints, fivePoints int) Warriors {
 	return warriors{
