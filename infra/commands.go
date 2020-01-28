@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"encoding/json"
 	"log"
 	"strconv"
 
@@ -9,12 +10,15 @@ import (
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/command"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/palisade"
 )
 
 type Command struct {
 	CommandType string            `json:"command_type"`
 	Payload     map[string]string `json:"payload"`
 }
+
+// TODO: Error management
 
 func ManageCommand(history []event.Event, msg Command) []event.Event {
 	switch msg.CommandType {
@@ -26,6 +30,8 @@ func ManageCommand(history []event.Event, msg Command) []event.Event {
 		return startTheGame(history, msg)
 	case "PutWarrior":
 		return putWarrior(history, msg)
+	case "PutPalisades":
+		return putPalisades(history, msg)
 	}
 	return []event.Event{}
 }
@@ -61,6 +67,18 @@ func putWarrior(history []event.Event, msg Command) []event.Event {
 			X: x,
 			Y: y,
 		},
+	})
+}
+
+func putPalisades(history []event.Event, msg Command) []event.Event {
+	// TODO: Pay the tech debt when managing authent
+	currentGame := game.ReplayHistory(history)
+	// TODO: Error management
+	var palisades []palisade.Palisade
+	json.Unmarshal([]byte(msg.Payload["Palisades"]), &palisades)
+	return command.PutPalisades(history, command.PutPalisadesPayload{
+		Player:    currentGame.CurrentPlayer(),
+		Palisades: palisades,
 	})
 }
 

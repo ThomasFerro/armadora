@@ -12,6 +12,7 @@
     const dispatch = createEventDispatcher()
 
     $: cells = value && value.cells || []
+    $: palisades = value && value.palisades || []
 
     const cellSelected = (details) => {
         if (!active) {
@@ -28,13 +29,21 @@
     const warriorSelected = ({ strength }) => {
         selectedWarrior = strength
     }
+
+    const borderSelected = (palisades) => {
+        dispatch('put-palisades', {
+            palisades,
+        })
+    }
 </script>
 
 <article class="board">
     <Grid
         {active}
         {cells}
+        {palisades}
         on:cell-selected={(e) => cellSelected(e.detail)}
+        on:border-selected={(e) => borderSelected(e.detail)}
     ></Grid>
     {#if active}
     <WarriorSelection

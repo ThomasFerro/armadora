@@ -5,6 +5,7 @@ import (
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/board/cell"
 	"github.com/ThomasFerro/armadora/game/character"
+	"github.com/ThomasFerro/armadora/game/palisade"
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
@@ -34,8 +35,16 @@ type CellDto struct {
 	Gold      int      `json:"gold"`
 }
 
+type PalisadeDto struct {
+	X1 int `json:"x1"`
+	Y1 int `json:"y1"`
+	X2 int `json:"x2"`
+	Y2 int `json:"y2"`
+}
+
 type BoardDto struct {
-	Cells [][]CellDto `json:"cells"`
+	Cells     [][]CellDto   `json:"cells"`
+	Palisades []PalisadeDto `json:"palisades"`
 }
 
 type GameDto struct {
@@ -71,22 +80,45 @@ func toCellDto(boardToMap board.Board, players []PlayerDto, x, y int) CellDto {
 	}
 }
 
+func toCellsDto(boardToMap board.Board, players []PlayerDto) [][]CellDto {
+	mappedCells := make([][]CellDto, 0)
+
+	for y := 0; y < boardToMap.Height(); y++ {
+		mappedCells = append(mappedCells, make([]CellDto, 0))
+		for x := 0; x < boardToMap.Width(); x++ {
+			mappedCells[y] = append(
+				mappedCells[y],
+				toCellDto(boardToMap, players, x, y),
+			)
+		}
+	}
+
+	return mappedCells
+}
+
+func toPalisadesDto(palisades []palisade.Palisade) []PalisadeDto {
+	mappedPalisades := []PalisadeDto{}
+
+	for _, nextPalisade := range palisades {
+		mappedPalisades = append(mappedPalisades, PalisadeDto{
+			X1: nextPalisade.X1,
+			Y1: nextPalisade.Y1,
+			X2: nextPalisade.X2,
+			Y2: nextPalisade.Y2,
+		})
+	}
+
+	return mappedPalisades
+}
+
 func toBoardDto(boardToMap board.Board, players []PlayerDto) BoardDto {
 	if boardToMap == nil {
 		return BoardDto{}
 	}
-	boardDto := BoardDto{
-		Cells: make([][]CellDto, 0),
-	}
 
-	for y := 0; y < boardToMap.Height(); y++ {
-		boardDto.Cells = append(boardDto.Cells, make([]CellDto, 0))
-		for x := 0; x < boardToMap.Width(); x++ {
-			boardDto.Cells[y] = append(
-				boardDto.Cells[y],
-				toCellDto(boardToMap, players, x, y),
-			)
-		}
+	boardDto := BoardDto{
+		Cells:     toCellsDto(boardToMap, players),
+		Palisades: toPalisadesDto(boardToMap.Palisades()),
 	}
 
 	return boardDto

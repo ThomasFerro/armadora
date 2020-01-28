@@ -55,6 +55,15 @@
             },
         }))
     }
+
+    const putPalisades = ({ palisades }) => {
+        partyWs.send(JSON.stringify({
+            "command_type": "PutPalisades",
+            "payload": {
+                "Palisades": JSON.stringify(palisades)
+            },
+        }))
+    }
 </script>
 
 <h2>Party: {id}</h2>
@@ -78,5 +87,6 @@
     active={turnOfConnectedPlayer}
     connectedPlayer={connectedPlayer}
     on:put-warrior={(e) => putWarrior(e.detail)}
+    on:put-palisades={(e) => putPalisades(e.detail)}
 ></Board>
 {/if}
