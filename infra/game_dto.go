@@ -131,6 +131,8 @@ func toStateDto(state game.State) StateDto {
 		return "WaitingForPlayers"
 	case game.Started:
 		return "Started"
+	case game.Finished:
+		return "Finished"
 	}
 	return ""
 }

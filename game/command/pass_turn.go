@@ -28,10 +28,33 @@ func PassTurn(history []event.Event, passTurnPayload PassTurnPayload) []event.Ev
 		}
 	}
 
-	return []event.Event{
-		event.TurnPassed{
-			Player: passTurnPayload.Player,
-		},
-		event.NextPlayer{},
+	turnPassedEvent := event.TurnPassed{
+		Player: passTurnPayload.Player,
 	}
+
+	return []event.Event{
+		turnPassedEvent,
+		nextPlayerOrEndGame(
+			append(history, turnPassedEvent),
+		),
+	}
+}
+
+func nextPlayerOrEndGame(history []event.Event) event.Event {
+	var nextPlayerOrEndGame event.Event = event.NextPlayer{}
+	endGame := true
+	currentGame := game.ReplayHistory(
+		append(history),
+	)
+	for _, player := range currentGame.Players() {
+		if !player.TurnPassed() {
+			endGame = false
+			break
+		}
+	}
+
+	if endGame {
+		nextPlayerOrEndGame = event.GameFinished{}
+	}
+	return nextPlayerOrEndGame
 }

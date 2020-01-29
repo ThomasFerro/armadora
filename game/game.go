@@ -23,6 +23,7 @@ type Game interface {
 	ApplyWarriorPut(event event.WarriorPut) Game
 	ApplyPalisadePut(event event.PalisadePut) Game
 	ApplyTurnPassed(event event.TurnPassed) Game
+	ApplyGameFinished(event event.GameFinished) Game
 }
 
 type game struct {
@@ -126,6 +127,11 @@ func (g game) ApplyTurnPassed(event event.TurnPassed) Game {
 	return g
 }
 
+func (g game) ApplyGameFinished(event event.GameFinished) Game {
+	g.state = Finished
+	return g
+}
+
 // ReplayHistory Replay the provided history to retrieve the game state
 func ReplayHistory(history []event.Event) Game {
 	var returnedGame Game
@@ -152,6 +158,8 @@ func ReplayHistory(history []event.Event) Game {
 			returnedGame = returnedGame.ApplyPalisadePut(typedEvent)
 		case event.TurnPassed:
 			returnedGame = returnedGame.ApplyTurnPassed(typedEvent)
+		case event.GameFinished:
+			returnedGame = returnedGame.ApplyGameFinished(typedEvent)
 		}
 	}
 	return returnedGame
