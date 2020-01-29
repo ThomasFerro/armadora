@@ -22,6 +22,7 @@ type Game interface {
 	ApplyNextPlayer(event event.NextPlayer) Game
 	ApplyWarriorPut(event event.WarriorPut) Game
 	ApplyPalisadePut(event event.PalisadePut) Game
+	ApplyTurnPassed(event event.TurnPassed) Game
 }
 
 type game struct {
@@ -85,12 +86,21 @@ func (g game) ApplyPalisadesDistributed(event event.PalisadesDistributed) Game {
 	return g
 }
 
-func (g game) ApplyNextPlayer(event event.NextPlayer) Game {
-	if g.currentPlayer == len(g.players)-1 {
-		g.currentPlayer = 0
-	} else {
-		g.currentPlayer++
+func naiveNextPlayer(g game, currentPlayer int) int {
+	if currentPlayer == len(g.players)-1 {
+		return 0
 	}
+	return currentPlayer + 1
+}
+
+func (g game) ApplyNextPlayer(event event.NextPlayer) Game {
+	expectedNextPlayer := naiveNextPlayer(g, g.currentPlayer)
+	iteration := 1
+	for g.Players()[expectedNextPlayer].TurnPassed() && iteration < len(g.Players()) {
+		expectedNextPlayer = naiveNextPlayer(g, expectedNextPlayer)
+		iteration++
+	}
+	g.currentPlayer = expectedNextPlayer
 	return g
 }
 
@@ -108,6 +118,11 @@ func (g game) ApplyPalisadePut(event event.PalisadePut) Game {
 		X2: event.X2,
 		Y2: event.Y2,
 	})
+	return g
+}
+
+func (g game) ApplyTurnPassed(event event.TurnPassed) Game {
+	g.Players()[event.Player] = g.Players()[event.Player].PassTurn()
 	return g
 }
 
@@ -135,6 +150,8 @@ func ReplayHistory(history []event.Event) Game {
 			returnedGame = returnedGame.ApplyWarriorPut(typedEvent)
 		case event.PalisadePut:
 			returnedGame = returnedGame.ApplyPalisadePut(typedEvent)
+		case event.TurnPassed:
+			returnedGame = returnedGame.ApplyTurnPassed(typedEvent)
 		}
 	}
 	return returnedGame

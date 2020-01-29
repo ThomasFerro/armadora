@@ -22,9 +22,10 @@ type WarriorsDto struct {
 }
 
 type PlayerDto struct {
-	Nickname  string       `json:"nickname"`
-	Character CharacterDto `json:"character"`
-	Warriors  WarriorsDto  `json:"warriors"`
+	Nickname   string       `json:"nickname"`
+	Character  CharacterDto `json:"character"`
+	Warriors   WarriorsDto  `json:"warriors"`
+	TurnPassed bool         `json:"turn_passed"`
 }
 
 type CellType string
@@ -165,9 +166,10 @@ func toPlayersDto(players []game.Player) []PlayerDto {
 	playersDto := []PlayerDto{}
 	for _, player := range players {
 		playersDto = append(playersDto, PlayerDto{
-			Nickname:  player.Nickname(),
-			Character: toCharacterDto(player.Character()),
-			Warriors:  toWarriorsDto(player.Warriors()),
+			Nickname:   player.Nickname(),
+			Character:  toCharacterDto(player.Character()),
+			Warriors:   toWarriorsDto(player.Warriors()),
+			TurnPassed: player.TurnPassed(),
 		})
 	}
 	return playersDto

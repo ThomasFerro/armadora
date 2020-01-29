@@ -64,6 +64,13 @@
             },
         }))
     }
+
+    const passTurn = () => {
+        partyWs.send(JSON.stringify({
+            "command_type": "PassTurn",
+            "payload": {},
+        }))
+    }
 </script>
 
 <h2>Party: {id}</h2>
@@ -88,5 +95,6 @@
     connectedPlayer={connectedPlayer}
     on:put-warrior={(e) => putWarrior(e.detail)}
     on:put-palisades={(e) => putPalisades(e.detail)}
+    on:pass-turn={passTurn}
 ></Board>
 {/if}
