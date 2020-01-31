@@ -6,13 +6,15 @@ import { terser } from 'rollup-plugin-terser';
 
 const production = !process.env.ROLLUP_WATCH;
 
+const buildDir = process.env.BUILD_DIR || '../static/build'
+
 export default {
 	input: 'src/main.js',
 	output: {
 		sourcemap: true,
 		format: 'iife',
 		name: 'app',
-		file: '../static/build/bundle.js'
+		file: buildDir + '/bundle.js'
 	},
 	plugins: [
 		svelte({
@@ -21,7 +23,7 @@ export default {
 			// we'll extract any component CSS out into
 			// a separate file — better for performance
 			css: css => {
-				css.write('../static/build/bundle.css');
+				css.write(buildDir + '/bundle.css');
 			}
 		}),
 

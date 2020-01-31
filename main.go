@@ -27,7 +27,9 @@ func main() {
 
 	http.HandleFunc("/parties/", handleConnectionsToPartyWs)
 
-	err := http.ListenAndServe(":8000", nil)
+	port := ":80"
+	log.Printf("Serving Armadora on port: %v\n", port)
+	err := http.ListenAndServe(port, nil)
 	if err != nil {
 		log.Fatalf("Cannot start the server: %v\n", err)
 	}
