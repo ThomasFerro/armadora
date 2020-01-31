@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/ThomasFerro/armadora/game"
+	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/score"
 )
 
 // PassTurnPayload Containing information about the player that want to pass his turn
@@ -54,7 +56,11 @@ func nextPlayerOrEndGame(history []event.Event) event.Event {
 	}
 
 	if endGame {
-		nextPlayerOrEndGame = event.GameFinished{}
+		territories, _ := board.FindTerritories(currentGame.Board())
+
+		nextPlayerOrEndGame = event.GameFinished{
+			Scores: score.ComputeScores(territories),
+		}
 	}
 	return nextPlayerOrEndGame
 }

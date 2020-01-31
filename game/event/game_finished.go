@@ -1,13 +1,19 @@
 package event
 
-//TODO: Add scores
+import (
+	"fmt"
+
+	"github.com/ThomasFerro/armadora/game/score"
+)
+
 // GameFinished Dispatched when the game is finished
-type GameFinished struct{}
+type GameFinished struct {
+	Scores score.Scores
+}
 
 // EventMessage Indicate that the game is finished
 func (event GameFinished) EventMessage() string {
-	// TODO: Add scores
-	return "The game is finished."
+	return fmt.Sprintf("The game is finished with scores %v.", event.Scores)
 }
 
 func (event GameFinished) String() string {

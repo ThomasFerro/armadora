@@ -4,6 +4,7 @@ import (
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/event"
 	"github.com/ThomasFerro/armadora/game/palisade"
+	"github.com/ThomasFerro/armadora/game/score"
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
@@ -13,6 +14,7 @@ type Game interface {
 	Players() []Player
 	CurrentPlayer() int
 	Board() board.Board
+	Scores() score.Scores
 	ApplyGameCreated(event event.GameCreated) Game
 	ApplyPlayerJoined(event event.PlayerJoined) Game
 	ApplyWarriorsDistributed(event event.WarriorsDistributed) Game
@@ -31,6 +33,7 @@ type game struct {
 	players       []Player
 	currentPlayer int
 	board         board.Board
+	scores        score.Scores
 }
 
 // State The game's current state
@@ -51,6 +54,11 @@ func (g game) CurrentPlayer() int {
 // Board The game's Board
 func (g game) Board() board.Board {
 	return g.board
+}
+
+// Scores The game's final scores
+func (g game) Scores() score.Scores {
+	return g.scores
 }
 
 func (g game) ApplyGameCreated(event event.GameCreated) Game {
@@ -129,6 +137,7 @@ func (g game) ApplyTurnPassed(event event.TurnPassed) Game {
 
 func (g game) ApplyGameFinished(event event.GameFinished) Game {
 	g.state = Finished
+	g.scores = event.Scores
 	return g
 }
 
