@@ -6,6 +6,7 @@ import (
 	"github.com/ThomasFerro/armadora/game/board/cell"
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/palisade"
+	"github.com/ThomasFerro/armadora/game/score"
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
@@ -48,12 +49,20 @@ type BoardDto struct {
 	Palisades []PalisadeDto `json:"palisades"`
 }
 
+type ScoresDto map[int]ScoreDto
+
+type ScoreDto struct {
+	Player int `json:"player"`
+	Gold   int `json:"gold"`
+}
+
 type GameDto struct {
 	State               StateDto    `json:"state"`
 	Players             []PlayerDto `json:"players"`
 	CurrentPlayer       int         `json:"current_player"`
 	Board               BoardDto    `json:"board"`
 	AvailableCharacters []string    `json:"available_characters"`
+	Scores              ScoresDto   `json:"scores"`
 }
 
 func toCellDto(boardToMap board.Board, players []PlayerDto, x, y int) CellDto {
@@ -196,6 +205,25 @@ func getAvailableCharacters(players []PlayerDto) []string {
 	return availableCharacters
 }
 
+func toScoreDto(score score.Score) ScoreDto {
+	return ScoreDto{
+		Player: score.Player(),
+		Gold:   score.TotalGold(),
+	}
+}
+
+func toScoresDto(scores score.Scores) ScoresDto {
+	mappedScores := ScoresDto{}
+
+	if scores != nil {
+		for rank, score := range scores {
+			mappedScores[rank] = toScoreDto(score)
+		}
+	}
+
+	return mappedScores
+}
+
 func ToGameDto(game game.Game) GameDto {
 	playersDto := toPlayersDto(game.Players())
 	return GameDto{
@@ -204,5 +232,6 @@ func ToGameDto(game game.Game) GameDto {
 		Players:             playersDto,
 		CurrentPlayer:       game.CurrentPlayer(),
 		AvailableCharacters: getAvailableCharacters(playersDto),
+		Scores:              toScoresDto(game.Scores()),
 	}
 }

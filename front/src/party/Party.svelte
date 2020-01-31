@@ -1,6 +1,7 @@
 <script>
     import JoinAGame from './JoinAGame.svelte';
     import Board from './board/Board.svelte';
+    import Scores from './score/Scores.svelte';
     export let id = undefined;
 
     let partyWs
@@ -71,6 +72,9 @@
             "payload": {},
         }))
     }
+
+    $: finished = game && game.state && game.state === 'Finished'
+    $: scores = game && game.scores
 </script>
 
 <h2>Party: {id}</h2>
@@ -88,6 +92,8 @@
         <li>{player.nickname} playing as {player.character}.</li>
         {/each}
     </ul>
+{:else if finished}
+<Scores value={scores} players={players}></Scores>
 {:else}
 <Board
     value={board}
