@@ -1,0 +1,49 @@
+{
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "containerDefinitions": [
+        {
+            "name": "armadora",
+            "image": "427675405025.dkr.ecr.eu-west-3.amazonaws.com/armadora",
+            "resourceRequirements": null,
+            "essential": true,
+            "portMappings": [
+                {
+                    "containerPort": "80",
+                    "protocol": "tcp"
+                }
+            ],
+            "environment": null,
+            "secrets": null,
+            "mountPoints": null,
+            "volumesFrom": null,
+            "hostname": null,
+            "user": null,
+            "workingDirectory": null,
+            "extraHosts": null,
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/armadora-definition",
+                    "awslogs-region": "eu-west-3",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "ulimits": null,
+            "dockerLabels": null,
+            "dependsOn": null,
+            "repositoryCredentials": {
+                "credentialsParameter": ""
+            }
+        }
+    ],
+    "volumes": [],
+    "networkMode": "awsvpc",
+    "memory": "512",
+    "cpu": "256",
+    "executionRoleArn": "arn:aws:iam::427675405025:role/ecsTaskExecutionRole",
+    "family": "armadora-definition",
+    "taskRoleArn": "",
+    "tags": []
+}
