@@ -10,4 +10,6 @@ const (
 	WaitingForPlayers
 	// Started The game has started
 	Started
+	// Finished The game is finished
+	Finished
 )

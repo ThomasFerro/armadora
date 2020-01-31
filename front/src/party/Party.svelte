@@ -1,6 +1,7 @@
 <script>
     import JoinAGame from './JoinAGame.svelte';
     import Board from './board/Board.svelte';
+    import Scores from './score/Scores.svelte';
     export let id = undefined;
 
     let partyWs
@@ -64,6 +65,16 @@
             },
         }))
     }
+
+    const passTurn = () => {
+        partyWs.send(JSON.stringify({
+            "command_type": "PassTurn",
+            "payload": {},
+        }))
+    }
+
+    $: finished = game && game.state && game.state === 'Finished'
+    $: scores = game && game.scores
 </script>
 
 <h2>Party: {id}</h2>
@@ -81,6 +92,8 @@
         <li>{player.nickname} playing as {player.character}.</li>
         {/each}
     </ul>
+{:else if finished}
+<Scores value={scores} players={players}></Scores>
 {:else}
 <Board
     value={board}
@@ -88,5 +101,6 @@
     connectedPlayer={connectedPlayer}
     on:put-warrior={(e) => putWarrior(e.detail)}
     on:put-palisades={(e) => putPalisades(e.detail)}
+    on:pass-turn={passTurn}
 ></Board>
 {/if}

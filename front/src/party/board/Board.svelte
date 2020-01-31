@@ -35,6 +35,10 @@
             palisades,
         })
     }
+
+    const passTurn = () => {
+        dispatch('pass-turn')
+    }
 </script>
 
 <article class="board">
@@ -50,5 +54,6 @@
         warriors={connectedPlayerWarriors}
         on:warrior-selected={(e) => warriorSelected(e.detail)}
     ></WarriorSelection>
+    <button on:click={passTurn}>Pass your turn</button>
     {/if}
 </article>

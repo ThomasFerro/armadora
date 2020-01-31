@@ -4,6 +4,7 @@ import (
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/event"
 	"github.com/ThomasFerro/armadora/game/palisade"
+	"github.com/ThomasFerro/armadora/game/score"
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
@@ -13,6 +14,7 @@ type Game interface {
 	Players() []Player
 	CurrentPlayer() int
 	Board() board.Board
+	Scores() score.Scores
 	ApplyGameCreated(event event.GameCreated) Game
 	ApplyPlayerJoined(event event.PlayerJoined) Game
 	ApplyWarriorsDistributed(event event.WarriorsDistributed) Game
@@ -22,6 +24,8 @@ type Game interface {
 	ApplyNextPlayer(event event.NextPlayer) Game
 	ApplyWarriorPut(event event.WarriorPut) Game
 	ApplyPalisadePut(event event.PalisadePut) Game
+	ApplyTurnPassed(event event.TurnPassed) Game
+	ApplyGameFinished(event event.GameFinished) Game
 }
 
 type game struct {
@@ -29,6 +33,7 @@ type game struct {
 	players       []Player
 	currentPlayer int
 	board         board.Board
+	scores        score.Scores
 }
 
 // State The game's current state
@@ -49,6 +54,11 @@ func (g game) CurrentPlayer() int {
 // Board The game's Board
 func (g game) Board() board.Board {
 	return g.board
+}
+
+// Scores The game's final scores
+func (g game) Scores() score.Scores {
+	return g.scores
 }
 
 func (g game) ApplyGameCreated(event event.GameCreated) Game {
@@ -85,12 +95,21 @@ func (g game) ApplyPalisadesDistributed(event event.PalisadesDistributed) Game {
 	return g
 }
 
-func (g game) ApplyNextPlayer(event event.NextPlayer) Game {
-	if g.currentPlayer == len(g.players)-1 {
-		g.currentPlayer = 0
-	} else {
-		g.currentPlayer++
+func naiveNextPlayer(g game, currentPlayer int) int {
+	if currentPlayer == len(g.players)-1 {
+		return 0
 	}
+	return currentPlayer + 1
+}
+
+func (g game) ApplyNextPlayer(event event.NextPlayer) Game {
+	expectedNextPlayer := naiveNextPlayer(g, g.currentPlayer)
+	iteration := 1
+	for g.Players()[expectedNextPlayer].TurnPassed() && iteration < len(g.Players()) {
+		expectedNextPlayer = naiveNextPlayer(g, expectedNextPlayer)
+		iteration++
+	}
+	g.currentPlayer = expectedNextPlayer
 	return g
 }
 
@@ -108,6 +127,17 @@ func (g game) ApplyPalisadePut(event event.PalisadePut) Game {
 		X2: event.X2,
 		Y2: event.Y2,
 	})
+	return g
+}
+
+func (g game) ApplyTurnPassed(event event.TurnPassed) Game {
+	g.Players()[event.Player] = g.Players()[event.Player].PassTurn()
+	return g
+}
+
+func (g game) ApplyGameFinished(event event.GameFinished) Game {
+	g.state = Finished
+	g.scores = event.Scores
 	return g
 }
 
@@ -135,6 +165,10 @@ func ReplayHistory(history []event.Event) Game {
 			returnedGame = returnedGame.ApplyWarriorPut(typedEvent)
 		case event.PalisadePut:
 			returnedGame = returnedGame.ApplyPalisadePut(typedEvent)
+		case event.TurnPassed:
+			returnedGame = returnedGame.ApplyTurnPassed(typedEvent)
+		case event.GameFinished:
+			returnedGame = returnedGame.ApplyGameFinished(typedEvent)
 		}
 	}
 	return returnedGame

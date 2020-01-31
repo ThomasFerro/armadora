@@ -32,6 +32,8 @@ func ManageCommand(history []event.Event, msg Command) []event.Event {
 		return putWarrior(history, msg)
 	case "PutPalisades":
 		return putPalisades(history, msg)
+	case "PassTurn":
+		return passTurn(history, msg)
 	}
 	return []event.Event{}
 }
@@ -79,6 +81,14 @@ func putPalisades(history []event.Event, msg Command) []event.Event {
 	return command.PutPalisades(history, command.PutPalisadesPayload{
 		Player:    currentGame.CurrentPlayer(),
 		Palisades: palisades,
+	})
+}
+
+func passTurn(history []event.Event, msg Command) []event.Event {
+	// TODO: Pay the tech debt when managing authent
+	currentGame := game.ReplayHistory(history)
+	return command.PassTurn(history, command.PassTurnPayload{
+		Player: currentGame.CurrentPlayer(),
 	})
 }
 

@@ -39,7 +39,7 @@ func (t territory) String() string {
 	return fmt.Sprintf("Territory containing %v gold with winning players %v", t.Gold(), t.WinningPlayers())
 }
 
-func findTerritoryWinnerAndGolds(cells []cell.Cell) territory {
+func findTerritoryWinnerAndGolds(cells []cell.Cell) Territory {
 	playersStrength := map[int]int{}
 	greatestStrength := 0
 	totalGold := 0
@@ -67,10 +67,7 @@ func findTerritoryWinnerAndGolds(cells []cell.Cell) territory {
 		}
 	}
 
-	return territory{
-		gold:           totalGold,
-		winningPlayers: winningPlayers,
-	}
+	return NewTerritory(totalGold, winningPlayers)
 }
 
 type cellWithTerritoryId struct {
@@ -225,6 +222,13 @@ func extractTerritories(boardToCompute Board) (map[territoryId][]cell.Cell, erro
 	}
 
 	return extractedTerritories, nil
+}
+
+func NewTerritory(gold int, winningPlayers []int) Territory {
+	return territory{
+		gold:           gold,
+		winningPlayers: winningPlayers,
+	}
 }
 
 // FindTerritories Find the territories in the provided board
