@@ -43,24 +43,18 @@ func PassTurn(history []event.Event, passTurnPayload PassTurnPayload) []event.Ev
 }
 
 func nextPlayerOrEndGame(history []event.Event) event.Event {
-	var nextPlayerOrEndGame event.Event = event.NextPlayer{}
-	endGame := true
 	currentGame := game.ReplayHistory(
 		append(history),
 	)
 	for _, player := range currentGame.Players() {
 		if !player.TurnPassed() {
-			endGame = false
-			break
+			return event.NextPlayer{}
 		}
 	}
 
-	if endGame {
-		territories, _ := board.FindTerritories(currentGame.Board())
+	territories, _ := board.FindTerritories(currentGame.Board())
 
-		nextPlayerOrEndGame = event.GameFinished{
-			Scores: score.ComputeScores(territories),
-		}
+	return event.GameFinished{
+		Scores: score.ComputeScores(territories),
 	}
-	return nextPlayerOrEndGame
 }

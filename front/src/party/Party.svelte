@@ -11,7 +11,8 @@
     let nickname = ''
     
     $: {
-		partyWs = new WebSocket(`ws://${window.location.host}/parties/${id}`);
+        const scheme = window.location.protocol == "https:" ? 'wss://' : 'ws://';
+		partyWs = new WebSocket(`${scheme}${window.location.host}/parties/${id}`);
 		partyWs.addEventListener('message', ({data}) => {
             game = JSON.parse(data)
 		})

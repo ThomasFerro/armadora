@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/ThomasFerro/armadora/infra"
@@ -27,9 +28,12 @@ func main() {
 
 	http.HandleFunc("/parties/", handleConnectionsToPartyWs)
 
-	port := ":80"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "80"
+	}
 	log.Printf("Serving Armadora on port: %v\n", port)
-	err := http.ListenAndServe(port, nil)
+	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Fatalf("Cannot start the server: %v\n", err)
 	}
