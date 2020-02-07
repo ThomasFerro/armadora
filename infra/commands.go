@@ -18,7 +18,7 @@ type Command struct {
 	Payload     map[string]string `json:"payload"`
 }
 
-// TODO: Error management
+// TODO: Error management: do not create error event anymore but return those errors
 
 func ManageCommand(history []event.Event, msg Command) []event.Event {
 	switch msg.CommandType {

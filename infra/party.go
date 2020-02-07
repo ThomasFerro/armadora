@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// TODO: Load the parties from event store
 var Parties = map[PartyId]Party{}
 
 var eventStore = NewEventStore()
@@ -20,11 +21,14 @@ type Party struct {
 	Broadcast chan PartyId
 }
 
-func ReceiveCommand(partyId PartyId, command Command) {
+func ReceiveCommand(partyId PartyId, command Command) error {
 	log.Printf("Receiving the following command for party %v: %v\n", partyId, command)
 
-	// TODO: Error management
-	history, _ := eventStore.GetHistory(string(partyId))
+	history, err := eventStore.GetHistory(string(partyId))
+
+	if err != nil {
+		return err
+	}
 
 	newEvents := ManageCommand(
 		FromEventsDto(history),
@@ -34,6 +38,7 @@ func ReceiveCommand(partyId PartyId, command Command) {
 	eventStore.AppendToHistory(string(partyId), ToEventsDto(newEvents))
 
 	Parties[partyId].Broadcast <- partyId
+	return nil
 }
 
 func CreateParty() PartyId {
@@ -63,24 +68,27 @@ func HandleParty(party Party) {
 	for {
 		// Grab the next message from the broadcast channel
 		partyId := <-party.Broadcast
-		// TODO: Error management
-		history, _ := eventStore.GetHistory(string(partyId))
-		updatedParty := ToGameDto(
-			game.ReplayHistory(
-				FromEventsDto(
-					history,
+		history, err := eventStore.GetHistory(string(partyId))
+		if err != nil {
+			log.Printf("Error while getting the events history: %v", err)
+		} else {
+			updatedParty := ToGameDto(
+				game.ReplayHistory(
+					FromEventsDto(
+						history,
+					),
 				),
-			),
-		)
-		log.Println("Receiving party message to broadcast")
-		// Send it out to every client that is currently connected
-		for client := range party.Clients {
-			log.Println("Sending the party to client")
-			err := client.WriteJSON(updatedParty)
-			if err != nil {
-				log.Printf("Error while sending party information: %v", err)
-				client.Close()
-				delete(party.Clients, client)
+			)
+			log.Println("Receiving party message to broadcast")
+			// Send it out to every client that is currently connected
+			for client := range party.Clients {
+				log.Println("Sending the party to client")
+				err := client.WriteJSON(updatedParty)
+				if err != nil {
+					log.Printf("Error while sending party information: %v", err)
+					client.Close()
+					delete(party.Clients, client)
+				}
 			}
 		}
 	}
