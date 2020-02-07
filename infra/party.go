@@ -9,27 +9,36 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// TODO: Load the parties from event store
 var Parties = map[PartyId]Party{}
+
+var eventStore = NewEventStore()
 
 type PartyId string
 
 type Party struct {
-	History   []event.Event
 	Clients   map[*websocket.Conn]bool
-	Broadcast chan GameDto
+	Broadcast chan PartyId
 }
 
-func ReceiveCommand(partyId PartyId, command Command) {
+func ReceiveCommand(partyId PartyId, command Command) error {
 	log.Printf("Receiving the following command for party %v: %v\n", partyId, command)
-	party := Parties[partyId]
-	party.History = append(
-		party.History,
-		ManageCommand(party.History, command)...,
+
+	history, err := eventStore.GetHistory(string(partyId))
+
+	if err != nil {
+		return err
+	}
+
+	newEvents := ManageCommand(
+		FromEventsDto(history),
+		command,
 	)
-	Parties[partyId] = party
-	party.Broadcast <- ToGameDto(
-		game.ReplayHistory(party.History),
-	)
+
+	eventStore.AppendToHistory(string(partyId), ToEventsDto(newEvents))
+
+	Parties[partyId].Broadcast <- partyId
+	return nil
 }
 
 func CreateParty() PartyId {
@@ -37,10 +46,10 @@ func CreateParty() PartyId {
 	history := ManageCommand([]event.Event{}, Command{
 		CommandType: "CreateGame",
 	})
+	eventStore.AppendToHistory(string(partyId), ToEventsDto(history))
 	Parties[partyId] = Party{
-		History:   history,
 		Clients:   make(map[*websocket.Conn]bool),
-		Broadcast: make(chan GameDto),
+		Broadcast: make(chan PartyId),
 	}
 	go HandleParty(Parties[partyId])
 	return partyId
@@ -48,9 +57,7 @@ func CreateParty() PartyId {
 
 func AddClientToParty(partyId PartyId, ws *websocket.Conn) {
 	Parties[partyId].Clients[ws] = true
-	Parties[partyId].Broadcast <- ToGameDto(
-		game.ReplayHistory(Parties[partyId].History),
-	)
+	Parties[partyId].Broadcast <- partyId
 }
 
 func RemoveClientFromParty(partyId PartyId, ws *websocket.Conn) {
@@ -60,16 +67,28 @@ func RemoveClientFromParty(partyId PartyId, ws *websocket.Conn) {
 func HandleParty(party Party) {
 	for {
 		// Grab the next message from the broadcast channel
-		updatedParty := <-party.Broadcast
-		log.Println("Receiving party message to broadcast")
-		// Send it out to every client that is currently connected
-		for client := range party.Clients {
-			log.Println("Sending the party to client")
-			err := client.WriteJSON(updatedParty)
-			if err != nil {
-				log.Printf("Error while sending party information: %v", err)
-				client.Close()
-				delete(party.Clients, client)
+		partyId := <-party.Broadcast
+		history, err := eventStore.GetHistory(string(partyId))
+		if err != nil {
+			log.Printf("Error while getting the events history: %v", err)
+		} else {
+			updatedParty := ToGameDto(
+				game.ReplayHistory(
+					FromEventsDto(
+						history,
+					),
+				),
+			)
+			log.Println("Receiving party message to broadcast")
+			// Send it out to every client that is currently connected
+			for client := range party.Clients {
+				log.Println("Sending the party to client")
+				err := client.WriteJSON(updatedParty)
+				if err != nil {
+					log.Printf("Error while sending party information: %v", err)
+					client.Close()
+					delete(party.Clients, client)
+				}
 			}
 		}
 	}

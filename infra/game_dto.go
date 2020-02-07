@@ -52,8 +52,9 @@ type BoardDto struct {
 type ScoresDto map[int]ScoreDto
 
 type ScoreDto struct {
-	Player int `json:"player"`
-	Gold   int `json:"gold"`
+	Player     int   `json:"player"`
+	TotalGold  int   `json:"gold"`
+	GoldStacks []int `json:"stacks"`
 }
 
 type GameDto struct {
@@ -207,8 +208,9 @@ func getAvailableCharacters(players []PlayerDto) []string {
 
 func toScoreDto(score score.Score) ScoreDto {
 	return ScoreDto{
-		Player: score.Player(),
-		Gold:   score.TotalGold(),
+		Player:     score.Player(),
+		GoldStacks: score.GoldStacks(),
+		TotalGold:  score.TotalGold(),
 	}
 }
 

@@ -76,11 +76,14 @@ func handleConnectionsToPartyWs(w http.ResponseWriter, r *http.Request) {
 		// Read in a new message as JSON and map it to a Message object
 		err := ws.ReadJSON(&msg)
 		if err != nil {
-			log.Printf("Error while reading party message: %v", err)
+			log.Printf("Error while reading party %v message: %v", partyId, err)
 			infra.RemoveClientFromParty(partyId, ws)
 			break
 		}
-		infra.ReceiveCommand(partyId, msg)
+		err = infra.ReceiveCommand(partyId, msg)
+		if err != nil {
+			log.Printf("Error while managing the command for party %v: %v", partyId, err)
+		}
 	}
 }
 
