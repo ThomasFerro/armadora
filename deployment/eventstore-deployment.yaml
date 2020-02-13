@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventstore-deployment
+  labels:
+    game: armadora
+    tier: storage
+    app: eventstore
+spec:
+  selector:
+    matchLabels:
+      app: eventstore
+  template:
+    metadata:
+      labels:
+        app: eventstore
+    spec:
+      containers:
+      - name: eventstore
+        image: eventstore/eventstore:release-5.0.5
+        ports:
+        - containerPort: 2113
+        - containerPort: 1113

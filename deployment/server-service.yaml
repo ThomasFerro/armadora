@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: armadora-server
+  name: server-service
 spec:
   selector:
-    app: armadora-server
+    app: server-service
   ports:
     - protocol: TCP
       port: 80
