@@ -1,22 +1,3 @@
-FROM node:13.7.0-stretch as front-builder
-
-WORKDIR /src
-
-ADD front/package.json .
-ADD front/package-lock.json .
-
-RUN npm i
-
-ADD front .
-
-ENV BUILD_DIR /dist/build
-ADD front/static /dist
-
-RUN npm run build
-
-RUN ls /dist
-RUN ls /dist
-
 FROM golang:1.13.5 as back-builder
 
 WORKDIR /src
@@ -36,7 +17,6 @@ FROM scratch
 
 WORKDIR /root
 
-COPY --from=front-builder /dist ./static/
 COPY --from=back-builder /dist .
 
 EXPOSE 80

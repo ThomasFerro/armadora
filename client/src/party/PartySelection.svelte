@@ -1,6 +1,7 @@
 <script>
-  import { createEventDispatcher, onMount } from "svelte";
+  import { createEventDispatcher, onMount } from 'svelte';
   import { LOADING, LOADED, ERROR } from '../loading.js';
+  import { createNewParty, getParties } from './party.service.js';
   const dispatch = createEventDispatcher();
   export let parties = [];
 
@@ -9,26 +10,19 @@
 
   const createParty = () => {
     creationError = null
-    fetch("/games", {
-      method: "POST"
-    })
-      .then(response => {
-        return response.json();
-      })
+    createNewParty()
       .then(({ id }) => {
         joinParty(id);
       })
       .catch((e) => {
+        console.error(e)
         creationError = e
       });
   };
 
   const loadParties = () => {
     partiesLoadingState = LOADING
-    fetch("/parties")
-      .then(response => {
-        return response.json();
-      })
+    getParties()
       .then(data => {
         partiesLoadingState = LOADED
         parties = data;

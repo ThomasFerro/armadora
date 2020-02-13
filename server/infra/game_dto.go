@@ -188,6 +188,7 @@ func toPlayersDto(players []game.Player) []PlayerDto {
 }
 
 func getAvailableCharacters(players []PlayerDto) []string {
+	// FIXME: Always served in alphabetical order ?
 	availableCharactersMap := map[CharacterDto]bool{
 		"Orc":    true,
 		"Goblin": true,
