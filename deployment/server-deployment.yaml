@@ -15,8 +15,13 @@ spec:
       labels:
         app: server
     spec:
+      # TODO: missing container specs (CPU / RAM)
       containers:
       - name: server
         image: thomasferro/armadora-server:0.0.1
         ports:
         - containerPort: 80
+        env:
+        - name: ALLOWED_ORIGIN
+        # TODO: value based on ingress ?
+          value: http://localhost:8080

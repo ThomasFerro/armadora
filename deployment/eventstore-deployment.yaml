@@ -15,6 +15,7 @@ spec:
       labels:
         app: eventstore
     spec:
+      # TODO: missing container specs (CPU / RAM)
       containers:
       - name: eventstore
         image: eventstore/eventstore:release-5.0.5

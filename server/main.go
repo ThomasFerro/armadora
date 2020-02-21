@@ -24,11 +24,13 @@ func main() {
 	allowedOrigin = os.Getenv("ALLOWED_ORIGIN")
 	if allowedOrigin == "" {
 		allowedOrigin = "http://localhost"
+		log.Printf("No allowed origin provided in ALLOWED_ORIGIN, falling back to %v", allowedOrigin)
 	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "80"
+		log.Printf("No port provided in PORT, falling back to %v", port)
 	}
 	log.Printf("Serving Armadora on port: %v\n", port)
 	err := http.ListenAndServe(":"+port, nil)
