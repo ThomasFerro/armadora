@@ -15,10 +15,34 @@ spec:
       labels:
         app: eventstore
     spec:
-      # TODO: missing container specs (CPU / RAM)
       containers:
       - name: eventstore
         image: eventstore/eventstore:release-5.0.5
         ports:
         - containerPort: 2113
         - containerPort: 1113
+        # TODO: Health check ?
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: eventstore
+spec:
+  selector:
+    app: eventstore
+  ports:
+    - name: "2113"
+      protocol: TCP
+      port: 2113
+    - name: "1113"
+      protocol: TCP
+      port: 1113
