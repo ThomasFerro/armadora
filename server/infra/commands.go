@@ -51,7 +51,7 @@ func joinGame(history []event.Event, msg Command) ([]event.Event, error) {
 }
 
 func startTheGame(history []event.Event, msg Command) ([]event.Event, error) {
-	return command.StartTheGame(history), nil
+	return command.StartTheGame(history)
 }
 
 func putWarrior(history []event.Event, msg Command) ([]event.Event, error) {

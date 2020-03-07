@@ -209,7 +209,14 @@ func TestStartTheGame(t *testing.T) {
 		},
 	}
 
-	history = append(history, command.StartTheGame(history)...)
+	startTheGameEvents, err := command.StartTheGame(history)
+
+	if err != nil {
+		t.Errorf("Could not start the game: %v", err)
+		return
+	}
+
+	history = append(history, startTheGameEvents...)
 
 	newGame := game.ReplayHistory(history)
 
@@ -228,18 +235,11 @@ func TestCannotStartAGameWhenThereIsNoPlayer(t *testing.T) {
 		event.GameCreated{},
 	}
 
-	history = append(history, command.StartTheGame(history)...)
-	lastEvent := history[len(history)-1]
+	_, err := command.StartTheGame(history)
 
-	newGame := game.ReplayHistory(history)
-
-	if _, isOfRightEventType := lastEvent.(event.NotEnoughPlayers); !isOfRightEventType {
-		t.Error("The error event was not sent")
+	if _, isOfRightExceptionType := err.(exception.NotEnoughPlayers); !isOfRightExceptionType {
+		t.Errorf("The game cannot start without players: %v", err)
 		return
-	}
-
-	if newGame.State() != game.WaitingForPlayers {
-		t.Error("The game's state has change, it is not waiting for players anymore")
 	}
 }
 
@@ -252,18 +252,11 @@ func TestOnePlayerCannotStartAGameAlone(t *testing.T) {
 		},
 	}
 
-	history = append(history, command.StartTheGame(history)...)
-	lastEvent := history[len(history)-1]
+	_, err := command.StartTheGame(history)
 
-	newGame := game.ReplayHistory(history)
-
-	if _, isOfRightEventType := lastEvent.(event.NotEnoughPlayers); !isOfRightEventType {
-		t.Error("The error event was not sent")
+	if _, isOfRightExceptionType := err.(exception.NotEnoughPlayers); !isOfRightExceptionType {
+		t.Errorf("The game cannot start with one player: %v", err)
 		return
-	}
-
-	if newGame.State() != game.WaitingForPlayers {
-		t.Error("The game's state has change, it is not waiting for players anymore")
 	}
 }
 
@@ -308,7 +301,14 @@ func TestWarriorsShouldBeDistributedOnGameStart(t *testing.T) {
 		event.GameStarted{},
 	}
 
-	history = append(history, command.StartTheGame(history)...)
+	startTheGameEvents, err := command.StartTheGame(history)
+
+	if err != nil {
+		t.Errorf("Could not start the game: %v", err)
+		return
+	}
+
+	history = append(history, startTheGameEvents...)
 	warriorsDistributedEventFound := false
 
 	for _, nextEvent := range history {
@@ -344,7 +344,14 @@ func TestGoldStacksShouldBeDistributedOnGameStart(t *testing.T) {
 		event.GameStarted{},
 	}
 
-	history = append(history, command.StartTheGame(history)...)
+	startTheGameEvents, err := command.StartTheGame(history)
+
+	if err != nil {
+		t.Errorf("Could not start the game: %v", err)
+		return
+	}
+
+	history = append(history, startTheGameEvents...)
 	var goldStacksDistributed []int
 
 	for _, nextEvent := range history {
@@ -386,7 +393,14 @@ func TestPalisadesShouldBeDistributedOnGameStart(t *testing.T) {
 		event.GameStarted{},
 	}
 
-	history = append(history, command.StartTheGame(history)...)
+	startTheGameEvents, err := command.StartTheGame(history)
+
+	if err != nil {
+		t.Errorf("Could not start the game: %v", err)
+		return
+	}
+
+	history = append(history, startTheGameEvents...)
 
 	var palisadesDistributedEvent event.PalisadesDistributed
 
