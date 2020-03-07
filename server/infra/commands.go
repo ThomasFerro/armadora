@@ -39,10 +39,7 @@ func ManageCommand(history []event.Event, msg Command) ([]event.Event, error) {
 }
 
 func createGame(gameHistory []event.Event, msg Command) ([]event.Event, error) {
-	// TODO: Error management
-	return []event.Event{
-		command.CreateGame(),
-	}, nil
+	return command.CreateGame()
 }
 
 func joinGame(history []event.Event, msg Command) ([]event.Event, error) {

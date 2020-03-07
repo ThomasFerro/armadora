@@ -5,6 +5,8 @@ import (
 )
 
 // CreateGame Create a new game
-func CreateGame() event.GameCreated {
-	return event.GameCreated{}
+func CreateGame() ([]event.Event, error) {
+	return []event.Event{
+		event.GameCreated{},
+	}, nil
 }

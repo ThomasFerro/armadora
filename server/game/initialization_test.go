@@ -15,19 +15,27 @@ TODO:
 */
 
 func TestCreateAGame(t *testing.T) {
-	gameCreatedEvent := command.CreateGame()
+	gameCreatedEvents, err := command.CreateGame()
 
-	if len(gameCreatedEvent.EventMessage()) == 0 {
+	if err != nil {
+		t.Errorf("An error has occurred while creating the game: %v", err)
+		return
+	}
+
+	if len(gameCreatedEvents) != 1 || len(gameCreatedEvents[0].EventMessage()) == 0 {
 		t.Error("The game has not been created")
 	}
 }
 
 func TestGameCreateInWaitingForPlayersState(t *testing.T) {
-	gameCreatedEvent := command.CreateGame()
+	gameCreatedEvent, err := command.CreateGame()
 
-	newGame := game.ReplayHistory([]event.Event{
-		gameCreatedEvent,
-	})
+	if err != nil {
+		t.Errorf("An error has occurred while creating the game: %v", err)
+		return
+	}
+
+	newGame := game.ReplayHistory(gameCreatedEvent)
 
 	if newGame.State() != game.WaitingForPlayers {
 		t.Error("The new game is not in 'WaitingForPlayers' state")
