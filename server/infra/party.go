@@ -23,24 +23,34 @@ func ReceiveCommand(partyId PartyId, command Command) error {
 		return err
 	}
 
-	newEvents := ManageCommand(
+	newEvents, err := ManageCommand(
 		FromEventsDto(history),
 		command,
 	)
+
+	if err != nil {
+		return err
+	}
 
 	eventStore.AppendToHistory(string(partyId), ToEventsDto(newEvents))
 
 	return nil
 }
 
-func CreateParty() PartyId {
+func CreateParty() (PartyId, error) {
 	partyId := PartyId(uuid.New().String())
-	history := ManageCommand([]event.Event{}, Command{
+	history, err := ManageCommand([]event.Event{}, Command{
 		CommandType: "CreateGame",
 	})
+	if err != nil {
+		return "", err
+	}
 	Parties = append(Parties, partyId)
-	eventStore.AppendToHistory(string(partyId), ToEventsDto(history))
-	return partyId
+	err = eventStore.AppendToHistory(string(partyId), ToEventsDto(history))
+	if err != nil {
+		return "", err
+	}
+	return partyId, nil
 }
 
 func GetParty(partyId PartyId) (GameDto, error) {

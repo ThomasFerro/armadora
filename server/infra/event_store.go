@@ -30,8 +30,9 @@ func (a authentifiedEventStore) GetHistory(id string) ([]EventDto, error) {
 	events := []EventDto{}
 	for reader.Next() {
 		if err := reader.Err(); err != nil {
-			if _, isOfNoMoreEventsType := err.(goes.ErrNoMoreEvents); isOfNoMoreEventsType {
+			if _, isOfNoMoreEventsType := err.(goes.ErrNoMoreEvents); !isOfNoMoreEventsType {
 				log.Printf("Error while reading events: %v", err)
+				return nil, err
 			}
 			break
 		}
@@ -61,6 +62,7 @@ func (a *authentifiedEventStore) AppendToHistory(id string, events []EventDto) e
 		err = writer.Append(nil, newEvent)
 		if err != nil {
 			log.Printf("Error while writting event: %v", err)
+			return err
 		}
 	}
 

@@ -47,8 +47,16 @@ func handleGameCreation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newParty := infra.CreateParty()
+	newParty, err := infra.CreateParty()
+
+	if err != nil {
+		log.Printf("Cannot create a new party: %v\n", err)
+		manageError(&w, err)
+		return
+	}
+
 	log.Printf("Creating a new party: %v\n", newParty)
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(
 		[]byte(
 			fmt.Sprintf("{\"id\": \"%v\"}", newParty),
@@ -85,18 +93,19 @@ func handleGetPartyState(partyId infra.PartyId, w http.ResponseWriter, r *http.R
 		manageError(&w, err)
 		return
 	}
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(partyJson)
 }
 
 func handlePostPartyCommand(partyId infra.PartyId, w http.ResponseWriter, r *http.Request) {
 	log.Printf("Command received for party %v: %v\n", partyId, r.Body)
 	decoder := json.NewDecoder(r.Body)
-    var command infra.Command
-    err := decoder.Decode(&command)
-    if err != nil {
-        manageError(&w, err)
+	var command infra.Command
+	err := decoder.Decode(&command)
+	if err != nil {
+		manageError(&w, err)
 	}
-	
+
 	err = infra.ReceiveCommand(partyId, command)
 
 	if err != nil {
@@ -122,6 +131,7 @@ func handleGetParties(w http.ResponseWriter, r *http.Request) {
 		manageError(&w, err)
 		return
 	}
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(
 		partiesIdJson,
 	)

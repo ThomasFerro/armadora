@@ -20,7 +20,7 @@ type Command struct {
 
 // TODO: Error management: do not create error event anymore but return those errors
 
-func ManageCommand(history []event.Event, msg Command) []event.Event {
+func ManageCommand(history []event.Event, msg Command) ([]event.Event, error) {
 	switch msg.CommandType {
 	case "CreateGame":
 		return createGame(history, msg)
@@ -35,28 +35,29 @@ func ManageCommand(history []event.Event, msg Command) []event.Event {
 	case "PassTurn":
 		return passTurn(history, msg)
 	}
-	return []event.Event{}
+	return []event.Event{}, nil
 }
 
-func createGame(gameHistory []event.Event, msg Command) []event.Event {
+func createGame(gameHistory []event.Event, msg Command) ([]event.Event, error) {
+	// TODO: Error management
 	return []event.Event{
 		command.CreateGame(),
-	}
+	}, nil
 }
 
-func joinGame(history []event.Event, msg Command) []event.Event {
+func joinGame(history []event.Event, msg Command) ([]event.Event, error) {
 	characterValue := getCharacter(msg.Payload["Character"])
 	return command.JoinGame(history, command.JoinGamePayload{
 		Nickname:  msg.Payload["Nickname"],
 		Character: characterValue,
-	})
+	}), nil
 }
 
-func startTheGame(history []event.Event, msg Command) []event.Event {
-	return command.StartTheGame(history)
+func startTheGame(history []event.Event, msg Command) ([]event.Event, error) {
+	return command.StartTheGame(history), nil
 }
 
-func putWarrior(history []event.Event, msg Command) []event.Event {
+func putWarrior(history []event.Event, msg Command) ([]event.Event, error) {
 	// TODO: Pay the tech debt when managing authent
 	currentGame := game.ReplayHistory(history)
 	warrior, _ := strconv.Atoi(msg.Payload["Warrior"])
@@ -69,27 +70,29 @@ func putWarrior(history []event.Event, msg Command) []event.Event {
 			X: x,
 			Y: y,
 		},
-	})
+	}), nil
 }
 
-func putPalisades(history []event.Event, msg Command) []event.Event {
+func putPalisades(history []event.Event, msg Command) ([]event.Event, error) {
 	// TODO: Pay the tech debt when managing authent
 	currentGame := game.ReplayHistory(history)
-	// TODO: Error management
 	var palisades []palisade.Palisade
-	json.Unmarshal([]byte(msg.Payload["Palisades"]), &palisades)
+	err := json.Unmarshal([]byte(msg.Payload["Palisades"]), &palisades)
+	if err != nil {
+		return nil, err
+	}
 	return command.PutPalisades(history, command.PutPalisadesPayload{
 		Player:    currentGame.CurrentPlayer(),
 		Palisades: palisades,
-	})
+	}), nil
 }
 
-func passTurn(history []event.Event, msg Command) []event.Event {
+func passTurn(history []event.Event, msg Command) ([]event.Event, error) {
 	// TODO: Pay the tech debt when managing authent
 	currentGame := game.ReplayHistory(history)
 	return command.PassTurn(history, command.PassTurnPayload{
 		Player: currentGame.CurrentPlayer(),
-	})
+	}), nil
 }
 
 func getCharacter(characterName string) character.Character {
