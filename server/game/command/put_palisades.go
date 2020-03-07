@@ -6,6 +6,7 @@ import (
 	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/exception"
 	"github.com/ThomasFerro/armadora/game/palisade"
 )
 
@@ -67,14 +68,12 @@ func breaksGridValidity(currentGame game.Game, palisadeToCheck palisade.Palisade
 }
 
 // PutPalisades Put palisades on the board
-func PutPalisades(history []event.Event, payload PutPalisadesPayload) []event.Event {
+func PutPalisades(history []event.Event, payload PutPalisadesPayload) ([]event.Event, error) {
 	currentGame := game.ReplayHistory(history)
 
 	if currentGame.CurrentPlayer() != payload.Player {
-		return []event.Event{
-			event.NotThePlayerTurn{
-				PlayerWhoTriedToPlay: payload.Player,
-			},
+		return nil, exception.NotThePlayerTurn{
+			PlayerWhoTriedToPlay: payload.Player,
 		}
 	}
 
@@ -83,45 +82,38 @@ func PutPalisades(history []event.Event, payload PutPalisadesPayload) []event.Ev
 	distinctPalisades := getDistinctPalisades(payload.Palisades)
 
 	if len(distinctPalisades) > currentGame.Board().PalisadesLeft() {
-		return []event.Event{
-			event.NoMorePalisadeLeft{},
-		}
+		return nil, exception.NoMorePalisadeLeft{}
 	}
 
 	for _, palisade := range distinctPalisades {
 		if !validPalisade(palisade) {
-			return []event.Event{
-				event.InvalidPalisadePosition{
-					Player: payload.Player,
-					X1:     palisade.X1,
-					Y1:     palisade.Y1,
-					X2:     palisade.X2,
-					Y2:     palisade.Y2,
-				},
+			return nil, exception.InvalidPalisadePosition{
+				Player: payload.Player,
+				X1:     palisade.X1,
+				Y1:     palisade.Y1,
+				X2:     palisade.X2,
+				Y2:     palisade.Y2,
 			}
 		}
 
 		if !vacantBorder(currentGame, palisade) {
-			return []event.Event{
-				event.BorderAlreadyTaken{
-					Player: payload.Player,
-					X1:     palisade.X1,
-					Y1:     palisade.Y1,
-					X2:     palisade.X2,
-					Y2:     palisade.Y2,
-				},
+			return nil, exception.BorderAlreadyTaken{
+				Player: payload.Player,
+				X1:     palisade.X1,
+				Y1:     palisade.Y1,
+				X2:     palisade.X2,
+				Y2:     palisade.Y2,
+			
 			}
 		}
 
 		if breaksGridValidity(currentGame, palisade) {
-			return []event.Event{
-				event.InvalidPalisadePosition{
-					Player: payload.Player,
-					X1:     palisade.X1,
-					Y1:     palisade.Y1,
-					X2:     palisade.X2,
-					Y2:     palisade.Y2,
-				},
+			return nil, exception.InvalidPalisadePosition{
+				Player: payload.Player,
+				X1:     palisade.X1,
+				Y1:     palisade.Y1,
+				X2:     palisade.X2,
+				Y2:     palisade.Y2,
 			}
 		}
 
@@ -135,5 +127,5 @@ func PutPalisades(history []event.Event, payload PutPalisadesPayload) []event.Ev
 		currentGame = game.ReplayHistory(append(history, events...))
 	}
 
-	return append(events, event.NextPlayer{})
+	return append(events, event.NextPlayer{}), nil
 }

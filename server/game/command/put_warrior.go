@@ -5,6 +5,7 @@ import (
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/board/cell"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/exception"
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
@@ -31,24 +32,20 @@ func getWarriorsLeft(warriors warrior.Warriors, selectedWarrior int) int {
 	return 0
 }
 
-func PutWarrior(history []event.Event, payload PutWarriorPayload) []event.Event {
+func PutWarrior(history []event.Event, payload PutWarriorPayload) ([]event.Event, error) {
 	currentGame := game.ReplayHistory(history)
 
 	if currentGame.CurrentPlayer() != payload.Player {
-		return []event.Event{
-			event.NotThePlayerTurn{
-				PlayerWhoTriedToPlay: payload.Player,
-			},
+		return nil, exception.NotThePlayerTurn{
+			PlayerWhoTriedToPlay: payload.Player,
 		}
 	}
 
 	currentPlayer := currentGame.Players()[currentGame.CurrentPlayer()]
 
 	if getWarriorsLeft(currentPlayer.Warriors(), payload.Warrior) == 0 {
-		return []event.Event{
-			event.NoMoreWarriorOfThisStrength{
+		return nil, exception.NoMoreWarriorOfThisStrength{
 				Strength: payload.Warrior,
-			},
 		}
 	}
 
@@ -56,10 +53,8 @@ func PutWarrior(history []event.Event, payload PutWarriorPayload) []event.Event 
 	_, isWarrior := currentCell.(cell.Warrior)
 	_, isGold := currentCell.(cell.Gold)
 	if isWarrior || isGold {
-		return []event.Event{
-			event.CellAlreadyTaken{
-				Position: payload.Position,
-			},
+		return nil, exception.CellAlreadyTaken{
+			Position: payload.Position,
 		}
 	}
 
@@ -70,5 +65,5 @@ func PutWarrior(history []event.Event, payload PutWarriorPayload) []event.Event 
 			Position: payload.Position,
 		},
 		event.NextPlayer{},
-	}
+	}, nil
 }

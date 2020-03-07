@@ -9,6 +9,7 @@ import (
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/command"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/exception"
 	"github.com/ThomasFerro/armadora/game/gold"
 	"github.com/ThomasFerro/armadora/game/palisade"
 	"github.com/ThomasFerro/armadora/game/warrior"
@@ -42,9 +43,16 @@ func TestChangeTheCurrentPlayerWhenPuttingWarrior(t *testing.T) {
 		},
 	}
 
+	putWarriorEvents, err := command.PutWarrior(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player cannot put a warrior: %v", err)
+		return
+	}
+
 	history = append(
 		history,
-		command.PutWarrior(history, turnCommand)...,
+		putWarriorEvents...,
 	)
 
 	var nextPlayerEventFound = false
@@ -99,9 +107,16 @@ func TestChangeTheCurrentPlayerWhenPuttingPalisade(t *testing.T) {
 		},
 	}
 
+	putPalisadesEvents, err := command.PutPalisades(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player could not put palisades: %v", err)
+		return
+	}
+
 	history = append(
 		history,
-		command.PutPalisades(history, turnCommand)...,
+		putPalisadesEvents...,
 	)
 
 	var nextPlayerEventFound = false
@@ -158,9 +173,16 @@ func TestFirstPlayerAgainWhenTheTurnIsOver(t *testing.T) {
 		},
 	}
 
+	putPalisadesEvents, err := command.PutPalisades(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player could not put palisades: %v", err)
+		return
+	}
+
 	history = append(
 		history,
-		command.PutPalisades(history, turnCommand)...,
+		putPalisadesEvents...,
 	)
 
 	var nextPlayerEventFound = 0
@@ -216,21 +238,9 @@ func TestPalisadesCanOnlyBePutByTheCurrentPlayer(t *testing.T) {
 		},
 	}
 
-	history = append(
-		history,
-		command.PutPalisades(history, turnCommand)...,
-	)
-	lastEvent := history[len(history)-1]
-
-	if _, isOfRightEventType := lastEvent.(event.NotThePlayerTurn); !isOfRightEventType {
-		t.Error("The \"NotThePlayerTurn\" event should have been dispatched")
-		return
-	}
-
-	currentGame := game.ReplayHistory(history)
-
-	if currentGame.CurrentPlayer() != 1 {
-		t.Errorf("The current player is invalid, should be 1 instead of %v", currentGame.CurrentPlayer())
+	_, err := command.PutPalisades(history, turnCommand)
+	if _, isOfRightExceptionType := err.(exception.NotThePlayerTurn); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to put palisades when it is not his turn: %v", err)
 	}
 }
 
@@ -262,9 +272,16 @@ func TestDecrementWarriorsCountWhenPuttingWarrior(t *testing.T) {
 		},
 	}
 
+	putWarriorEvents, err := command.PutWarrior(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player cannot put a warrior: %v", err)
+		return
+	}
+
 	history = append(
 		history,
-		command.PutWarrior(history, turnCommand)...,
+		putWarriorEvents...,
 	)
 
 	currentGame := game.ReplayHistory(history)
@@ -299,21 +316,9 @@ func TestWarriorCanOnlyBePutByTheCurrentPlayer(t *testing.T) {
 		},
 	}
 
-	history = append(
-		history,
-		command.PutWarrior(history, turnCommand)...,
-	)
-	lastEvent := history[len(history)-1]
-
-	if _, isOfRightEventType := lastEvent.(event.NotThePlayerTurn); !isOfRightEventType {
-		t.Error("The \"NotThePlayerTurn\" event should have been dispatched")
-		return
-	}
-
-	currentGame := game.ReplayHistory(history)
-
-	if currentGame.CurrentPlayer() != 1 {
-		t.Errorf("The current player is invalid, should be 1 instead of %v", currentGame.CurrentPlayer())
+	_, err := command.PutWarrior(history, turnCommand)
+	if _, isOfRightExceptionType := err.(exception.NotThePlayerTurn); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to put warrior when it is not his turn: %v", err)
 	}
 }
 
@@ -346,9 +351,16 @@ func TestPutAWarriorOnAnEmptyLand(t *testing.T) {
 		},
 	}
 
+	putWarriorEvents, err := command.PutWarrior(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player cannot put a warrior: %v", err)
+		return
+	}
+
 	history = append(
 		history,
-		command.PutWarrior(history, turnCommand)...,
+		putWarriorEvents...,
 	)
 
 	warriorPutEventFound := false
@@ -422,49 +434,9 @@ func TestUnableToPutOnACellAlreadyTaken(t *testing.T) {
 		},
 	}
 
-	history = append(
-		history,
-		command.PutWarrior(history, turnCommand)...,
-	)
-
-	eventFound := false
-	var cellAlreadyTakenEvent event.CellAlreadyTaken
-
-	for _, nextEvent := range history {
-		if typedEvent, isOfRightEventType := nextEvent.(event.CellAlreadyTaken); isOfRightEventType {
-			eventFound = true
-			cellAlreadyTakenEvent = typedEvent
-			break
-		}
-	}
-
-	if !eventFound {
-		t.Error("No 'CellAlreadyTaken' found")
-		return
-	}
-
-	if cellAlreadyTakenEvent.Position.X != 6 ||
-		cellAlreadyTakenEvent.Position.Y != 2 {
-		t.Errorf("'CellAlreadyTaken' event found with invalid payload: %v", cellAlreadyTakenEvent)
-		return
-	}
-
-	currentGame := game.ReplayHistory(history)
-
-	cellToCheck := currentGame.Board().Cell(board.Position{
-		X: 6,
-		Y: 2,
-	})
-
-	warriorCell, isOfRightCellType := cellToCheck.(cell.Warrior)
-
-	if !isOfRightCellType {
-		t.Errorf("There is no warrior in the cell, %v instead", cellToCheck)
-		return
-	}
-
-	if warriorCell.Player() != 0 || warriorCell.Strength() != 1 {
-		t.Errorf("The warrior on the cell does not match the expected one, found %v", warriorCell)
+	_, err := command.PutWarrior(history, turnCommand)
+	if _, isOfRightExceptionType := err.(exception.CellAlreadyTaken); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to put warrior on an already taken cell: %v", err)
 	}
 }
 
@@ -515,43 +487,9 @@ func TestCanOnlyPutWarriorThatThePlayerHaveLeft(t *testing.T) {
 		},
 	}
 
-	history = append(
-		history,
-		command.PutWarrior(history, turnCommand)...,
-	)
-
-	eventFound := false
-	var noMoreWarriorOfThisStrengthEvent event.NoMoreWarriorOfThisStrength
-
-	for _, nextEvent := range history {
-		if typedEvent, isOfRightEventType := nextEvent.(event.NoMoreWarriorOfThisStrength); isOfRightEventType {
-			eventFound = true
-			noMoreWarriorOfThisStrengthEvent = typedEvent
-			break
-		}
-	}
-
-	if !eventFound {
-		t.Error("No 'NoMoreWarriorOfThisStrength' event found")
-		return
-	}
-
-	if noMoreWarriorOfThisStrengthEvent.Strength != 5 {
-		t.Errorf("The strength of the event does not match with the expected one, found %v", noMoreWarriorOfThisStrengthEvent.Strength)
-		return
-	}
-
-	currentGame := game.ReplayHistory(history)
-
-	cellToCheck := currentGame.Board().Cell(board.Position{
-		X: 2,
-		Y: 1,
-	})
-
-	_, isOfRightCellType := cellToCheck.(cell.Land)
-
-	if !isOfRightCellType {
-		t.Errorf("The cell should be empty, %v instead", cellToCheck)
+	_, err := command.PutWarrior(history, turnCommand)
+	if _, isOfRightExceptionType := err.(exception.NoMoreWarriorOfThisStrength); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to put warrior that he does not have %v", err)
 	}
 }
 
@@ -587,7 +525,17 @@ func TestPutOnePalisade(t *testing.T) {
 		},
 	}
 
-	history = append(history, command.PutPalisades(history, turnCommand)...)
+	putPalisadesEvents, err := command.PutPalisades(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player could not put palisades: %v", err)
+		return
+	}
+
+	history = append(
+		history,
+		putPalisadesEvents...,
+	)
 
 	palisadePutEvent := []event.PalisadePut{}
 
@@ -647,7 +595,17 @@ func TestPutTwoPalisades(t *testing.T) {
 		},
 	}
 
-	history = append(history, command.PutPalisades(history, turnCommand)...)
+	putPalisadesEvents, err := command.PutPalisades(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player could not put palisades: %v", err)
+		return
+	}
+
+	history = append(
+		history,
+		putPalisadesEvents...,
+	)
 
 	palisadePutEvent := []event.PalisadePut{}
 
@@ -708,26 +666,9 @@ func TestPalisadeInvalidIfNotBetweenToAdjacentCells(t *testing.T) {
 		},
 	}
 
-	history = append(history, command.PutPalisades(history, turnCommand)...)
-
-	eventFound := false
-
-	for _, nextEvent := range history {
-		if _, isOfRightEventType := nextEvent.(event.InvalidPalisadePosition); isOfRightEventType {
-			eventFound = true
-			break
-		}
-	}
-
-	if !eventFound {
-		t.Error("Event 'InvalidPalisadePosition' not dispatched")
-		return
-	}
-
-	currentGame := game.ReplayHistory(history)
-
-	if currentGame.CurrentPlayer() != 0 {
-		t.Error("The current player was changed after an invalid move")
+	_, err := command.PutPalisades(history, turnCommand)
+	if _, isOfRightExceptionType := err.(exception.InvalidPalisadePosition); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to put palisades on an invalid position: %v", err)
 	}
 }
 
@@ -771,26 +712,9 @@ func TestUnableToPutAPalisadeOnAAlreadyTakenBorder(t *testing.T) {
 		},
 	}
 
-	history = append(history, command.PutPalisades(history, turnCommand)...)
-
-	eventFound := false
-
-	for _, nextEvent := range history {
-		if _, isOfRightEventType := nextEvent.(event.BorderAlreadyTaken); isOfRightEventType {
-			eventFound = true
-			break
-		}
-	}
-
-	if !eventFound {
-		t.Error("Event 'BorderAlreadyTaken' not dispatched")
-		return
-	}
-
-	currentGame := game.ReplayHistory(history)
-
-	if currentGame.CurrentPlayer() != 1 {
-		t.Error("The current player was changed after an invalid move")
+	_, err := command.PutPalisades(history, turnCommand)
+	if _, isOfRightExceptionType := err.(exception.BorderAlreadyTaken); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to put palisades on already taken border: %v", err)
 	}
 }
 
@@ -832,7 +756,17 @@ func TestOnlyOnePalisadePutForACommandWithTwiceTheSameBorder(t *testing.T) {
 		},
 	}
 
-	history = append(history, command.PutPalisades(history, turnCommand)...)
+	putPalisadesEvents, err := command.PutPalisades(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player could not put palisades: %v", err)
+		return
+	}
+
+	history = append(
+		history,
+		putPalisadesEvents...,
+	)
 
 	eventFound := 0
 
@@ -887,32 +821,9 @@ func TestUnableToPutAPalisadeIfThereIsNoMoreLeft(t *testing.T) {
 		},
 	}
 
-	history = append(history, command.PutPalisades(history, turnCommand)...)
-
-	eventFound := false
-
-	for _, nextEvent := range history {
-		if _, isOfRightEventType := nextEvent.(event.NoMorePalisadeLeft); isOfRightEventType {
-			eventFound = true
-			break
-		}
-	}
-
-	if !eventFound {
-		t.Error("No 'NoMorePalisadeLeft' event found")
-		return
-	}
-
-	currentGame := game.ReplayHistory(history)
-
-	for _, nextPalisade := range currentGame.Board().Palisades() {
-		if nextPalisade.X1 == 6 &&
-			nextPalisade.Y1 == 1 &&
-			nextPalisade.X2 == 7 &&
-			nextPalisade.Y2 == 1 {
-			t.Errorf("The palisade should not have been put: %v", nextPalisade)
-			return
-		}
+	_, err := command.PutPalisades(history, turnCommand)
+	if _, isOfRightExceptionType := err.(exception.NoMorePalisadeLeft); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to put palisades when there is no more left: %v", err)
 	}
 }
 
@@ -971,19 +882,8 @@ func TestUnableToPutAPalisadeIfItBreaksGridValidity(t *testing.T) {
 		},
 	}
 
-	history = append(history, command.PutPalisades(history, turnCommand)...)
-
-	eventFound := false
-
-	for _, nextEvent := range history {
-		if _, isOfRightEventType := nextEvent.(event.InvalidPalisadePosition); isOfRightEventType {
-			eventFound = true
-			break
-		}
-	}
-
-	if !eventFound {
-		t.Error("Event 'InvalidPalisadePosition' not dispatched")
-		return
+	_, err := command.PutPalisades(history, turnCommand)
+	if _, isOfRightExceptionType := err.(exception.InvalidPalisadePosition); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to put palisades on invalid position: %v", err)
 	}
 }

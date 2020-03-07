@@ -18,8 +18,6 @@ type Command struct {
 	Payload     map[string]string `json:"payload"`
 }
 
-// TODO: Error management: do not create error event anymore but return those errors
-
 func ManageCommand(history []event.Event, msg Command) ([]event.Event, error) {
 	switch msg.CommandType {
 	case "CreateGame":
@@ -67,7 +65,7 @@ func putWarrior(history []event.Event, msg Command) ([]event.Event, error) {
 			X: x,
 			Y: y,
 		},
-	}), nil
+	})
 }
 
 func putPalisades(history []event.Event, msg Command) ([]event.Event, error) {
@@ -81,7 +79,7 @@ func putPalisades(history []event.Event, msg Command) ([]event.Event, error) {
 	return command.PutPalisades(history, command.PutPalisadesPayload{
 		Player:    currentGame.CurrentPlayer(),
 		Palisades: palisades,
-	}), nil
+	})
 }
 
 func passTurn(history []event.Event, msg Command) ([]event.Event, error) {
@@ -89,7 +87,7 @@ func passTurn(history []event.Event, msg Command) ([]event.Event, error) {
 	currentGame := game.ReplayHistory(history)
 	return command.PassTurn(history, command.PassTurnPayload{
 		Player: currentGame.CurrentPlayer(),
-	}), nil
+	})
 }
 
 func getCharacter(characterName string) character.Character {

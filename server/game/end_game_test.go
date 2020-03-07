@@ -49,9 +49,16 @@ func TestGameEndsWhenEveryPlayerPassTheirTurn(t *testing.T) {
 		Player: 1,
 	}
 
+	passTurnEvents, err := command.PassTurn(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player cannot pass his turn: %v", err)
+		return
+	}
+
 	history = append(
 		history,
-		command.PassTurn(history, turnCommand)...,
+		passTurnEvents...,
 	)
 
 	eventFound := false
@@ -266,9 +273,16 @@ func TestScoresComputedWhenTheGameEnds(t *testing.T) {
 		Player: 1,
 	}
 
+	passTurnEvents, err := command.PassTurn(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player cannot pass his turn: %v", err)
+		return
+	}
+
 	history = append(
 		history,
-		command.PassTurn(history, turnCommand)...,
+		passTurnEvents...,
 	)
 
 	gameScores := game.ReplayHistory(history).Scores()

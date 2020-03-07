@@ -1,4 +1,4 @@
-package event
+package exception
 
 import "fmt"
 
@@ -6,10 +6,6 @@ import "fmt"
 type NoMorePalisadeLeft struct{}
 
 // EventMessage Indicate that a player tried to put a palisade when there is no more
-func (event NoMorePalisadeLeft) EventMessage() string {
+func (exception NoMorePalisadeLeft) Error() string {
 	return fmt.Sprintln("No more palisade left on the board.")
-}
-
-func (event NoMorePalisadeLeft) String() string {
-	return event.EventMessage()
 }

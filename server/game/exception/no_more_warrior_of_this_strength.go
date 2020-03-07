@@ -1,4 +1,4 @@
-package event
+package exception
 
 import (
 	"fmt"
@@ -10,10 +10,6 @@ type NoMoreWarriorOfThisStrength struct {
 }
 
 // EventMessage Indicate that no more warrior of the selected strength are available
-func (event NoMoreWarriorOfThisStrength) EventMessage() string {
-	return fmt.Sprintf("No more warrior of the %v strength are available.", event.Strength)
-}
-
-func (event NoMoreWarriorOfThisStrength) String() string {
-	return event.EventMessage()
+func (exception NoMoreWarriorOfThisStrength) Error() string {
+	return fmt.Sprintf("No more warrior of the %v strength are available.", exception.Strength)
 }

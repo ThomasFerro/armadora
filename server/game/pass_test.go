@@ -7,6 +7,7 @@ import (
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/command"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/exception"
 	"github.com/ThomasFerro/armadora/game/gold"
 )
 
@@ -34,9 +35,16 @@ func TestAPlayerCanPassHisTurn(t *testing.T) {
 		Player: 0,
 	}
 
+	passTurnEvents, err := command.PassTurn(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player cannot pass his turn: %v", err)
+		return
+	}
+
 	history = append(
 		history,
-		command.PassTurn(history, turnCommand)...,
+		passTurnEvents...,
 	)
 
 	eventFound := false
@@ -91,9 +99,16 @@ func TestChangeTheCurrentPlayerWhenPassingTurn(t *testing.T) {
 		Player: 0,
 	}
 
+	passTurnEvents, err := command.PassTurn(history, turnCommand)
+
+	if err != nil {
+		t.Errorf("The player cannot pass his turn: %v", err)
+		return
+	}
+
 	history = append(
 		history,
-		command.PassTurn(history, turnCommand)...,
+		passTurnEvents...,
 	)
 
 	eventFound := false
@@ -141,29 +156,10 @@ func TestCannotPassWhenItIsNotThePlayerTurn(t *testing.T) {
 		Player: 1,
 	}
 
-	history = append(
-		history,
-		command.PassTurn(history, turnCommand)...,
-	)
+	_, err := command.PassTurn(history, turnCommand)
 
-	eventFound := false
-
-	for _, nextEvent := range history {
-		if _, isOfRightEventType := nextEvent.(event.NotThePlayerTurn); isOfRightEventType {
-			eventFound = true
-			break
-		}
-	}
-
-	if !eventFound {
-		t.Error("No 'NotThePlayerTurn' event")
-		return
-	}
-
-	currentGame := game.ReplayHistory(history)
-
-	if currentGame.CurrentPlayer() != 0 {
-		t.Errorf("The current player is invalid. Expected 0 but got %v", currentGame.CurrentPlayer())
+	if _, isOfRightExceptionType := err.(exception.NotThePlayerTurn); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to pass when it is not his turn: %v", err)
 	}
 }
 

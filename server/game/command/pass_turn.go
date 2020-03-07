@@ -6,6 +6,7 @@ import (
 	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/exception"
 	"github.com/ThomasFerro/armadora/game/score"
 )
 
@@ -19,14 +20,12 @@ func (p PassTurnPayload) String() string {
 }
 
 // PassTurn Pass your turn
-func PassTurn(history []event.Event, passTurnPayload PassTurnPayload) []event.Event {
+func PassTurn(history []event.Event, passTurnPayload PassTurnPayload) ([]event.Event, error) {
 	currentGame := game.ReplayHistory(history)
 
 	if currentGame.CurrentPlayer() != passTurnPayload.Player {
-		return []event.Event{
-			event.NotThePlayerTurn{
-				PlayerWhoTriedToPlay: passTurnPayload.Player,
-			},
+		return nil, exception.NotThePlayerTurn{
+			PlayerWhoTriedToPlay: passTurnPayload.Player,
 		}
 	}
 
@@ -39,7 +38,7 @@ func PassTurn(history []event.Event, passTurnPayload PassTurnPayload) []event.Ev
 		nextPlayerOrEndGame(
 			append(history, turnPassedEvent),
 		),
-	}
+	}, nil
 }
 
 func nextPlayerOrEndGame(history []event.Event) event.Event {
