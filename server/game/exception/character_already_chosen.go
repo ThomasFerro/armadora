@@ -1,4 +1,4 @@
-package event
+package exception
 
 import (
 	"fmt"
@@ -11,11 +11,7 @@ type CharacterAlreadyChosen struct {
 	Character character.Character
 }
 
-// EventMessage Indicate that the character is unavailable
-func (event CharacterAlreadyChosen) EventMessage() string {
+// Error Indicate that the character is unavailable
+func (event CharacterAlreadyChosen) Error() string {
 	return fmt.Sprintf("The character %v has already been chosen by another player in the game.", event.Character)
-}
-
-func (event CharacterAlreadyChosen) String() string {
-	return event.EventMessage()
 }

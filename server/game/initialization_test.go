@@ -7,6 +7,7 @@ import (
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/command"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/game/exception"
 )
 
 /*
@@ -52,7 +53,14 @@ func TestJoinAGame(t *testing.T) {
 		Character: character.Goblin,
 	}
 
-	history = append(history, command.JoinGame(history, joinGameCommandPayload)...)
+	joinGameEvents, err := command.JoinGame(history, joinGameCommandPayload)
+
+	if err != nil {
+		t.Errorf("The player could not join the game: %v", err)
+		return
+	}
+
+	history = append(history, joinGameEvents...)
 
 	newGame := game.ReplayHistory(history)
 
@@ -93,7 +101,12 @@ func TestFourPlayersJoinAGame(t *testing.T) {
 	}
 
 	for _, nextCommand := range joinGameCommandPayloads {
-		history = append(history, command.JoinGame(history, nextCommand)...)
+		joinGameEvents, err := command.JoinGame(history, nextCommand)
+		if err != nil {
+			t.Errorf("The player could not join the game: %v", err)
+			return
+		}
+		history = append(history, joinGameEvents...)
 	}
 
 	newGame := game.ReplayHistory(history)
@@ -137,7 +150,12 @@ func TestAFifthPlayerCannotJoinAGame(t *testing.T) {
 	}
 
 	for _, nextCommand := range joinGameCommandPayloads {
-		history = append(history, command.JoinGame(history, nextCommand)...)
+		joinGameEvents, err := command.JoinGame(history, nextCommand)
+		if err != nil {
+			t.Errorf("The player could not join the game: %v", err)
+			return
+		}
+		history = append(history, joinGameEvents...)
 	}
 
 	unauthorizedPlayerTryingToJoin := command.JoinGamePayload{
@@ -145,18 +163,10 @@ func TestAFifthPlayerCannotJoinAGame(t *testing.T) {
 		Character: character.Mage,
 	}
 
-	history = append(history, command.JoinGame(history, unauthorizedPlayerTryingToJoin)...)
-	lastEvent := history[len(history)-1]
-
-	newGame := game.ReplayHistory(history)
-
-	if _, isOfRightEventType := lastEvent.(event.GameAlreadyFull); !isOfRightEventType {
-		t.Error("The error event was not sent")
+	_, err := command.JoinGame(history, unauthorizedPlayerTryingToJoin)
+	if _, isOfRightExceptionType := err.(exception.GameAlreadyFull); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to join an already full game %v", err)
 		return
-	}
-
-	if len(newGame.Players()) != 4 {
-		t.Error("The fifth player was added to the game")
 	}
 }
 
@@ -178,17 +188,11 @@ func TestANewPlayerCannotSelectACharacterAlreadyChosen(t *testing.T) {
 		Character: character.Goblin,
 	}
 
-	history = append(history, command.JoinGame(history, joinGameCommandPayload)...)
-	lastEvent := history[len(history)-1]
-	newGame := game.ReplayHistory(history)
+	_, err := command.JoinGame(history, joinGameCommandPayload)
 
-	if _, isOfRightEventType := lastEvent.(event.CharacterAlreadyChosen); !isOfRightEventType {
-		t.Error("The error event was not sent")
+	if _, isOfRightExceptionType := err.(exception.CharacterAlreadyChosen); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to select an already chosen character: %v", err)
 		return
-	}
-
-	if len(newGame.Players()) != 2 {
-		t.Error("The player with already chosen character was added to the game")
 	}
 }
 
@@ -282,18 +286,11 @@ func TestPlayersCannotJoinAGameOnceItStarted(t *testing.T) {
 		Character: character.Mage,
 	}
 
-	history = append(history, command.JoinGame(history, joinGameCommandPayload)...)
-	lastEvent := history[len(history)-1]
+	_, err := command.JoinGame(history, joinGameCommandPayload)
 
-	newGame := game.ReplayHistory(history)
-
-	if _, isOfRightEventType := lastEvent.(event.GameAlreadyStarted); !isOfRightEventType {
-		t.Error("The error event was not sent")
+	if _, isOfRightExceptionType := err.(exception.GameAlreadyStarted); !isOfRightExceptionType {
+		t.Errorf("The player should not be able to join the game %v", err)
 		return
-	}
-
-	if len(newGame.Players()) != 2 {
-		t.Error("The player was added after the game started")
 	}
 }
 

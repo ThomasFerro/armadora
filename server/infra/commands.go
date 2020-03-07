@@ -47,7 +47,7 @@ func joinGame(history []event.Event, msg Command) ([]event.Event, error) {
 	return command.JoinGame(history, command.JoinGamePayload{
 		Nickname:  msg.Payload["Nickname"],
 		Character: characterValue,
-	}), nil
+	})
 }
 
 func startTheGame(history []event.Event, msg Command) ([]event.Event, error) {
