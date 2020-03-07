@@ -30,7 +30,7 @@ func (a authentifiedEventStore) GetHistory(id string) ([]EventDto, error) {
 	events := []EventDto{}
 	for reader.Next() {
 		if err := reader.Err(); err != nil {
-			if _, isOfNoMoreEventsType := err.(goes.ErrNoMoreEvents); !isOfNoMoreEventsType {
+			if _, isOfNoMoreEventsType := err.(*goes.ErrNoMoreEvents); !isOfNoMoreEventsType {
 				log.Printf("Error while reading events: %v", err)
 				return nil, err
 			}
