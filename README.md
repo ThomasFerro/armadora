@@ -1,16 +1,16 @@
 # Armadöra
 
-// TODO: Picture of a mocked game
+![Game in progress](https://github.com/ThomasFerro/readmes/blob/master/posts/12-ddd-in-action-armadora-the-board-game/game_in_progress.jpg)
 
 Armadora is a game where every **player** will try to get their hands on the most **gold** possible.
 
-// TODO: Picture of the board
+![Board](https://github.com/ThomasFerro/readmes/blob/master/posts/12-ddd-in-action-armadora-the-board-game/board.jpg)
 
-The **game board** is a 8x5 grid with two types of cell: the **lands** where the players will be able to put their **warriors** (more on that later) and the **gold stack** with various quantity or gold.
+The **game board** is a 8x5 grid with two types of **cell**: the **lands** where the players will be able to put their **warriors** (more on that later) and the **gold stacks** with various quantity or gold.
 
-The grid can be divided into **territories** by putting **palisades** around the cells. A territory *must be at least four squares wide*.
+The grid can be divided into **territories** by putting **palisades** between cells. A territory *must be at least four squares wide*.
 
-At the beginning of a game, each player choose a character (Orc, Gobelin, Elf or Mage) and hide their warriors behind their screens.
+At the beginning of a game, each player chooses a character (*Orc*, *Goblin*, *Elf* or *Mage*) and hide their warriors behind their screens.
 
 Each player starts with the same army, depending on the number of players:
 
@@ -27,11 +27,14 @@ When it is his turn, the player have to choose one of the following actions:
 - Put one of a remaining warrior tile on an empty cell, with the number hidden;
 - Put **one or two palisades** on the board, in an authorized border of a cell (one cannot put a palisade if it closes a territory of less than four cells);
 - Use the race's power (only in advanced rules);
-- Use reinforcement (only in advanced rules).
+- Use reinforcement (only in advanced rules);
+- Pass his turn.
 
-The round ends once no action can be made by any player. Every armies' strength is revealed and the gold of each territory is given to the player with the greatest army.
+Once a player passed his turn, he cannot play anymore for the rest of the game.
 
-// TODO: Picture of the end of a round
+The game ends once every player has passed they turn. Every armies' strength is revealed and the gold of each territory is given to the player with the greatest army.
+
+![End of a game](https://github.com/ThomasFerro/readmes/blob/master/posts/12-ddd-in-action-armadora-the-board-game/end_of_a_game.jpg)
 
 In case of a tie, the players will compare their piles of gold, from highest to lowest.
 
