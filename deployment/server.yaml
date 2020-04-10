@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  labels:
+    game: armadora
+    tier: server
+    app: server
+spec:
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      containers:
+      - name: server
+        image: thomasferro/armadora-server:0.0.1
+        ports:
+        - containerPort: 80
+        env:
+        - name: ALLOWED_ORIGIN
+        # TODO: value based on ingress ?
+          value: http://localhost:8080
+        # TODO: Health check ?
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: server
+spec:
+  selector:
+    app: server
+  ports:
+    - protocol: TCP
+      port: 80
