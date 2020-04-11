@@ -41,3 +41,13 @@ In case of a tie, the players will compare their piles of gold, from highest to 
 Example: If the Elf have a pile of 6, a pile of 4 and a pile of 3 and the Orc have a pile of 6, one of 5 and one of 2, the Orc wins.
 
 In a four-player game, the facing players can play as partners. We will not be implementing this feature in the first version.
+
+## Running the game locally
+
+For you to run the game locally, you will need to use `docker-compose`. For instance, on linux, run the following command.
+
+```
+sudo docker-compose up --build
+```
+
+There is a work in progress to make the application run in a Kubernetes cluster, via the configuration files in the `deployment` folder.

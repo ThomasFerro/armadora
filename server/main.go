@@ -23,7 +23,7 @@ func main() {
 
 	allowedOrigin = os.Getenv("ALLOWED_ORIGIN")
 	if allowedOrigin == "" {
-		allowedOrigin = "http://localhost"
+		allowedOrigin = "http://localhost:8081"
 		log.Printf("No allowed origin provided in ALLOWED_ORIGIN, falling back to %v", allowedOrigin)
 	}
 

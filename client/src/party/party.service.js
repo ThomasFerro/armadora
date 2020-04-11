@@ -1,5 +1,5 @@
 // TODO: Configure ?
-const url = `http://server`;
+const url = `http://localhost:8080`;
 
 export const createNewParty = () => fetch(`${url}/games`,{ method: "POST" })
     .then(response => response.json());
