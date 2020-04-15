@@ -1,5 +1,5 @@
 // TODO: Configure ?
-const url = `http://localhost:8080`;
+const url = `https://api.armadora.test`;
 
 export const createNewParty = () => fetch(`${url}/games`,{ method: "POST" })
     .then(response => response.json());

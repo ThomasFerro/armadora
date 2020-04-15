@@ -1,0 +1,35 @@
+name: Docker Image CI
+
+on: [push]
+
+jobs:
+
+  client-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login to GitHub Package Registry
+      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.repository }} --password-stdin
+    - name: Build the Docker image
+      run: cd client && docker build -t armadora-client:$GITHUB_SHA .
+    - name: Tag the Docker image
+      run: docker tag armadora-client:$GITHUB_SHA docker.pkg.github.com/thomasferro/armadora/armadora-client:$GITHUB_SHA
+    - name: Push the Docker image to the registry
+      run: docker push docker.pkg.github.com/thomasferro/armadora/armadora-client:$GITHUB_SHA
+      
+  server-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Login to GitHub Package Registry
+      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com -u ${{ github.repository }} --password-stdin
+    - name: Build the Docker image
+      run: cd server && docker build -t armadora-server:$GITHUB_SHA .
+    - name: Tag the Docker image
+      run: docker tag armadora-server:$GITHUB_SHA docker.pkg.github.com/thomasferro/armadora/armadora-server:$GITHUB_SHA
+    - name: Push the Docker image to the registry
+      run: docker push docker.pkg.github.com/thomasferro/armadora/armadora-server:$GITHUB_SHA

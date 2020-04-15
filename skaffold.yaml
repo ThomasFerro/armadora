@@ -1,0 +1,17 @@
+apiVersion: skaffold/v2alpha4
+kind: Config
+metadata:
+  name: armadora
+build:
+  artifacts:
+  - image: thomasferro/armadora-client
+    context: client
+  - image: thomasferro/armadora-server
+    context: server
+deploy:
+  kubectl:
+    manifests:
+    - deployment/client.yaml
+    - deployment/eventstore.yaml
+    - deployment/namespace.yaml
+    - deployment/server.yaml

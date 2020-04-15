@@ -23,7 +23,7 @@ spec:
         env:
         - name: ALLOWED_ORIGIN
         # TODO: value based on ingress ?
-          value: http://localhost:8080
+          value: https://play.armadora.test
         # TODO: Health check ?
         resources:
           requests:
@@ -45,3 +45,22 @@ spec:
   ports:
     - protocol: TCP
       port: 80
+  type: NodePort
+
+---
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: server-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: api.armadora.test
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: server
+          servicePort: 80

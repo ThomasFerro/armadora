@@ -34,13 +34,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: client-service
+  name: client
 spec:
   selector:
-    app: client-service
+    app: client
   ports:
     - protocol: TCP
       port: 80
+  type: NodePort
 
 ---
 
@@ -52,11 +53,11 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - host: play.armadora.dev
+  - host: play.armadora.test
     http:
       paths:
       - path: /
         backend:
-          serviceName: client-service
+          serviceName: client
           servicePort: 80
           

@@ -44,10 +44,32 @@ In a four-player game, the facing players can play as partners. We will not be i
 
 ## Running the game locally
 
+### Kubernetes
+
+You can run the game locally in a Kubernetes Cluster, using [`skaffold`](https://skaffold.dev/).
+
+Here are the prerequisites for the game to run:
+
+- Have a working and running [`minikube`](https://kubernetes.io/docs/setup/learning-environment/minikube/) on your machine;
+- Enable the *Ingress* addon (`minikube addons enable ingress`);
+- Install [`skaffold`](https://skaffold.dev/docs/quickstart/);
+- Run the `skaffold dev` command.
+
+This command should populate your local Kubernetes Cluster with the required *pods*, *deployments*, *services* and *ingresses*.
+
+The last step is to **add the following lines to your `hosts` file**:
+
+```
+192.168.39.226 play.armadora.test
+192.168.39.226 api.armadora.test
+```
+
+You should now have access the game via the address `play.armadora.test`.
+
+### docker-compose (deprecated)
+
 For you to run the game locally, you will need to use `docker-compose`. For instance, on linux, run the following command.
 
 ```
 sudo docker-compose up --build
 ```
-
-There is a work in progress to make the application run in a Kubernetes cluster, via the configuration files in the `deployment` folder.
