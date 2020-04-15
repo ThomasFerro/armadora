@@ -1,0 +1,23 @@
+name: Docker Image CI
+
+on: [push]
+
+jobs:
+
+  client-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build docker image
+      run: cd client && docker build . --file Dockerfile --tag armadora-client:$GITHUB_SHA
+      
+  server-build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build docker image
+      run: cd server && docker build . --file Dockerfile --tag armadora-server:$GITHUB_SHA
