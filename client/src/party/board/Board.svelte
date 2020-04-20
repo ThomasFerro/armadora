@@ -1,7 +1,8 @@
 <script>
     import { createEventDispatcher } from 'svelte'
-    import Grid from './Grid.svelte';
-    import WarriorSelection from './WarriorSelection.svelte';
+    import Grid from './Grid.svelte'
+    import PassTurn from './PassTurn.svelte'
+    import WarriorSelection from './WarriorSelection.svelte'
 
     export let active = false
     export let value = {}
@@ -54,6 +55,6 @@
         warriors={connectedPlayerWarriors}
         on:warrior-selected={(e) => warriorSelected(e.detail)}
     ></WarriorSelection>
-    <button on:click={passTurn}>Pass your turn</button>
+    <PassTurn on:pass-turn={passTurn}></PassTurn>
     {/if}
 </article>
