@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 
 	goes "github.com/jetbasrawi/go.geteventstore"
+	"github.com/ThomasFerro/armadora/infra/config"
 )
 
 type EventStore interface {
@@ -130,30 +130,15 @@ func (a authentifiedEventStore) newClient() (*goes.Client, error) {
 }
 
 func eventStoreUrl() string {
-	url := os.Getenv("EVENT_STORE_URL")
-	if url == "" {
-		url = "http://eventstore:2113"
-		log.Printf("No event store url provided in EVENT_STORE_URL, falling back to %v", url)
-	}
-	return url
+	return config.GetConfiguration("EVENT_STORE_URL")
 }
 
 func eventStoreUsername() string {
-	username := os.Getenv("EVENT_STORE_USERNAME")
-	if username == "" {
-		username = "admin"
-		log.Printf("No event store username provided in EVENT_STORE_USERNAME, falling back to %v", username)
-	}
-	return username
+	return config.GetConfiguration("EVENT_STORE_USERNAME")
 }
 
 func eventStorePassword() string {
-	password := os.Getenv("EVENT_STORE_PASSWORD")
-	if password == "" {
-		password = "changeit"
-		log.Printf("No event store password provided in EVENT_STORE_PASSWORD, falling back to %v", password)
-	}
-	return password
+	return config.GetConfiguration("EVENT_STORE_PASSWORD")
 }
 
 func NewEventStore() EventStore {
