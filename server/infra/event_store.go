@@ -7,11 +7,12 @@ import (
 
 	goes "github.com/jetbasrawi/go.geteventstore"
 	"github.com/ThomasFerro/armadora/infra/config"
+	"github.com/ThomasFerro/armadora/infra/dto"
 )
 
 type EventStore interface {
-	GetHistory(id string) ([]EventDto, error)
-	AppendToHistory(id string, events []EventDto) error
+	GetHistory(id string) ([]dto.EventDto, error)
+	AppendToHistory(id string, events []dto.EventDto) error
 }
 
 type authentifiedEventStore struct {
@@ -20,14 +21,14 @@ type authentifiedEventStore struct {
 	password string
 }
 
-func (a authentifiedEventStore) GetHistory(id string) ([]EventDto, error) {
+func (a authentifiedEventStore) GetHistory(id string) ([]dto.EventDto, error) {
 	client, err := a.newClient()
 	if err != nil {
 		return nil, err
 	}
 	reader := client.NewStreamReader(id)
 
-	events := []EventDto{}
+	events := []dto.EventDto{}
 	for reader.Next() {
 		if err := reader.Err(); err != nil {
 			if _, isOfNoMoreEventsType := err.(*goes.ErrNoMoreEvents); !isOfNoMoreEventsType {
@@ -47,7 +48,7 @@ func (a authentifiedEventStore) GetHistory(id string) ([]EventDto, error) {
 	return events, nil
 }
 
-func (a *authentifiedEventStore) AppendToHistory(id string, events []EventDto) error {
+func (a *authentifiedEventStore) AppendToHistory(id string, events []dto.EventDto) error {
 	client, err := a.newClient()
 	if err != nil {
 		return err
@@ -71,50 +72,50 @@ func (a *authentifiedEventStore) AppendToHistory(id string, events []EventDto) e
 
 // FIXME: tech debt, find a better way to manage this
 // reader.Scan returns a map[string]interface{} when deserializing with a EventDto, it has to be a specific struct
-func getEventDto(reader *goes.StreamReader) (EventDto, error) {
+func getEventDto(reader *goes.StreamReader) (dto.EventDto, error) {
 	switch reader.EventResponse().Event.EventType {
 	case "infra.GameCreatedDto":
-		event := GameCreatedDto{}
+		event := dto.GameCreatedDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	case "infra.PlayerJoinedDto":
-		event := PlayerJoinedDto{}
+		event := dto.PlayerJoinedDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	case "infra.GameStartedDto":
-		event := GameStartedDto{}
+		event := dto.GameStartedDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	case "infra.GoldStacksDistributedDto":
-		event := GoldStacksDistributedDto{}
+		event := dto.GoldStacksDistributedDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	case "infra.WarriorsDistributedDto":
-		event := WarriorsDistributedDto{}
+		event := dto.WarriorsDistributedDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	case "infra.PalisadesDistributedDto":
-		event := PalisadesDistributedDto{}
+		event := dto.PalisadesDistributedDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	case "infra.NextPlayerDto":
-		event := NextPlayerDto{}
+		event := dto.NextPlayerDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	case "infra.PalisadePutDto":
-		event := PalisadePutDto{}
+		event := dto.PalisadePutDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	case "infra.WarriorPutDto":
-		event := WarriorPutDto{}
+		event := dto.WarriorPutDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	case "infra.TurnPassedDto":
-		event := TurnPassedDto{}
+		event := dto.TurnPassedDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	case "infra.GameFinishedDto":
-		event := GameFinishedDto{}
+		event := dto.GameFinishedDto{}
 		err := reader.Scan(&event, nil)
 		return event, err
 	}
