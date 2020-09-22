@@ -1,4 +1,4 @@
-package infra
+package storage
 
 import (
 	"errors"
@@ -10,18 +10,13 @@ import (
 	"github.com/ThomasFerro/armadora/infra/dto"
 )
 
-type EventStore interface {
-	GetHistory(id string) ([]dto.EventDto, error)
-	AppendToHistory(id string, events []dto.EventDto) error
-}
-
-type authentifiedEventStore struct {
+type eventStoreDb struct {
 	url      string
 	username string
 	password string
 }
 
-func (a authentifiedEventStore) GetHistory(id string) ([]dto.EventDto, error) {
+func (a eventStoreDb) GetHistory(id string) ([]dto.EventDto, error) {
 	client, err := a.newClient()
 	if err != nil {
 		return nil, err
@@ -48,7 +43,7 @@ func (a authentifiedEventStore) GetHistory(id string) ([]dto.EventDto, error) {
 	return events, nil
 }
 
-func (a *authentifiedEventStore) AppendToHistory(id string, events []dto.EventDto) error {
+func (a *eventStoreDb) AppendToHistory(id string, events []dto.EventDto) error {
 	client, err := a.newClient()
 	if err != nil {
 		return err
@@ -122,7 +117,7 @@ func getEventDto(reader *goes.StreamReader) (dto.EventDto, error) {
 	return nil, errors.New("Unimplemented event type")
 }
 
-func (a authentifiedEventStore) newClient() (*goes.Client, error) {
+func (a eventStoreDb) newClient() (*goes.Client, error) {
 	client, err := goes.NewClient(nil, a.url)
 	if err == nil {
 		client.SetBasicAuth(a.username, a.password)
@@ -143,7 +138,7 @@ func eventStorePassword() string {
 }
 
 func NewEventStore() EventStore {
-	return &authentifiedEventStore{
+	return &eventStoreDb{
 		url:      eventStoreUrl(),
 		username: eventStoreUsername(),
 		password: eventStorePassword(),

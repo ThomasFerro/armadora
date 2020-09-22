@@ -6,12 +6,13 @@ import (
 	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/event"
 	"github.com/ThomasFerro/armadora/infra/dto"
+	"github.com/ThomasFerro/armadora/infra/storage"
 	"github.com/google/uuid"
 )
 
 var Parties = []PartyId{}
 
-var eventStore = NewEventStore()
+var eventStore = storage.NewEventStore()
 
 type PartyId string
 
