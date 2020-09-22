@@ -46,11 +46,11 @@ func CreateParty() (PartyId, error) {
 	if err != nil {
 		return "", err
 	}
-	Parties = append(Parties, partyId)
 	err = eventStore.AppendToHistory(string(partyId), dto.ToEventsDto(history))
 	if err != nil {
 		return "", err
 	}
+	Parties = append(Parties, partyId)
 	return partyId, nil
 }
 
