@@ -5,5 +5,9 @@ import (
 )
 
 func main() {
+	Start()
+}
+
+func Start() {
 	api.StartApi()
 }
