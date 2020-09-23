@@ -10,9 +10,9 @@ type ConfigurationKey string
 var ConfigurationsWithFallback = map[ConfigurationKey]string{
 	"ALLOWED_ORIGIN": "http://localhost:8081",
 	"PORT": "80",
-	"EVENT_STORE_URL": "http://eventstore:2113",
-	"EVENT_STORE_USERNAME": "admin",
-	"EVENT_STORE_PASSWORD": "changeit",
+	"MONGO_URI": "mongodb://localhost:27017",
+	"MONGO_DATABASE_NAME": "armadora",
+	"MONGO_COLLECTION_NAME": "events",
 }
 
 func GetConfiguration(configurationKey ConfigurationKey) string {

@@ -75,6 +75,7 @@ func handlePartyRequest(w http.ResponseWriter, r *http.Request) {
 func handleGetPartyState(partyId infra.PartyId, w http.ResponseWriter, r *http.Request) {
 	party, err := infra.GetParty(partyId)
 	if err != nil {
+		log.Printf("Cannot get the party %v: %v\n", partyId, err)
 		manageError(&w, err)
 		return
 	}

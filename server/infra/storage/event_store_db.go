@@ -1,146 +1,201 @@
 package storage
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"log"
 
-	goes "github.com/jetbasrawi/go.geteventstore"
 	"github.com/ThomasFerro/armadora/infra/config"
 	"github.com/ThomasFerro/armadora/infra/dto"
+    "go.mongodb.org/mongo-driver/bson"
+    "go.mongodb.org/mongo-driver/mongo"
+    "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type eventStoreDb struct {
-	url      string
-	username string
-	password string
+type eventWithStreamId struct {
+	StreamId string `bson:"stream_id"`
+	EventType string `bson:"event_type"`
+	Event dto.EventDto `bson:"event"`
 }
 
-func (a eventStoreDb) GetHistory(id string) ([]dto.EventDto, error) {
-	client, err := a.newClient()
+type mongoDbEventStore struct {
+	uri string
+	database string
+	collection string
+}
+
+func (m mongoDbEventStore) GetHistory(id string) ([]dto.EventDto, error) {
+	collection, err := m.getCollection()
 	if err != nil {
 		return nil, err
 	}
-	reader := client.NewStreamReader(id)
+	filter := bson.D{{ "stream_id", id }}
+	found, err := collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, err
+	}
 
-	events := []dto.EventDto{}
-	for reader.Next() {
-		if err := reader.Err(); err != nil {
-			if _, isOfNoMoreEventsType := err.(*goes.ErrNoMoreEvents); !isOfNoMoreEventsType {
-				log.Printf("Error while reading events: %v", err)
-				return nil, err
-			}
-			break
-		}
+	var history []dto.EventDto
 
-		eventDto, err := getEventDto(reader)
+	for found.Next(context.TODO()) {
+		eventType := found.Current.Lookup("event_type")
+		rawEvent := found.Current.Lookup("event")
+		event, err := toEventDto(eventType, rawEvent)
 		if err != nil {
-			log.Printf("Error while event deserialization: %v", err)
 			return nil, err
 		}
-		events = append(events, eventDto)
+		history = append(
+			history,
+			event,
+		)
 	}
-	return events, nil
+
+	if err := found.Err(); err != nil {
+		return nil, err
+	}
+
+	found.Close(context.TODO())
+	return history, nil
 }
 
-func (a *eventStoreDb) AppendToHistory(id string, events []dto.EventDto) error {
-	client, err := a.newClient()
+func (m *mongoDbEventStore) AppendToHistory(id string, events []dto.EventDto) error {
+	collection, err := m.getCollection()
 	if err != nil {
 		return err
 	}
+	eventsToSave := toEventsToSave(id, events)
 
-	for _, nextEvent := range events {
-		newEvent := goes.NewEvent(goes.NewUUID(), fmt.Sprintf("%T", nextEvent), nextEvent, nil)
-
-		writer := client.NewStreamWriter(id)
-
-		log.Printf("Appending event in stream %v: %v", id, nextEvent)
-		err = writer.Append(nil, newEvent)
-		if err != nil {
-			log.Printf("Error while writting event: %v", err)
-			return err
-		}
-	}
-
-	return nil
+	_, err = collection.InsertMany(context.Background(), eventsToSave)
+	return err
 }
 
-// FIXME: tech debt, find a better way to manage this
-// reader.Scan returns a map[string]interface{} when deserializing with a EventDto, it has to be a specific struct
-func getEventDto(reader *goes.StreamReader) (dto.EventDto, error) {
-	switch reader.EventResponse().Event.EventType {
-	case "infra.GameCreatedDto":
+func toEventsToSave(streamId string, events []dto.EventDto) ([]interface{}) {
+	returnedEvents := []interface{}{}
+
+	for _, nextEvent := range events {
+		nextEventWithStreamId := &eventWithStreamId{
+			StreamId: streamId,
+			Event: nextEvent,
+			EventType: fmt.Sprintf("%T", nextEvent),
+		}
+		returnedEvents = append(returnedEvents, nextEventWithStreamId)
+	}
+
+	return returnedEvents
+}
+
+func toEventDto(eventType, rawEvent bson.RawValue) (dto.EventDto, error) {
+	switch eventType.StringValue() {
+	case "dto.GameCreatedDto":
 		event := dto.GameCreatedDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
-	case "infra.PlayerJoinedDto":
+	case "dto.PlayerJoinedDto":
 		event := dto.PlayerJoinedDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
-	case "infra.GameStartedDto":
+	case "dto.GameStartedDto":
 		event := dto.GameStartedDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
-	case "infra.GoldStacksDistributedDto":
+	case "dto.GoldStacksDistributedDto":
 		event := dto.GoldStacksDistributedDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
-	case "infra.WarriorsDistributedDto":
+	case "dto.WarriorsDistributedDto":
 		event := dto.WarriorsDistributedDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
-	case "infra.PalisadesDistributedDto":
+	case "dto.PalisadesDistributedDto":
 		event := dto.PalisadesDistributedDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
-	case "infra.NextPlayerDto":
+	case "dto.NextPlayerDto":
 		event := dto.NextPlayerDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
-	case "infra.PalisadePutDto":
+	case "dto.PalisadePutDto":
 		event := dto.PalisadePutDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
-	case "infra.WarriorPutDto":
+	case "dto.WarriorPutDto":
 		event := dto.WarriorPutDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
-	case "infra.TurnPassedDto":
+	case "dto.TurnPassedDto":
 		event := dto.TurnPassedDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
-	case "infra.GameFinishedDto":
+	case "dto.GameFinishedDto":
 		event := dto.GameFinishedDto{}
-		err := reader.Scan(&event, nil)
+		err := rawEvent.Unmarshal(&event)
 		return event, err
 	}
 	return nil, errors.New("Unimplemented event type")
 }
 
-func (a eventStoreDb) newClient() (*goes.Client, error) {
-	client, err := goes.NewClient(nil, a.url)
-	if err == nil {
-		client.SetBasicAuth(a.username, a.password)
+func (m mongoDbEventStore) getCollection() (*mongo.Collection, error) {
+	client, err := m.newClient()
+	if err != nil {
+		return nil, err
 	}
-	return client, err
+	collection := client.Database(m.database).Collection(m.collection)
+	return collection, nil
 }
 
-func eventStoreUrl() string {
-	return config.GetConfiguration("EVENT_STORE_URL")
+func (m mongoDbEventStore) newClient() (*mongo.Client, error) {
+	// Set client options
+	clientOptions := options.Client().ApplyURI(m.uri)
+
+	// Connect to MongoDB
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Check the connection
+	err = client.Ping(context.TODO(), nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
-func eventStoreUsername() string {
-	return config.GetConfiguration("EVENT_STORE_USERNAME")
+func mongoUri() string {
+	return config.GetConfiguration("MONGO_URI")
 }
 
-func eventStorePassword() string {
-	return config.GetConfiguration("EVENT_STORE_PASSWORD")
+func mongoDatabaseName() string {
+	return config.GetConfiguration("MONGO_DATABASE_NAME")
 }
+
+func mongoCollectionName() string {
+	return config.GetConfiguration("MONGO_COLLECTION_NAME")
+}
+
+// func eventStoreUsername() string {
+// 	return config.GetConfiguration("EVENT_STORE_USERNAME")
+// }
+
+// func eventStorePassword() string {
+// 	return config.GetConfiguration("EVENT_STORE_PASSWORD")
+// }
+
+// func NewEventStore() EventStore {
+// 	return &mongoDbEventStore{
+// 		url:      eventStoreUrl(),
+// 		username: eventStoreUsername(),
+// 		password: eventStorePassword(),
+// 	}
+// }
 
 func NewEventStore() EventStore {
-	return &eventStoreDb{
-		url:      eventStoreUrl(),
-		username: eventStoreUsername(),
-		password: eventStorePassword(),
+	return &mongoDbEventStore{
+		uri:      mongoUri(),
+		database: mongoDatabaseName(),
+		collection: mongoCollectionName(),
 	}
 }
