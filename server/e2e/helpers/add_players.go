@@ -38,7 +38,7 @@ func AddPlayers(partyId string) error {
 		}
 	}
 
-	return checkGameState(partyId, players)
+	return checkGameStateAfterAddingPlayers(partyId, players)
 }
 
 func addPlayer(partyId string, player playerInformation) error {
@@ -53,7 +53,7 @@ func addPlayer(partyId string, player playerInformation) error {
 	return PostACommand(partyId, addPlayerCommand, "Add a player")
 }
 
-func checkGameState(partyId string, expectedPlayers []playerInformation) error {
+func checkGameStateAfterAddingPlayers(partyId string, expectedPlayers []playerInformation) error {
 	gameState, err := GetGameState(partyId)
 	if err != nil {
 		return err

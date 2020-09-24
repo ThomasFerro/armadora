@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"fmt"
+
 	"github.com/ThomasFerro/armadora/infra"
 )
 
@@ -11,7 +13,7 @@ func PassTurns(partyId string) error {
 			return err
 		}
 	}
-	return nil
+	return checkGameStateAfterPassingTurns(partyId)
 }
 
 func passTurn(partyId string) error {
@@ -20,4 +22,19 @@ func passTurn(partyId string) error {
 	}
 
 	return PostACommand(partyId, passTurnCommand, "Pass turn")
+}
+
+func checkGameStateAfterPassingTurns(partyId string) error {
+	game, err := GetGameState(partyId)
+	if err != nil {
+		return err
+	}
+
+	for index, player := range game.Players {
+		if !player.TurnPassed {
+			return fmt.Errorf("Expected player %v's turn to be passed", index)
+		}
+	}
+
+	return nil
 }

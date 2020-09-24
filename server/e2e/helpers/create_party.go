@@ -1,10 +1,10 @@
 package helpers
 
 import (
-	"io/ioutil"
-	"net/http"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 )
 
 type createPartyResponse struct {
@@ -29,5 +29,18 @@ func CreateParty() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return newParty.Id, nil
+	return newParty.Id, checkGameStateAfterCreatingTheParty(newParty.Id)
+}
+
+func checkGameStateAfterCreatingTheParty(partyId string) error {
+	game, err := GetGameState(partyId)
+	if err != nil {
+		return err
+	}
+
+	if string(game.State) != "WaitingForPlayers" {
+		return fmt.Errorf("Party creating - Wrong game state, expected WaitingForPlayers but got %v instead", game.State)
+	}
+
+	return nil
 }

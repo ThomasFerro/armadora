@@ -3,8 +3,8 @@ package e2e
 import (
 	"testing"
 
-	"github.com/ThomasFerro/armadora/infra/api"
 	"github.com/ThomasFerro/armadora/e2e/helpers"
+	"github.com/ThomasFerro/armadora/infra/api"
 )
 
 func TestEndToEnd(t *testing.T) {
@@ -25,17 +25,17 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = helpers.PlaySomeTurns(partyId) 
+	err = helpers.PlaySomeTurns(partyId)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = helpers.PassTurns(partyId) 
+	err = helpers.PassTurns(partyId)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	helpers.CheckFinishedGame(partyId)
+	err = helpers.CheckFinishedGame(partyId)
 	if err != nil {
 		t.Fatal(err)
 	}
