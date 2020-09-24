@@ -44,9 +44,17 @@ In a four-player game, the facing players can play as partners. We will not be i
 
 ## Running the game locally
 
-### Kubernetes
+### docker-compose
 
-You can run the game locally in a Kubernetes Cluster, using [`skaffold`](https://skaffold.dev/).
+You can run the game locally through `docker-compose`. For instance, on linux, run the following command.
+
+```
+sudo docker-compose up --build
+```
+
+### Kubernetes (unmaintained)
+
+You can also run the game locally in a Kubernetes Cluster, using [`skaffold`](https://skaffold.dev/).
 
 Here are the prerequisites for the game to run:
 
@@ -65,11 +73,3 @@ The last step is to **add the following lines to your `hosts` file**:
 ```
 
 You should now have access the game via the address `play.armadora.test`.
-
-### docker-compose (deprecated)
-
-For you to run the game locally, you will need to use `docker-compose`. For instance, on linux, run the following command.
-
-```
-sudo docker-compose up --build
-```

@@ -1,4 +1,4 @@
-package infra
+package dto
 
 import (
 	"github.com/ThomasFerro/armadora/game"

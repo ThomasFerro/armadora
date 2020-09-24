@@ -5,12 +5,14 @@ import (
 
 	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/event"
+	"github.com/ThomasFerro/armadora/infra/dto"
+	"github.com/ThomasFerro/armadora/infra/storage"
 	"github.com/google/uuid"
 )
 
 var Parties = []PartyId{}
 
-var eventStore = NewEventStore()
+var eventStore = storage.NewEventStore()
 
 type PartyId string
 
@@ -24,7 +26,7 @@ func ReceiveCommand(partyId PartyId, command Command) error {
 	}
 
 	newEvents, err := ManageCommand(
-		FromEventsDto(history),
+		dto.FromEventsDto(history),
 		command,
 	)
 
@@ -32,7 +34,7 @@ func ReceiveCommand(partyId PartyId, command Command) error {
 		return err
 	}
 
-	eventStore.AppendToHistory(string(partyId), ToEventsDto(newEvents))
+	eventStore.AppendToHistory(string(partyId), dto.ToEventsDto(newEvents))
 
 	return nil
 }
@@ -45,22 +47,22 @@ func CreateParty() (PartyId, error) {
 	if err != nil {
 		return "", err
 	}
-	Parties = append(Parties, partyId)
-	err = eventStore.AppendToHistory(string(partyId), ToEventsDto(history))
+	err = eventStore.AppendToHistory(string(partyId), dto.ToEventsDto(history))
 	if err != nil {
 		return "", err
 	}
+	Parties = append(Parties, partyId)
 	return partyId, nil
 }
 
-func GetParty(partyId PartyId) (GameDto, error) {
+func GetParty(partyId PartyId) (dto.GameDto, error) {
 	history, err := eventStore.GetHistory(string(partyId))
 	if err != nil {
-		return GameDto{}, err
+		return dto.GameDto{}, err
 	}
-	return ToGameDto(
+	return dto.ToGameDto(
 		game.ReplayHistory(
-			FromEventsDto(history),
+			dto.FromEventsDto(history),
 		),
 	), nil
 }

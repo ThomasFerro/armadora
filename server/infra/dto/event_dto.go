@@ -1,4 +1,4 @@
-package infra
+package dto
 
 import (
 	"github.com/ThomasFerro/armadora/game/board"
@@ -13,47 +13,47 @@ type EventDto interface{}
 type GameCreatedDto struct{}
 
 type PlayerJoinedDto struct {
-	Nickname  string `json:"nickname"`
-	Character int    `json:"character"`
+	Nickname  string `json:"nickname" bson:"nickname"`
+	Character int    `json:"character" bson:"character"`
 }
 
 type GameStartedDto struct{}
 
 type GoldStacksDistributedDto struct {
-	GoldStacks []int `json:"gold_stacks"`
+	GoldStacks []int `json:"gold_stacks" bson:"gold_stacks"`
 }
 
 type WarriorsDistributedDto struct {
-	WarriorsDistributed WarriorsDto `json:"warriors"`
+	WarriorsDistributed WarriorsDto `json:"warriors" bson:"warriors"`
 }
 
 type PalisadesDistributedDto struct {
-	Count int `json:"count"`
+	Count int `json:"count" bson:"count"`
 }
 
 type NextPlayerDto struct{}
 
 type PalisadePutDto struct {
-	Player int `json:"player"`
-	X1     int `json:"x1"`
-	Y1     int `json:"y1"`
-	X2     int `json:"x2"`
-	Y2     int `json:"y2"`
+	Player int `json:"player" bson:"player"`
+	X1     int `json:"x1" bson:"x1"`
+	Y1     int `json:"y1" bson:"y1"`
+	X2     int `json:"x2" bson:"x2"`
+	Y2     int `json:"y2" bson:"y2"`
 }
 
 type WarriorPutDto struct {
-	Player   int `json:"player"`
-	Strength int `json:"strength"`
-	X        int `json:"x"`
-	Y        int `json:"y"`
+	Player   int `json:"player" bson:"player"`
+	Strength int `json:"strength" bson:"strength"`
+	X        int `json:"x" bson:"x"`
+	Y        int `json:"y" bson:"y"`
 }
 
 type TurnPassedDto struct {
-	Player int `json:"player"`
+	Player int `json:"player" bson:"player"`
 }
 
 type GameFinishedDto struct {
-	Scores ScoresDto `json:"scores"`
+	Scores ScoresDto `json:"scores" bson:"scores"`
 }
 
 func ToEventsDto(events []event.Event) []EventDto {
