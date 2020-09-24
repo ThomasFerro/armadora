@@ -10,8 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var Parties = []PartyId{}
-
 var eventStore = storage.NewEventStore()
 
 type PartyId string
@@ -51,7 +49,6 @@ func CreateParty() (PartyId, error) {
 	if err != nil {
 		return "", err
 	}
-	Parties = append(Parties, partyId)
 	return partyId, nil
 }
 
@@ -65,4 +62,16 @@ func GetParty(partyId PartyId) (dto.GameDto, error) {
 			dto.FromEventsDto(history),
 		),
 	), nil
+}
+
+func GetParties() ([]PartyId, error) {
+	parties, err := eventStore.GetParties()
+	if err != nil {
+		return nil, err
+	}
+	returnedParties := []PartyId{}
+	for _, party := range parties {
+		returnedParties = append(returnedParties, PartyId(party))
+	}
+	return returnedParties, nil
 }

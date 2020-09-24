@@ -116,10 +116,14 @@ func handleGetParties(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Don't check infra.Parties but call a method that return every parties (stateless)
+	parties, err := infra.GetParties()
+	if err != nil {
+		manageError(&w, err)
+		return
+	}
 
-	log.Printf("Returning the %v parties\n", len(infra.Parties))
-	partiesIdJson, err := json.Marshal(infra.Parties)
+	log.Printf("Returning the %v parties\n", len(parties))
+	partiesIdJson, err := json.Marshal(parties)
 	if err != nil {
 		manageError(&w, err)
 		return
