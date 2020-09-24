@@ -7,21 +7,39 @@ import (
 
 	"github.com/ThomasFerro/armadora/infra/config"
 	"github.com/ThomasFerro/armadora/infra/dto"
-    "go.mongodb.org/mongo-driver/bson"
-    "go.mongodb.org/mongo-driver/mongo"
-    "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type eventWithStreamId struct {
-	StreamId string `bson:"stream_id"`
-	EventType string `bson:"event_type"`
-	Event dto.EventDto `bson:"event"`
+	StreamId  string       `bson:"stream_id"`
+	EventType string       `bson:"event_type"`
+	Event     dto.EventDto `bson:"event"`
 }
 
 type mongoDbEventStore struct {
-	uri string
-	database string
+	uri        string
+	database   string
 	collection string
+}
+
+func (m mongoDbEventStore) GetParties() ([]string, error) {
+	collection, err := m.getCollection()
+	if err != nil {
+		return nil, err
+	}
+	filter := bson.D{{}}
+	parties, err := collection.Distinct(context.TODO(), "stream_id", filter)
+	if err != nil {
+		return nil, err
+	}
+	returnedParties := []string{}
+	for _, party := range parties {
+		returnedParties = append(returnedParties, fmt.Sprint(party))
+	}
+
+	return returnedParties, nil
 }
 
 func (m mongoDbEventStore) GetHistory(id string) ([]dto.EventDto, error) {
@@ -29,7 +47,7 @@ func (m mongoDbEventStore) GetHistory(id string) ([]dto.EventDto, error) {
 	if err != nil {
 		return nil, err
 	}
-	filter := bson.D{{ "stream_id", id }}
+	filter := bson.D{{"stream_id", id}}
 	found, err := collection.Find(context.TODO(), filter)
 	if err != nil {
 		return nil, err
@@ -69,13 +87,13 @@ func (m *mongoDbEventStore) AppendToHistory(id string, events []dto.EventDto) er
 	return err
 }
 
-func toEventsToSave(streamId string, events []dto.EventDto) ([]interface{}) {
+func toEventsToSave(streamId string, events []dto.EventDto) []interface{} {
 	returnedEvents := []interface{}{}
 
 	for _, nextEvent := range events {
 		nextEventWithStreamId := &eventWithStreamId{
-			StreamId: streamId,
-			Event: nextEvent,
+			StreamId:  streamId,
+			Event:     nextEvent,
 			EventType: fmt.Sprintf("%T", nextEvent),
 		}
 		returnedEvents = append(returnedEvents, nextEventWithStreamId)
@@ -194,8 +212,8 @@ func mongoCollectionName() string {
 
 func NewEventStore() EventStore {
 	return &mongoDbEventStore{
-		uri:      mongoUri(),
-		database: mongoDatabaseName(),
+		uri:        mongoUri(),
+		database:   mongoDatabaseName(),
 		collection: mongoCollectionName(),
 	}
 }
