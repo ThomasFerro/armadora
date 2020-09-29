@@ -14,8 +14,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type eventWithStreamId struct {
-	StreamId  string       `bson:"stream_id"`
+type eventWithStreamID struct {
+	StreamID  string       `bson:"stream_id"`
 	EventType string       `bson:"event_type"`
 	Event     dto.EventDto `bson:"event"`
 }
@@ -27,90 +27,90 @@ type mongoDbEventStore struct {
 }
 
 func (m mongoDbEventStore) GetParties() ([]string, error) {
-	parties, err := m.getCollectionAndExecuteAction(
-		func(collection *mongo.Collection) (interface{}, error) {
-			filter := bson.D{{}}
-			parties, err := collection.Distinct(context.TODO(), "stream_id", filter)
-			if err != nil {
-				return nil, err
-			}
-			returnedParties := []string{}
-			for _, party := range parties {
-				returnedParties = append(returnedParties, fmt.Sprint(party))
-			}
-
-			return returnedParties, nil
-		},
-	)
-
+	collectionToClose, err := m.getCollection()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("An error has occurred while getting the collection: %w", err)
+	}
+	defer collectionToClose.close()
+
+	filter := bson.D{{}}
+	parties, err := collectionToClose.collection.Distinct(context.TODO(), "stream_id", filter)
+	if err != nil {
+		return nil, fmt.Errorf("An error has occurred while fetching parties: %w", err)
+	}
+	returnedParties := []string{}
+	for _, party := range parties {
+		returnedParties = append(returnedParties, fmt.Sprint(party))
 	}
 
-	return parties.([]string), nil
+	return returnedParties, nil
 }
 
 func (m mongoDbEventStore) GetHistory(id string) ([]dto.EventDto, error) {
-	history, err := m.getCollectionAndExecuteAction(
-		func(collection *mongo.Collection) (interface{}, error) {
-			filter := bson.D{{"stream_id", id}}
-			found, err := collection.Find(context.TODO(), filter)
-			if err != nil {
-				return nil, err
-			}
-
-			var history []dto.EventDto
-
-			for found.Next(context.TODO()) {
-				eventType := found.Current.Lookup("event_type")
-				rawEvent := found.Current.Lookup("event")
-				event, err := toEventDto(eventType, rawEvent)
-				if err != nil {
-					return nil, err
-				}
-				history = append(
-					history,
-					event,
-				)
-			}
-
-			if err := found.Err(); err != nil {
-				return nil, err
-			}
-
-			found.Close(context.TODO())
-			return history, nil
-		},
-	)
-
+	collectionToClose, err := m.getCollection()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("An error has occurred while getting the collection: %w", err)
+	}
+	defer collectionToClose.close()
+
+	filter := bson.D{{"stream_id", id}}
+	found, err := collectionToClose.collection.Find(context.TODO(), filter)
+	if err != nil {
+		return nil, fmt.Errorf("An error has occurred while getting the party %v's history: %w", id, err)
 	}
 
-	return history.([]dto.EventDto), nil
+	var history []dto.EventDto
+
+	for found.Next(context.TODO()) {
+		eventType := found.Current.Lookup("event_type")
+		rawEvent := found.Current.Lookup("event")
+		event, err := toEventDto(eventType, rawEvent)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"An error has occurred while trying to convert the database entry to an event: %w",
+				err,
+			)
+		}
+		history = append(
+			history,
+			event,
+		)
+	}
+
+	if err := found.Err(); err != nil {
+		return nil, fmt.Errorf("An error has occurred while iterating through the events: %w", err)
+	}
+
+	found.Close(context.TODO())
+	return history, nil
 }
 
 func (m *mongoDbEventStore) AppendToHistory(id string, events []dto.EventDto) error {
-	_, err := m.getCollectionAndExecuteAction(
-		func(collection *mongo.Collection) (interface{}, error) {
-			eventsToSave := toEventsToSave(id, events)
+	collectionToClose, err := m.getCollection()
+	if err != nil {
+		return fmt.Errorf("An error has occurred while getting the collection: %w", err)
+	}
+	defer collectionToClose.close()
 
-			return collection.InsertMany(context.Background(), eventsToSave)
-		},
-	)
-	return err
+	eventsToSave := toEventsToSave(id, events)
+
+	_, err = collectionToClose.collection.InsertMany(context.Background(), eventsToSave)
+	if err != nil {
+		return fmt.Errorf("An error has occurred while inserting the events %v: %w", eventsToSave, err)
+	}
+	return nil
 }
 
-func toEventsToSave(streamId string, events []dto.EventDto) []interface{} {
+func toEventsToSave(streamID string, events []dto.EventDto) []interface{} {
 	returnedEvents := []interface{}{}
 
 	for _, nextEvent := range events {
-		nextEventWithStreamId := &eventWithStreamId{
-			StreamId:  streamId,
+		nexteventWithStreamID := &eventWithStreamID{
+			StreamID:  streamID,
 			Event:     nextEvent,
 			EventType: fmt.Sprintf("%T", nextEvent),
 		}
-		returnedEvents = append(returnedEvents, nextEventWithStreamId)
+		returnedEvents = append(returnedEvents, nexteventWithStreamID)
 	}
 
 	return returnedEvents
@@ -166,25 +166,27 @@ func toEventDto(eventType, rawEvent bson.RawValue) (dto.EventDto, error) {
 	return nil, errors.New("Unimplemented event type")
 }
 
-type dbAction func(*mongo.Collection) (interface{}, error)
+type connectionToClose struct {
+	client *mongo.Client
+	close  func()
+}
 
-func (m mongoDbEventStore) getCollectionAndExecuteAction(
-	action dbAction,
-) (interface{}, error) {
+func closeClientConnection(ctx context.Context, client *mongo.Client) {
+	if err := client.Disconnect(ctx); err != nil {
+		log.Printf("An error has occurred while disconnecting the mongo client: %v", err)
+	}
+}
+
+func (m mongoDbEventStore) getConnection() (*connectionToClose, error) {
 	// Set client options
 	clientOptions := options.Client().ApplyURI(m.uri)
 
 	// Connect to MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 	client, err := mongo.Connect(ctx, clientOptions)
-	defer func() {
-		if err = client.Disconnect(ctx); err != nil {
-			log.Printf("An error has occurred while disconnecting the mongo client: %v", err)
-		}
-	}()
 
 	if err != nil {
+		cancel()
 		return nil, fmt.Errorf("Cannot connect the client: %w", err)
 	}
 
@@ -192,29 +194,40 @@ func (m mongoDbEventStore) getCollectionAndExecuteAction(
 	err = client.Ping(context.TODO(), nil)
 
 	if err != nil {
+		cancel()
 		return nil, fmt.Errorf("Connection check error: %w", err)
 	}
 
-	collection := client.Database(m.database).Collection(m.collection)
-	return action(collection)
+	return &connectionToClose{
+		client: client,
+		close: func() {
+			closeClientConnection(ctx, client)
+			cancel()
+		},
+	}, nil
 }
 
-func mongoUri() string {
-	return config.GetConfiguration("MONGO_URI")
+type collectionToCloseAfterUse struct {
+	collection *mongo.Collection
+	close      func()
 }
 
-func mongoDatabaseName() string {
-	return config.GetConfiguration("MONGO_DATABASE_NAME")
-}
+func (m mongoDbEventStore) getCollection() (*collectionToCloseAfterUse, error) {
+	connection, err := m.getConnection()
 
-func mongoCollectionName() string {
-	return config.GetConfiguration("MONGO_COLLECTION_NAME")
+	if err != nil {
+		return nil, fmt.Errorf("Cannot connect the client: %w", err)
+	}
+	return &collectionToCloseAfterUse{
+		collection: connection.client.Database(m.database).Collection(m.collection),
+		close:      connection.close,
+	}, nil
 }
 
 func NewEventStore() EventStore {
 	return &mongoDbEventStore{
-		uri:        mongoUri(),
-		database:   mongoDatabaseName(),
-		collection: mongoCollectionName(),
+		uri:        config.GetConfiguration("MONGO_URI"),
+		database:   config.GetConfiguration("MONGO_DATABASE_NAME"),
+		collection: config.GetConfiguration("MONGO_COLLECTION_NAME"),
 	}
 }
