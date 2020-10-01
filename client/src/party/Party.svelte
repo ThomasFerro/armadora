@@ -1,4 +1,5 @@
 <script>
+    import { createEventDispatcher } from 'svelte'
     import JoinAGame from './JoinAGame.svelte';
     import Board from './board/Board.svelte';
     import Scores from './score/Scores.svelte';
@@ -7,6 +8,11 @@
     import { connectToGame, gameInformation, startGame, putWarrior, putPalisades, passTurn } from './party.service.js';
 
     export let id = undefined;
+
+    const dispatch = createEventDispatcher()
+    const leaveParty = () => {
+        dispatch('leave-party')
+    }
 
     let game
     let gameUpdateTimeout
@@ -99,7 +105,7 @@
     $: scores = game && game.scores
 </script>
 
-<h2>Party {id}</h2>
+<h2 class="party-title">Party {id} <button on:click={leaveParty}>⍇</button></h2>
 <!-- TODO: Loading + error -->
 {#if waitingForPlayers}
     {#if !connected}
@@ -132,8 +138,10 @@
 {/if}
 
 <style>
-h2 {
-	margin-block-start: 0;
+.party-title {
+    margin-block-start: 0;
+    display: flex;
+    align-items: center;
 }
 
 .players {
