@@ -6,6 +6,7 @@
 	--main-color: #efe9cc;
 	--lighten-main-color: #f7f3e5;
 	--secondary-color: #deb881;
+	--secondary-color-darken: #cf9849;
 	--error-color: #dd2c00;
 	--lighten-error-color: #ff8b6e;
 	--info-color: #00bcd4;
@@ -43,9 +44,9 @@ button:disabled, input[type=submit]:disabled {
 }
 
 button:hover:enabled, button:focus:enabled,
-input[type=submit]:hover:enabled, input[type=submit]:focus:enabled {
-	box-shadow: 0 4px 5px 0 var(--darken-gray);
-	cursor: pointer;
+input[type=submit]:hover:enabled, input[type=submit]:focus:enabled,
+select:hover {
+	background-color: var(--secondary-color-darken);
 }
 
 select:after {
