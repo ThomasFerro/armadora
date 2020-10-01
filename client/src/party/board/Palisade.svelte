@@ -1,8 +1,8 @@
 <script>
-    export let vertical = false;
     export let active = false;
     export let present = false;
     export let selected = false;
+    export let area = "";
 
     $: disabled = !active || present || selected
 </script>
@@ -10,9 +10,8 @@
 <button
     disabled={disabled}
     on:click
-    class="palisade"
-    class:vertical-palisade={vertical}
-    class:horizontal-palisade={!vertical}
+    class={`palisade ${area}`}
+    style={`grid-area: ${area}`}
     class:present={present}
     class:selected={selected}
 ></button>
@@ -21,13 +20,11 @@
 .palisade {
     margin: 0;
     padding: 0;
-}
-.horizontal-palisade {
+    height: 100%;
     width: 100%;
-    height: var(--palisade-width);
 }
 .present {
-    background-color: burlywood;
+    background-color: var(--palisade-present, saddlebrown);
 }
 .selected {
     background-color: gray;

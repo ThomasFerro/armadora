@@ -7,6 +7,11 @@
     export let active = false
     export let value = {}
     export let connectedPlayer = {}
+    export let currentPlayer = null
+
+    $: currentPlayerDisplayedInformation = currentPlayer ?
+        `${currentPlayer.nickname}'s (${currentPlayer.character}) turns`
+        : "No current player..."
 
     let selectedWarrior
 
@@ -51,10 +56,39 @@
         on:border-selected={(e) => borderSelected(e.detail)}
     ></Grid>
     {#if active}
-    <WarriorSelection
-        warriors={connectedPlayerWarriors}
-        on:warrior-selected={(e) => warriorSelected(e.detail)}
-    ></WarriorSelection>
-    <PassTurn on:pass-turn={passTurn}></PassTurn>
+    <section class="player-actions">
+        <WarriorSelection
+            warriors={connectedPlayerWarriors}
+            on:warrior-selected={(e) => warriorSelected(e.detail)}
+        ></WarriorSelection>
+        <PassTurn on:pass-turn={passTurn}></PassTurn>
+    </section>
+    {:else}
+    <p class="current-player">{currentPlayerDisplayedInformation}</p>
     {/if}
 </article>
+
+<style>
+.board {
+    width: 100%;
+    flex: 1;
+    display: grid;
+    /* TODO: Not in px ? */
+    grid-template:
+        "grid" 1fr
+        "player-actions" 50px;
+}
+
+.player-actions {
+    grid-area: player-actions;
+}
+
+.grid {
+    grid-area: grid;
+}
+
+.current-player {
+    display: flex;
+    justify-content: center;
+}
+</style>

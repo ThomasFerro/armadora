@@ -5,8 +5,10 @@ services:
     build:
       context: client
       dockerfile: ./Dockerfile
+      args:
+        API_URL: ${SERVER_URL:-http://localhost:8080}
     ports:
-      - 8081:80
+      - ${CLIENT_PORT:-8081}:80
     depends_on: 
       - server
   server:
@@ -14,4 +16,13 @@ services:
       context: server
       dockerfile: ./Dockerfile
     ports:
-      - 8080:80
+      - ${SERVER_PORT:-8080}:80
+    environment:
+      - ALLOWED_ORIGIN=${CLIENT_URL:-http://localhost:8081}
+      - MONGO_URI=mongodb://database:27017
+    depends_on:
+      - database
+  database:
+    image: mongo:4.4.0
+    ports:
+      - 27017:27017

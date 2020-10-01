@@ -3,10 +3,12 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
+import replace from '@rollup/plugin-replace';
 
 const production = !process.env.ROLLUP_WATCH;
+const API_URL = process.env.API_URL || 'http://localhost:8080';
 
-const buildDir = process.env.BUILD_DIR || '../static/build'
+const buildDir = process.env.BUILD_DIR || 'public/build'
 
 export default {
 	input: 'src/main.js',
@@ -48,7 +50,15 @@ export default {
 
 		// If we're building for production (npm run build
 		// instead of npm run dev), minify
-		production && terser()
+		production && terser(),
+
+		replace({
+			process: JSON.stringify({
+				env: {
+					API_URL,
+				}
+			})
+		})
 	],
 	watch: {
 		clearScreen: false
