@@ -1,18 +1,22 @@
-// TODO: Configure ?
-const url = `https://api.armadora.test`;
+const url = process.env.API_URL;
 
-export const createNewParty = () => fetch(`${url}/games`,{ method: "POST" })
-    .then(response => response.json());
+const fetchWithDefaultCheck = (url, options) => fetch(url, options)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(response.statusText)
+        }
+        return response.json()
+    });
 
-export const getParties = () => fetch(`${url}/parties`)
-    .then(response => response.json());
+export const createNewParty = () => fetchWithDefaultCheck(`${url}/games`,{ method: "POST" })
+
+export const getParties = () => fetchWithDefaultCheck(`${url}/parties`)
 
 const partyUrl = (id) => `${url}/parties/${id}`;
 
-export const gameInformation = (id) => fetch(partyUrl(id))
-    .then(response => response.json());
+export const gameInformation = (id) => fetchWithDefaultCheck(partyUrl(id))
 
-export const connectToGame = (id) => ({username, character}) => fetch(partyUrl(id), {
+export const connectToGame = (id) => ({username, character}) => fetchWithDefaultCheck(partyUrl(id), {
     method: 'POST',
     body: JSON.stringify({
         "command_type": "JoinGame",
@@ -21,16 +25,16 @@ export const connectToGame = (id) => ({username, character}) => fetch(partyUrl(i
             "Character": character,
         },
     })
-}).then(response => response.json());
+});
 
-export const startGame = (id) => fetch(partyUrl(id), {
+export const startGame = (id) => fetchWithDefaultCheck(partyUrl(id), {
     method: 'POST',
     body: JSON.stringify({
         "command_type": "StartTheGame",
     })
-}).then(response => response.json());
+});
 
-export const putWarrior = (id) => ({x, y, strength}) => fetch(partyUrl(id), {
+export const putWarrior = (id) => ({x, y, strength}) => fetchWithDefaultCheck(partyUrl(id), {
     method: 'POST',
     body: JSON.stringify({
         "command_type": "PutWarrior",
@@ -40,9 +44,9 @@ export const putWarrior = (id) => ({x, y, strength}) => fetch(partyUrl(id), {
             "Y": y.toString(),
         },
     })
-}).then(response => response.json());
+});
 
-export const putPalisades = (id) => ({ palisades }) => fetch(partyUrl(id), {
+export const putPalisades = (id) => ({ palisades }) => fetchWithDefaultCheck(partyUrl(id), {
     method: 'POST',
     body: JSON.stringify({
         "command_type": "PutPalisades",
@@ -50,11 +54,11 @@ export const putPalisades = (id) => ({ palisades }) => fetch(partyUrl(id), {
             "Palisades": JSON.stringify(palisades)
         },
     })
-}).then(response => response.json());
+});
 
-export const passTurn = (id) => fetch(partyUrl(id), {
+export const passTurn = (id) => fetchWithDefaultCheck(partyUrl(id), {
     method: 'POST',
     body: JSON.stringify({
         "command_type": "PassTurn",
     })
-})
+});

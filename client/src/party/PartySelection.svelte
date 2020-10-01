@@ -41,19 +41,33 @@
 
 <button on:click={createParty}>Create party</button>
 {#if creationError}
-<span class="error-message">An error has occurred while creating the party</span>
+<span class="message error-message">An error has occurred while creating the party</span>
 {/if}
-{#if partiesLoadingState === LOADING}
-<span class="info-message">Loading parties</span>
-{:else if partiesLoadingState === LOADED}
-<ul>
-  {#each parties as party}
-    <li>
-      <button on:click={() => joinParty(party)}>Join {party}</button>
-    </li>
-  {/each}
-</ul>
-{:else if partiesLoadingState === ERROR}
-<span class="error-message">An error has occurred while loading the parties</span>
-<button class="reload" on:click={loadParties}>Reload</button>
-{/if}
+<details open class="parties-listing">
+  <summary>Join a party</summary>
+  {#if partiesLoadingState === LOADING}
+  <span class="message info-message">Loading parties</span>
+  {:else if partiesLoadingState === LOADED}
+  <ul>
+    {#each parties as party}
+      <li>
+        <button on:click={() => joinParty(party)}>Join {party}</button>
+      </li>
+    {/each}
+  </ul>
+  {:else if partiesLoadingState === ERROR}
+  <span class="message error-message">An error has occurred while loading the parties</span>
+  <button class="reload" on:click={loadParties}>Reload</button>
+  {/if}
+</details>
+
+<style>
+.reload {
+  margin-inline-start: 0;
+  margin-block-end: 0;
+}
+
+.parties-listing {
+  flex: 1;
+}
+</style>

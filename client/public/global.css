@@ -1,0 +1,102 @@
+:root {
+	--gray: #dbdbdb;
+	--darken-gray: #6d6d6d;
+	--black: #222831;
+
+	--main-color: #efe9cc;
+	--lighten-main-color: #f7f3e5;
+	--secondary-color: #deb881;
+	--error-color: #dd2c00;
+	--lighten-error-color: #ff8b6e;
+	--info-color: #00bcd4;
+	--lighten-info-color: #b2ebf2;
+
+	--text-color: var(--black);
+}
+
+html, body {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	background-color: var(--main-color);
+	color: var(--text-color);
+	/* TODO: Font-family / size */
+}
+
+button, input[type=submit], select {
+	border: none;
+	background-color: var(--secondary-color);
+	border-radius: 10px;
+	padding: 0.5em 1em;
+	margin: 0.5em;
+	box-shadow: 0 2px var(--gray);
+	transition: box-shadow 0.2s ease-in-out;
+}
+
+button:disabled, input[type=submit]:disabled {
+	background-color: var(--gray);
+}
+
+button:hover:enabled, button:focus:enabled,
+input[type=submit]:hover:enabled, input[type=submit]:focus:enabled {
+	box-shadow: 0 4px 5px 0 var(--darken-gray);
+	cursor: pointer;
+}
+
+select:after {
+	content: 'V';
+}
+
+select {
+	appearance: none;
+	-moz-appearance: none;
+	-webkit-appearance: none;
+}
+
+ul {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+summary {
+	margin-block-end: 0.5em;
+}
+
+details {
+	background-color: var(--lighten-main-color);
+
+	padding: 1em;
+	display: flex;
+	flex-flow: column nowrap;
+	align-items: center;
+}
+
+.message {
+	padding: 0.5em 1em;
+	border-style: solid;
+	border-radius: 10px;
+}
+
+.message.error-message {
+	border-color: var(--error-color);
+	background-color: var(--lighten-error-color);
+}
+
+.message.info-message {
+	border-color: var(--info-color);
+	background-color: var(--lighten-info-color);
+}
+
+/* 
+TODO:
+- Choose fonts
+- Manage fonts size
+- Board
+- Credits & copyrights
+*/

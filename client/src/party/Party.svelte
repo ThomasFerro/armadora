@@ -2,13 +2,13 @@
     import JoinAGame from './JoinAGame.svelte';
     import Board from './board/Board.svelte';
     import Scores from './score/Scores.svelte';
+    import Player from './Player.svelte';
     import { LOADING, LOADED, ERROR } from '../loading';
     import { connectToGame, gameInformation, startGame, putWarrior, putPalisades, passTurn } from './party.service.js';
 
     export let id = undefined;
 
     let game
-    // TODO: Stop when the game ends
     let gameUpdateTimeout
     // TODO: Manage real authentication
     let connected = false
@@ -17,7 +17,7 @@
     const newGameUpdateTimeout = () => {
         gameUpdateTimeout = setTimeout(() => {
             if (id) {
-                // TODO: Error management
+                // TODO: Error + loading management
                 gameInformation(id)
                     .then((updatedGame) => {
                         game = updatedGame
@@ -50,6 +50,8 @@
     const sameNicknameAsConectedPlayer = (player) => player.nickname === nickname
     $: connectedPlayer = game && game.players.find(sameNicknameAsConectedPlayer)
     $: turnOfConnectedPlayer = game && game.players.indexOf(connectedPlayer) === game.current_player
+
+    $: currentPlayer = game && game.players[game.current_player]
 
     // TODO: Display loading + error
     let actionLoadingState
@@ -97,7 +99,8 @@
     $: scores = game && game.scores
 </script>
 
-<h2>Party: {id}</h2>
+<h2>Party {id}</h2>
+<!-- TODO: Loading + error -->
 {#if waitingForPlayers}
     {#if !connected}
     <JoinAGame
@@ -109,7 +112,9 @@
     {/if}
     <ul class="players">
         {#each players as player}
-        <li>{player.nickname} playing as {player.character}.</li>
+        <li class="player">
+            <Player {player}></Player>
+        </li>
         {/each}
     </ul>
 {:else if finished}
@@ -119,8 +124,24 @@
     value={board}
     active={turnOfConnectedPlayer}
     connectedPlayer={connectedPlayer}
+    {currentPlayer}
     on:put-warrior={(e) => putWarriorAction(e.detail)}
     on:put-palisades={(e) => putPalisadesAction(e.detail)}
     on:pass-turn={passTurnAction}
 ></Board>
 {/if}
+
+<style>
+h2 {
+	margin-block-start: 0;
+}
+
+.players {
+    margin-block-start: 1em;
+}
+
+.player {
+    display: flex;
+    align-items: center;
+}
+</style>
