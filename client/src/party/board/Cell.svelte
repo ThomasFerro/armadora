@@ -31,6 +31,10 @@
         background-color: var(--empty-land-background, #74c328e8);
     }
 
+    .cell--land:hover {
+        background-color: var(--empty-land-background-darken, #5c9c20e8);
+    }
+
     .cell--land:disabled, .cell--warrior, .cell--gold {
         background-color: var(--empty-land-disabled-background, #74c32891);
     }

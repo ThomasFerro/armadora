@@ -90,6 +90,7 @@
 <style>
     /* FIXME: Not convinced with this way of writing the grid but cannot find another working way... */
     .grid {
+        margin: 0.5em;
         --cell-width: 4fr;
         --palisade-width: 1fr;
         --grid-template:

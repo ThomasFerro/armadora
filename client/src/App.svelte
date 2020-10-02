@@ -7,6 +7,10 @@
 	const joinParty = (party) => {
 		currentParty = party
 	}
+
+	const leaveParty = () => {
+		currentParty = null
+	}
 </script>
 
 <main>
@@ -18,7 +22,7 @@
 	></PartySelection>
 	<Licences></Licences>
 	{:else}
-	<Party id={currentParty}></Party>
+	<Party id={currentParty} on:leave-party={leaveParty}></Party>
 	{/if}
 </main>
 
