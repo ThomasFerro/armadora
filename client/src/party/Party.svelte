@@ -20,17 +20,18 @@
     let connected = false
     let nickname = ''
 
+    // TODO: Error + loading management
+    const loadGameInformation = () => gameInformation(id)
+        .then((updatedGame) => {
+            game = updatedGame
+        })
+
     const newGameUpdateTimeout = () => {
         gameUpdateTimeout = setTimeout(() => {
             if (id) {
-                // TODO: Error + loading management
-                gameInformation(id)
-                    .then((updatedGame) => {
-                        game = updatedGame
-                    })
-                    .finally(() => {
-                        newGameUpdateTimeout()
-                    })
+                loadGameInformation().finally(() => {
+                    newGameUpdateTimeout()
+                })
             }
         }, 1000)
     }
@@ -62,10 +63,12 @@
 
     // TODO: Display loading + error
     let actionLoadingState
+    $: isBoardActive = turnOfConnectedPlayer && actionLoadingState !== LOADING
 
     const putWarriorAction = (warriorData) => {
         actionLoadingState = LOADING
         putWarrior(id)(indexOfConnectecPlayer)(warriorData)
+            .then(loadGameInformation)
             .then(() => {
                 actionLoadingState = LOADED
             })
@@ -77,6 +80,7 @@
     const putPalisadesAction = (palisadesData) => {
         actionLoadingState = LOADING
         putPalisades(id)(indexOfConnectecPlayer)(palisadesData)
+            .then(loadGameInformation)
             .then(() => {
                 actionLoadingState = LOADED
             })
@@ -88,6 +92,7 @@
     const passTurnAction = () => {
         actionLoadingState = LOADING
         passTurn(id)(indexOfConnectecPlayer)
+            .then(loadGameInformation)
             .then(() => {
                 actionLoadingState = LOADED
             })
@@ -129,7 +134,7 @@
 {:else}
 <Board
     value={board}
-    active={turnOfConnectedPlayer}
+    active={isBoardActive}
     connectedPlayer={connectedPlayer}
     {currentPlayer}
     on:put-warrior={(e) => putWarriorAction(e.detail)}
