@@ -31,7 +31,7 @@
         background-color: var(--empty-land-background, #74c328e8);
     }
 
-    .cell--land:hover {
+    .cell--land:hover, .cell--land:focus {
         background-color: var(--empty-land-background-darken, #5c9c20e8);
     }
 
