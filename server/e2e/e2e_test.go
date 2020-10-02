@@ -30,7 +30,12 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = helpers.PassTurns(partyId)
+	game, err := helpers.GetGameState(partyId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = helpers.PassTurns(partyId, game.CurrentPlayer)
 	if err != nil {
 		t.Fatal(err)
 	}

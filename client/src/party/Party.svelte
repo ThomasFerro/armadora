@@ -55,7 +55,8 @@
     // TODO: Pay tech debt after doing real authent
     const sameNicknameAsConectedPlayer = (player) => player.nickname === nickname
     $: connectedPlayer = game && game.players.find(sameNicknameAsConectedPlayer)
-    $: turnOfConnectedPlayer = game && game.players.indexOf(connectedPlayer) === game.current_player
+    $: indexOfConnectecPlayer = game && game.players.indexOf(connectedPlayer)
+    $: turnOfConnectedPlayer = game && indexOfConnectecPlayer === game.current_player
 
     $: currentPlayer = game && game.players[game.current_player]
 
@@ -64,7 +65,7 @@
 
     const putWarriorAction = (warriorData) => {
         actionLoadingState = LOADING
-        putWarrior(id)(warriorData)
+        putWarrior(id)(indexOfConnectecPlayer)(warriorData)
             .then(() => {
                 actionLoadingState = LOADED
             })
@@ -75,7 +76,7 @@
 
     const putPalisadesAction = (palisadesData) => {
         actionLoadingState = LOADING
-        putPalisades(id)(palisadesData)
+        putPalisades(id)(indexOfConnectecPlayer)(palisadesData)
             .then(() => {
                 actionLoadingState = LOADED
             })
@@ -86,7 +87,7 @@
 
     const passTurnAction = () => {
         actionLoadingState = LOADING
-        passTurn(id)
+        passTurn(id)(indexOfConnectecPlayer)
             .then(() => {
                 actionLoadingState = LOADED
             })

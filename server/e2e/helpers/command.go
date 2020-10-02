@@ -1,9 +1,11 @@
 package helpers
+
 import (
 	"bytes"
-	"fmt"
-	"net/http"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	"github.com/ThomasFerro/armadora/infra"
 )
@@ -20,8 +22,9 @@ func PostACommand(partyId string, command infra.Command, step string) error {
 		return err
 	}
 	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("%v - Wrong response code: %v", step, resp.StatusCode)
+		return fmt.Errorf("%v - Wrong response code: %v (error: %v)", step, resp.StatusCode, string(body))
 	}
 	return nil
 }
