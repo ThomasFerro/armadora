@@ -5,7 +5,6 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/character"
 	"github.com/ThomasFerro/armadora/game/command"
@@ -14,6 +13,7 @@ import (
 )
 
 type Command struct {
+	Player      int               `json:"player"`
 	CommandType string            `json:"command_type"`
 	Payload     map[string]string `json:"payload"`
 }
@@ -53,13 +53,11 @@ func startTheGame(history []event.Event, msg Command) ([]event.Event, error) {
 }
 
 func putWarrior(history []event.Event, msg Command) ([]event.Event, error) {
-	// TODO: Pay the tech debt when managing authent
-	currentGame := game.ReplayHistory(history)
 	warrior, _ := strconv.Atoi(msg.Payload["Warrior"])
 	x, _ := strconv.Atoi(msg.Payload["X"])
 	y, _ := strconv.Atoi(msg.Payload["Y"])
 	return command.PutWarrior(history, command.PutWarriorPayload{
-		Player:  currentGame.CurrentPlayer(),
+		Player:  msg.Player,
 		Warrior: warrior,
 		Position: board.Position{
 			X: x,
@@ -69,24 +67,20 @@ func putWarrior(history []event.Event, msg Command) ([]event.Event, error) {
 }
 
 func putPalisades(history []event.Event, msg Command) ([]event.Event, error) {
-	// TODO: Pay the tech debt when managing authent
-	currentGame := game.ReplayHistory(history)
 	var palisades []palisade.Palisade
 	err := json.Unmarshal([]byte(msg.Payload["Palisades"]), &palisades)
 	if err != nil {
 		return nil, err
 	}
 	return command.PutPalisades(history, command.PutPalisadesPayload{
-		Player:    currentGame.CurrentPlayer(),
+		Player:    msg.Player,
 		Palisades: palisades,
 	})
 }
 
 func passTurn(history []event.Event, msg Command) ([]event.Event, error) {
-	// TODO: Pay the tech debt when managing authent
-	currentGame := game.ReplayHistory(history)
 	return command.PassTurn(history, command.PassTurnPayload{
-		Player: currentGame.CurrentPlayer(),
+		Player: msg.Player,
 	})
 }
 

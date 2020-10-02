@@ -10,6 +10,7 @@ import (
 
 type turnInformation struct {
 	Action  string
+	Player  int
 	Payload map[string]string
 }
 
@@ -82,6 +83,7 @@ func PlaySomeTurns(partyId string) error {
 	for _, warriorToPut := range warriorsPlacedByPlayers {
 		turns = append(turns, turnInformation{
 			Action: "PutWarrior",
+			Player: warriorToPut.Player,
 			Payload: map[string]string{
 				"Warrior": fmt.Sprint(warriorToPut.Strength),
 				"X":       fmt.Sprint(warriorToPut.X),
@@ -92,12 +94,14 @@ func PlaySomeTurns(partyId string) error {
 
 	turns = append(turns, turnInformation{
 		Action: "PutPalisades",
+		Player: 0,
 		Payload: map[string]string{
 			"Palisades": "[{\"x1\":2,\"y1\":0,\"x2\":3,\"y2\":0},{\"x1\":2,\"y1\":1,\"x2\":3,\"y2\":1}]",
 		},
 	},
 		turnInformation{
 			Action: "PutPalisades",
+			Player: 1,
 			Payload: map[string]string{
 				"Palisades": "[{\"x1\":1,\"y1\":1,\"x2\":2,\"y2\":1}]",
 			},
@@ -135,6 +139,7 @@ func PlaySomeTurns(partyId string) error {
 func playTurn(partyId string, turn turnInformation) error {
 	playTurnCommand := infra.Command{
 		CommandType: turn.Action,
+		Player:      turn.Player,
 		Payload:     turn.Payload,
 	}
 

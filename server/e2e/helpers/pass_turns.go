@@ -6,9 +6,10 @@ import (
 	"github.com/ThomasFerro/armadora/infra"
 )
 
-func PassTurns(partyId string) error {
+func PassTurns(partyId string, currentPlayer int) error {
 	for i := 0; i < 4; i++ {
-		err := passTurn(partyId)
+		currentPlayerToPass := (currentPlayer + i) % 4
+		err := passTurn(partyId, currentPlayerToPass)
 		if err != nil {
 			return err
 		}
@@ -16,9 +17,10 @@ func PassTurns(partyId string) error {
 	return checkGameStateAfterPassingTurns(partyId)
 }
 
-func passTurn(partyId string) error {
+func passTurn(partyId string, player int) error {
 	passTurnCommand := infra.Command{
 		CommandType: "PassTurn",
+		Player:      player,
 	}
 
 	return PostACommand(partyId, passTurnCommand, "Pass turn")

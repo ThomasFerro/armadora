@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/ThomasFerro/armadora/game"
@@ -20,7 +21,7 @@ func ReceiveCommand(partyId PartyId, command Command) error {
 	history, err := eventStore.GetHistory(string(partyId))
 
 	if err != nil {
-		return err
+		return fmt.Errorf("An error has occurred while retrieving the history before managing the command %v, %w", command, err)
 	}
 
 	newEvents, err := ManageCommand(
@@ -29,7 +30,7 @@ func ReceiveCommand(partyId PartyId, command Command) error {
 	)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("An error has occurred while managing the command %v, %w", command, err)
 	}
 
 	eventStore.AppendToHistory(string(partyId), dto.ToEventsDto(newEvents))

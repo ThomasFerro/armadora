@@ -93,6 +93,8 @@ func handleGetPartyState(partyId infra.PartyId, w http.ResponseWriter, r *http.R
 func handlePostPartyCommand(partyId infra.PartyId, w http.ResponseWriter, r *http.Request) {
 	log.Printf("Command received for party %v: %v\n", partyId, r.Body)
 	decoder := json.NewDecoder(r.Body)
+	// TODO: Pay the tech debt when managing authent
+	// Do not trust the user with the provided player_id, but retrieve it based on the authentication token
 	var command infra.Command
 	err := decoder.Decode(&command)
 	if err != nil {

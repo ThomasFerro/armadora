@@ -34,10 +34,11 @@ export const startGame = (id) => fetchWithDefaultCheck(partyUrl(id), {
     })
 });
 
-export const putWarrior = (id) => ({x, y, strength}) => fetchWithDefaultCheck(partyUrl(id), {
+export const putWarrior = (id) => (player) => ({x, y, strength}) => fetchWithDefaultCheck(partyUrl(id), {
     method: 'POST',
     body: JSON.stringify({
         "command_type": "PutWarrior",
+        "player": player,
         "payload": {
             "Warrior": strength,
             "X": x.toString(),
@@ -46,19 +47,21 @@ export const putWarrior = (id) => ({x, y, strength}) => fetchWithDefaultCheck(pa
     })
 });
 
-export const putPalisades = (id) => ({ palisades }) => fetchWithDefaultCheck(partyUrl(id), {
+export const putPalisades = (id) => (player) => ({ palisades }) => fetchWithDefaultCheck(partyUrl(id), {
     method: 'POST',
     body: JSON.stringify({
         "command_type": "PutPalisades",
+        "player": player,
         "payload": {
             "Palisades": JSON.stringify(palisades)
         },
     })
 });
 
-export const passTurn = (id) => fetchWithDefaultCheck(partyUrl(id), {
+export const passTurn = (id) => (player) => fetchWithDefaultCheck(partyUrl(id), {
     method: 'POST',
     body: JSON.stringify({
         "command_type": "PassTurn",
+        "player": player,
     })
 });
