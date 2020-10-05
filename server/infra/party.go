@@ -13,19 +13,21 @@ import (
 
 var eventStore = storage.NewEventStore()
 
-type PartyId string
+// PartyID A party identifier
+type PartyID string
 
-func ReceiveCommand(partyId PartyId, command Command) error {
-	log.Printf("Receiving the following command for party %v: %v\n", partyId, command)
+// ReceiveCommand Manage a received command
+func ReceiveCommand(partyID PartyID, command Command) error {
+	log.Printf("Receiving the following command for party %v: %v\n", partyID, command)
 
-	history, err := eventStore.GetHistory(string(partyId))
+	history, err := eventStore.GetHistory(string(partyID))
 
 	if err != nil {
 		return fmt.Errorf("An error has occurred while retrieving the history before managing the command %v, %w", command, err)
 	}
 
 	newEvents, err := ManageCommand(
-		dto.FromEventsDto(history),
+		dto.FromEventsDto(history.Events),
 		command,
 	)
 
@@ -33,46 +35,53 @@ func ReceiveCommand(partyId PartyId, command Command) error {
 		return fmt.Errorf("An error has occurred while managing the command %v, %w", command, err)
 	}
 
-	eventStore.AppendToHistory(string(partyId), dto.ToEventsDto(newEvents))
+	eventStore.AppendToHistory(string(partyID), history.SequenceNumber, dto.ToEventsDto(newEvents))
 
 	return nil
 }
 
-func CreateParty() (PartyId, error) {
-	partyId := PartyId(uuid.New().String())
+// CreateParty Create a new party
+func CreateParty() (PartyID, error) {
+	partyID := PartyID(uuid.New().String())
 	history, err := ManageCommand([]event.Event{}, Command{
 		CommandType: "CreateGame",
 	})
 	if err != nil {
 		return "", err
 	}
-	err = eventStore.AppendToHistory(string(partyId), dto.ToEventsDto(history))
+	err = eventStore.AppendToHistory(
+		string(partyID),
+		"",
+		dto.ToEventsDto(history),
+	)
 	if err != nil {
 		return "", err
 	}
-	return partyId, nil
+	return partyID, nil
 }
 
-func GetParty(partyId PartyId) (dto.GameDto, error) {
-	history, err := eventStore.GetHistory(string(partyId))
+// GetParty Get the current state of a party
+func GetParty(partyID PartyID) (dto.GameDto, error) {
+	history, err := eventStore.GetHistory(string(partyID))
 	if err != nil {
 		return dto.GameDto{}, err
 	}
 	return dto.ToGameDto(
 		game.ReplayHistory(
-			dto.FromEventsDto(history),
+			dto.FromEventsDto(history.Events),
 		),
 	), nil
 }
 
-func GetParties() ([]PartyId, error) {
+// GetParties Retrieve every available parties
+func GetParties() ([]PartyID, error) {
 	parties, err := eventStore.GetParties()
 	if err != nil {
 		return nil, err
 	}
-	returnedParties := []PartyId{}
+	returnedParties := []PartyID{}
 	for _, party := range parties {
-		returnedParties = append(returnedParties, PartyId(party))
+		returnedParties = append(returnedParties, PartyID(party))
 	}
 	return returnedParties, nil
 }

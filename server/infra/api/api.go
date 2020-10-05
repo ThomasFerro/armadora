@@ -59,7 +59,7 @@ func handleGameCreation(w http.ResponseWriter, r *http.Request) {
 func handlePartyRequest(w http.ResponseWriter, r *http.Request) {
 	manageCors(&w)
 	urlParts := strings.Split(r.URL.String(), "/")
-	partyId := infra.PartyId(urlParts[len(urlParts)-1])
+	partyId := infra.PartyID(urlParts[len(urlParts)-1])
 
 	switch r.Method {
 	case "GET":
@@ -72,7 +72,7 @@ func handlePartyRequest(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleGetPartyState(partyId infra.PartyId, w http.ResponseWriter, r *http.Request) {
+func handleGetPartyState(partyId infra.PartyID, w http.ResponseWriter, r *http.Request) {
 	party, err := infra.GetParty(partyId)
 	if err != nil {
 		log.Printf("Cannot get the party %v: %v\n", partyId, err)
@@ -90,7 +90,7 @@ func handleGetPartyState(partyId infra.PartyId, w http.ResponseWriter, r *http.R
 	w.Write(partyJson)
 }
 
-func handlePostPartyCommand(partyId infra.PartyId, w http.ResponseWriter, r *http.Request) {
+func handlePostPartyCommand(partyId infra.PartyID, w http.ResponseWriter, r *http.Request) {
 	log.Printf("Command received for party %v: %v\n", partyId, r.Body)
 	decoder := json.NewDecoder(r.Body)
 	// TODO: Pay the tech debt when managing authent
