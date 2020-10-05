@@ -124,6 +124,23 @@ func TestComputeScoresWithTies(t *testing.T) {
 	}
 }
 
+func TestComputeScoresWithTiesOnASingleTerritory(t *testing.T) {
+	territories := []board.Territory{
+		board.NewTerritory(7, []int{0, 1}),
+	}
+
+	scores := score.ComputeScores(territories)
+
+	if winnerScore, hasWinner := scores[1]; !hasWinner || winnerScore.Player() != 0 {
+		t.Errorf("Invalid winning player, got this instead: %v", winnerScore)
+		return
+	}
+
+	if secondPlayer, hasSecondPlayer := scores[2]; !hasSecondPlayer || secondPlayer.Player() != 1 {
+		t.Errorf("Invalid second player, got this instead: %v", secondPlayer)
+	}
+}
+
 func TestComputeScoresWithComplexTies(t *testing.T) {
 	territories := []board.Territory{
 		board.NewTerritory(7, []int{0}),

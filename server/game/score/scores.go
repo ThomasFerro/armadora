@@ -77,10 +77,10 @@ func sortTiedPlayers(firstPlayerStacks, secondPlayerStacks []int) bool {
 	sort.Sort(sort.Reverse(sort.IntSlice(secondPlayerStacks)))
 
 	for {
-		if len(sortedFirstPlayerStacks) < stackIndex {
+		if len(sortedFirstPlayerStacks) <= stackIndex {
 			return false
 		}
-		if len(sortedSecondPlayerStacks) < stackIndex {
+		if len(sortedSecondPlayerStacks) <= stackIndex {
 			return true
 		}
 		if sortedFirstPlayerStacks[stackIndex] != sortedSecondPlayerStacks[stackIndex] {
