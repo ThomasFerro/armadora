@@ -8,31 +8,43 @@ import (
 	"github.com/ThomasFerro/armadora/game/warrior"
 )
 
+// EventDto Any event
 type EventDto interface{}
 
-type GameCreatedDto struct{}
+// GameCreatedDto A game has been created
+type GameCreatedDto struct {
+}
 
+// PlayerJoinedDto A player joined the game
 type PlayerJoinedDto struct {
 	Nickname  string `json:"nickname" bson:"nickname"`
 	Character int    `json:"character" bson:"character"`
 }
 
-type GameStartedDto struct{}
+// GameStartedDto Game started
+type GameStartedDto struct {
+}
 
+// GoldStacksDistributedDto Gold stacks has been distributed
 type GoldStacksDistributedDto struct {
 	GoldStacks []int `json:"gold_stacks" bson:"gold_stacks"`
 }
 
+// WarriorsDistributedDto Warriors  has been distributed
 type WarriorsDistributedDto struct {
 	WarriorsDistributed WarriorsDto `json:"warriors" bson:"warriors"`
 }
 
+// PalisadesDistributedDto Palisades has been distributed
 type PalisadesDistributedDto struct {
 	Count int `json:"count" bson:"count"`
 }
 
-type NextPlayerDto struct{}
+// NextPlayerDto Next player turn
+type NextPlayerDto struct {
+}
 
+// PalisadePutDto A palisade has been put
 type PalisadePutDto struct {
 	Player int `json:"player" bson:"player"`
 	X1     int `json:"x1" bson:"x1"`
@@ -41,6 +53,7 @@ type PalisadePutDto struct {
 	Y2     int `json:"y2" bson:"y2"`
 }
 
+// WarriorPutDto A warrior has been put
 type WarriorPutDto struct {
 	Player   int `json:"player" bson:"player"`
 	Strength int `json:"strength" bson:"strength"`
@@ -48,14 +61,17 @@ type WarriorPutDto struct {
 	Y        int `json:"y" bson:"y"`
 }
 
+// TurnPassedDto A player passed his turn
 type TurnPassedDto struct {
 	Player int `json:"player" bson:"player"`
 }
 
+// GameFinishedDto The game is finished
 type GameFinishedDto struct {
 	Scores ScoresDto `json:"scores" bson:"scores"`
 }
 
+// ToEventsDto Map events to DTO objects
 func ToEventsDto(events []event.Event) []EventDto {
 	mappedEvents := []EventDto{}
 	for _, nextEvent := range events {
@@ -66,6 +82,7 @@ func ToEventsDto(events []event.Event) []EventDto {
 	return mappedEvents
 }
 
+// ToEventDto Map an event to a DTO
 func ToEventDto(nextEvent event.Event) EventDto {
 	switch typedEvent := nextEvent.(type) {
 	case event.GameCreated:
@@ -118,6 +135,7 @@ func ToEventDto(nextEvent event.Event) EventDto {
 	return nil
 }
 
+// FromEventsDto Map DTO objects into domain objects
 func FromEventsDto(eventsDto []EventDto) []event.Event {
 	mappedEvents := []event.Event{}
 	for _, nextEvent := range eventsDto {
@@ -128,6 +146,7 @@ func FromEventsDto(eventsDto []EventDto) []event.Event {
 	return mappedEvents
 }
 
+// FromEventDto Map DTO object into domain object
 func FromEventDto(eventDto EventDto) event.Event {
 	switch typedEvent := eventDto.(type) {
 	case GameCreatedDto:
