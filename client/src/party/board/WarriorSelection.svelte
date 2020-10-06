@@ -1,9 +1,8 @@
 <script>
-    import { createEventDispatcher, onMount } from 'svelte'
+    import { createEventDispatcher } from 'svelte'
 
     export let warriors = {}
-
-    let select
+    export let selectedWarrior
 
     const dispatch = createEventDispatcher()
 
@@ -13,26 +12,67 @@
         })
     }
 
-    onMount(() => {
-        warriorSelectionChanged(select.value)
-    })
+    $: warriorSelectedClass = (strength) => selectedWarrior === strength ? 'warrior--selected': ''
 </script>
 
-<select bind:this={select} class="warrior-selection" on:change={(e) => warriorSelectionChanged(e.target.value)}>
-    <option disabled>Select a warrior</option>
-    {#if warriors.one_point}
-    <option value="1">1 ({warriors.one_point} left)</option>
-    {/if}
-    {#if warriors.two_points}
-    <option value="2">2 ({warriors.two_points} left)</option>
-    {/if}
-    {#if warriors.three_points}
-    <option value="3">3 ({warriors.three_points} left)</option>
-    {/if}
-    {#if warriors.four_points}
-    <option value="4">4 ({warriors.four_points} left)</option>
-    {/if}
-    {#if warriors.five_points}
-    <option value="5">5 ({warriors.five_points} left)</option>
-    {/if}
-</select>
+<article class="warrior-selection">
+    <section class="warrior-selection__strength warrior-selection__strength--one-warriors">
+        {#each Array(warriors.one_point || 0) as _}
+        <button
+            class={`warrior ${warriorSelectedClass(1)} player-action`}
+            on:click={() => warriorSelectionChanged(1)}
+        >1</button>
+        {/each}
+    </section>
+    <section class="warrior-selection__strength warrior-selection__strength--two-warriors">
+        {#each Array(warriors.two_points || 0) as _}
+        <button
+        class={`warrior ${warriorSelectedClass(2)} player-action`}
+            on:click={() => warriorSelectionChanged(2)}
+        >2</button>
+        {/each}
+    </section>
+    <section class="warrior-selection__strength warrior-selection__strength--three-warriors">
+        {#each Array(warriors.three_points || 0) as _}
+        <button
+        class={`warrior ${warriorSelectedClass(3)} player-action`}
+            on:click={() => warriorSelectionChanged(3)}
+        >3</button>
+        {/each}
+    </section>
+    <section class="warrior-selection__strength warrior-selection__strength--four-warriors">
+        {#each Array(warriors.four_points || 0) as _}
+        <button
+        class={`warrior ${warriorSelectedClass(4)} player-action`}
+            on:click={() => warriorSelectionChanged(4)}
+        >4</button>
+        {/each}
+    </section>
+    <section class="warrior-selection__strength warrior-selection__strength--five-warriors">
+        {#each Array(warriors.five_points || 0) as _}
+        <button
+        class={`warrior ${warriorSelectedClass(5)} player-action`}
+            on:click={() => warriorSelectionChanged(5)}
+        >5</button>
+        {/each}
+    </section>
+</article>
+
+<style>
+.warrior--selected {
+    background-color: var(--warrior-selected-background, #dab44a);
+}
+
+.warrior-selection {
+    display: flex;
+    --warrior-button-margin: 3em;
+}
+
+.warrior-selection__strength {
+    margin-inline-end: var(--warrior-button-margin);
+}
+
+.warrior {
+    margin-inline-end: calc(var(--warrior-button-margin) * -1);
+}
+</style>

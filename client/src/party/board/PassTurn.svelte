@@ -1,3 +1,4 @@
+<!-- TODO: Extract the validation process -->
 <script>
     import { createEventDispatcher } from 'svelte'
     let validationProcess = false
@@ -10,8 +11,8 @@
 </script>
 
 {#if !validationProcess}
-<button on:click={passTurn}>Pass your turn</button>
+<button class="player-action" on:click={passTurn}>Pass your turn</button>
 {:else}
-<button on:click={validate}>Validate (You will not be able to play again for the rest of the game)</button>
-<button on:click={cancel}>Cancel</button>
+<button class="player-action" on:click={validate}>Validate (You will not be able to play again for the rest of the game)</button>
+<button class="player-action" on:click={cancel}>Cancel</button>
 {/if}

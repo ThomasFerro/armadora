@@ -10,9 +10,9 @@
 <button
     disabled={disabled}
     on:click
-    class={`palisade ${area}`}
+    class={`palisade ${area} player-action`}
     style={`grid-area: ${area}`}
-    class:present={present}
+    class:palisade--present={present}
     class:selected={selected}
 ></button>
 
@@ -22,9 +22,10 @@
     padding: 0;
     height: 100%;
     width: 100%;
+    border-radius: 5px;
 }
-.present {
-    background-color: var(--palisade-present, saddlebrown);
+.palisade--present {
+    background-color: var(--palisade-color, saddlebrown);
 }
 .selected {
     background-color: gray;

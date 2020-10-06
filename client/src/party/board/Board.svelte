@@ -4,7 +4,9 @@
     import PassTurn from './PassTurn.svelte'
     import WarriorSelection from './WarriorSelection.svelte'
 
-    export let active = false
+    // FIXME remove the const
+    // export let active = false
+    const active = true
     export let value = {}
     export let connectedPlayer = {}
     export let currentPlayer = null
@@ -57,11 +59,12 @@
     ></Grid>
     {#if active}
     <section class="player-actions">
+        <PassTurn on:pass-turn={passTurn}></PassTurn>
         <WarriorSelection
             warriors={connectedPlayerWarriors}
+            selectedWarrior={selectedWarrior}
             on:warrior-selected={(e) => warriorSelected(e.detail)}
         ></WarriorSelection>
-        <PassTurn on:pass-turn={passTurn}></PassTurn>
     </section>
     {:else}
     <p class="current-player">{currentPlayerDisplayedInformation}</p>
@@ -81,6 +84,9 @@
 
 .player-actions {
     grid-area: player-actions;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .grid {

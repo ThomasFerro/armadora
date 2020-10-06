@@ -13,6 +13,8 @@
 	--lighten-info-color: #b2ebf2;
 
 	--text-color: var(--black);
+
+	--palisade-color: #FD7E13;
 }
 
 html, body {
@@ -92,6 +94,16 @@ details {
 .message.info-message {
 	border-color: var(--info-color);
 	background-color: var(--lighten-info-color);
+}
+
+.player-action {
+	background-color: var(--pass-turn-button-background, #F7EED6);
+	border-radius: var(--pass-turn-button-border-radius, 0);
+	border: var(--pass-turn-button-border, 1px solid var(--black));
+}
+
+.player-action:hover:enabled, .player-action:focus:enabled {
+	background-color: var(--pass-turn-button-focus-background, #e7ce88);
 }
 
 /* 
