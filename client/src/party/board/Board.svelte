@@ -1,12 +1,11 @@
 <script>
     import { createEventDispatcher } from 'svelte'
     import Grid from './Grid.svelte'
+    import PalisadeSelection from './PalisadeSelection.svelte'
     import PassTurn from './PassTurn.svelte'
     import WarriorSelection from './WarriorSelection.svelte'
 
-    // FIXME remove the const
-    // export let active = false
-    const active = true
+    export let active = false
     export let value = {}
     export let connectedPlayer = {}
     export let currentPlayer = null
@@ -20,7 +19,6 @@
     const dispatch = createEventDispatcher()
 
     $: cells = value && value.cells || []
-    $: palisades = value && value.palisades || []
 
     const cellSelected = (details) => {
         if (!active) {
@@ -38,7 +36,24 @@
         selectedWarrior = strength
     }
 
-    const borderSelected = (palisades) => {
+    $: palisades = value && value.palisades || []
+    $: palisadesLeft = value && value.palisades_left || 0
+    let palisadeSelection = []
+
+    const borderSelected = (newPalisade) => {
+        if (palisadeSelection.length < 2) {
+            palisadeSelection = [
+                ...palisadeSelection,
+                newPalisade,
+            ]
+        }
+    }
+
+    const clearPalisades = () => {
+        palisadeSelection = []
+    }
+    
+    const putPalisades = (palisades) => {
         dispatch('put-palisades', {
             palisades,
         })
@@ -54,6 +69,7 @@
         {active}
         {cells}
         {palisades}
+        selectedPalisades={palisadeSelection}
         on:cell-selected={(e) => cellSelected(e.detail)}
         on:border-selected={(e) => borderSelected(e.detail)}
     ></Grid>
@@ -65,6 +81,12 @@
             selectedWarrior={selectedWarrior}
             on:warrior-selected={(e) => warriorSelected(e.detail)}
         ></WarriorSelection>
+        <PalisadeSelection
+            {palisadesLeft}
+            {palisadeSelection}
+            on:put-palisades={(e) => putPalisades(e.detail)}
+            on:clear-palisades-selection={() => clearPalisades()}
+        ></PalisadeSelection>
     </section>
     {:else}
     <p class="current-player">{currentPlayerDisplayedInformation}</p>
@@ -87,6 +109,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 .grid {
