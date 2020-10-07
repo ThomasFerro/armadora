@@ -28,6 +28,7 @@
             ...details,
             strength: selectedWarrior,
         })
+        clearPalisades()
     }
 
     $: connectedPlayerWarriors = connectedPlayer && connectedPlayer.warriors
