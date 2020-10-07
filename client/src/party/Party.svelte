@@ -20,11 +20,18 @@
     let connected = false
     let nickname = ''
 
-    // TODO: Error + loading management
-    const loadGameInformation = () => gameInformation(id)
-        .then((updatedGame) => {
-            game = updatedGame
-        })
+    let partyError = ''
+
+    const loadGameInformation = () => {
+        return gameInformation(id)
+            .then((updatedGame) => {
+                partyError = ''
+                game = updatedGame
+            })
+            .catch(() => {
+                partyError = 'Cannot load the game\'s status'
+            })
+    }
 
     const newGameUpdateTimeout = () => {
         gameUpdateTimeout = setTimeout(() => {
@@ -41,16 +48,33 @@
     $: waitingForPlayers = game && game.state && game.state === 'WaitingForPlayers'
 
     const connectToTheGame = (userData) => {
+        partyError = ''
+        // TODO: Pay tech debt after doing real authent
         nickname = userData.username
-        // TODO: Error management
         connectToGame(id)(userData)
             .then(() => {
                 connected = true
             })
+            .catch(() => {
+                partyError = 'Unable to connect to the game'
+            })
     }
 
-    // TODO: Error management
-    const startTheGame = () => startGame(id)
+    let startTheGameStatus = ''
+    $: gameIsStarting = startTheGameStatus === LOADING
+    $: startTheGameLabel = gameIsStarting ? 'Starting the new game...' : 'Start the game'
+    const startTheGame = () => {
+        partyError = ''
+        startTheGameStatus = LOADING
+        startGame(id)
+            .then(() => {
+                startTheGameStatus = LOADED
+            })
+            .catch(() => {
+                partyError = 'Unable to start the game'
+                startTheGameStatus = ERROR
+            })
+    }
 
     $: board = game && game.board
     // TODO: Pay tech debt after doing real authent
@@ -61,8 +85,9 @@
 
     $: currentPlayer = game && game.players[game.current_player]
 
-    // TODO: Display loading + error
     let actionLoadingState
+    $: actionPending = actionLoadingState === LOADING
+    $: actionError = actionLoadingState === ERROR
     $: isBoardActive = turnOfConnectedPlayer && actionLoadingState !== LOADING
 
     const putWarriorAction = (warriorData) => {
@@ -112,7 +137,14 @@
 </script>
 
 <h2 class="party-title">Party {id} <button on:click={leaveParty}>⍇</button></h2>
-<!-- TODO: Loading + error -->
+{#if partyError}
+<p class="message error-message">{partyError}</p>
+{/if}
+{#if actionPending}
+<p class="message info-message">Sending your action...</p>
+{:else if actionError}
+<p class="message error-message">An error has occurred while sending your action</p>
+{/if}
 {#if waitingForPlayers}
     {#if !connected}
     <JoinAGame
@@ -120,7 +152,7 @@
         on:connect={(e) => connectToTheGame(e.detail)}
     ></JoinAGame>
     {:else}
-    <button on:click={startTheGame}>Start the game</button>
+    <button on:click={startTheGame} disabled={gameIsStarting}>{startTheGameLabel}</button>
     {/if}
     <ul class="players">
         {#each players as player}
