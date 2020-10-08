@@ -3,6 +3,7 @@
 
     export let warriors = {}
     export let selectedWarrior
+    export let warriorToPut
 
     const dispatch = createEventDispatcher()
 
@@ -44,9 +45,24 @@
     }
 
     onMount(selectWeakestWarrior)
+
+    const validateWarriorToPut = () => {
+        dispatch('put-warrior', {
+            warrior: warriorToPut,
+        })
+    }
+
+    const cancelWarriorToPut = () => {
+        dispatch('cancel-warrior-to-put')
+    }
 </script>
 
 <article class="warrior-selection">
+    {#if warriorToPut}
+    Do you really want to put a warrior of strength { selectedWarrior } ?
+    <button on:click={validateWarriorToPut}>Validate</button>
+    <button on:click={cancelWarriorToPut}>Cancel</button>
+    {:else}
     <section class="warrior-selection__strength warrior-selection__strength--one-warriors">
         {#each Array(warriors.one_point || 0) as _}
         <button
@@ -87,6 +103,7 @@
         >5</button>
         {/each}
     </section>
+    {/if}
 </article>
 
 <style>
@@ -96,6 +113,7 @@
 
 .warrior-selection {
     display: flex;
+    align-items: center;
     --warrior-button-margin: 3em;
 }
 

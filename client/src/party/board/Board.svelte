@@ -20,15 +20,25 @@
 
     $: cells = value && value.cells || []
 
+    let warriorToPut
     const cellSelected = (details) => {
+        warriorToPut = details
+    }
+
+    const putWarrior = (detail) => {
         if (!active) {
             return
         }
         dispatch('put-warrior', {
-            ...details,
+            ...detail.warrior,
             strength: selectedWarrior,
         })
         clearPalisades()
+        clearWarriorToPut()
+    }
+
+    const clearWarriorToPut = () => {
+        warriorToPut = undefined
     }
 
     $: connectedPlayerWarriors = connectedPlayer && connectedPlayer.warriors
@@ -58,6 +68,8 @@
         dispatch('put-palisades', {
             palisades,
         })
+        clearPalisades()
+        clearWarriorToPut()
     }
 
     const passTurn = () => {
@@ -80,7 +92,10 @@
         <WarriorSelection
             warriors={connectedPlayerWarriors}
             selectedWarrior={selectedWarrior}
+            warriorToPut={warriorToPut}
             on:warrior-selected={(e) => warriorSelected(e.detail)}
+            on:put-warrior={(e) => putWarrior(e.detail)}
+            on:cancel-warrior-to-put={() => clearWarriorToPut()}
         ></WarriorSelection>
         <PalisadeSelection
             {palisadesLeft}
