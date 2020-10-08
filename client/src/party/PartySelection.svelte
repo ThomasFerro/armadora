@@ -41,12 +41,12 @@
 
 <button on:click={createParty}>Create party</button>
 {#if creationError}
-<span class="message error-message">An error has occurred while creating the party</span>
+<p class="message error-message">An error has occurred while creating the party</p>
 {/if}
 <details open class="parties-listing">
   <summary>Join a party</summary>
   {#if partiesLoadingState === LOADING}
-  <span class="message info-message">Loading parties</span>
+  <p class="message info-message">Loading parties</p>
   {:else if partiesLoadingState === LOADED}
   <ul>
     {#each parties as party}
@@ -56,7 +56,7 @@
     {/each}
   </ul>
   {:else if partiesLoadingState === ERROR}
-  <span class="message error-message">An error has occurred while loading the parties</span>
+  <p class="message error-message">An error has occurred while loading the parties</p>
   <button class="reload" on:click={loadParties}>Reload</button>
   {/if}
 </details>

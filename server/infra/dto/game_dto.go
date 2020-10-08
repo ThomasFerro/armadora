@@ -45,8 +45,9 @@ type PalisadeDto struct {
 }
 
 type BoardDto struct {
-	Cells     [][]CellDto   `json:"cells"`
-	Palisades []PalisadeDto `json:"palisades"`
+	Cells         [][]CellDto   `json:"cells"`
+	Palisades     []PalisadeDto `json:"palisades"`
+	PalisadesLeft int           `json:"palisades_left"`
 }
 
 type ScoresDto map[int]ScoreDto
@@ -128,8 +129,9 @@ func toBoardDto(boardToMap board.Board, players []PlayerDto) BoardDto {
 	}
 
 	boardDto := BoardDto{
-		Cells:     toCellsDto(boardToMap, players),
-		Palisades: toPalisadesDto(boardToMap.Palisades()),
+		Cells:         toCellsDto(boardToMap, players),
+		Palisades:     toPalisadesDto(boardToMap.Palisades()),
+		PalisadesLeft: boardToMap.PalisadesLeft(),
 	}
 
 	return boardDto

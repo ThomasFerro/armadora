@@ -4,6 +4,7 @@
     import Palisade from './Palisade.svelte'
     export let cells = []
     export let palisades = []
+    export let selectedPalisades = []
     export let active = false
 
     const palisadeInSelection = (palisadeSelection, { x1, y1, x2, y2 }) => {
@@ -26,30 +27,12 @@
         })
     }
 
-    let selectedPalisades = []
-
-    $: palisadeSelectionOngoing = selectedPalisades.length > 0
-
     $: palisadeSelected = (palisadeToCheck) => {
         return palisadeInSelection(selectedPalisades, palisadeToCheck)
     }
 
     const borderSelected = (newPalisade) => {
-        if (selectedPalisades.length < 2) {
-            selectedPalisades = [
-                ...selectedPalisades,
-                newPalisade,
-            ]
-        }
-    }
-
-    const validatePalisades = () => {
-        dispatch('border-selected', selectedPalisades)
-        clearPalisades()
-    }
-
-    const clearPalisades = () => {
-        selectedPalisades = []
+        dispatch('border-selected', newPalisade)
     }
 </script>
 
@@ -82,10 +65,6 @@
         {/if}
     {/each}
 </article>
-{#if palisadeSelectionOngoing}
-<button on:click={validatePalisades}>Validate palisades</button>
-<button on:click={clearPalisades}>Clear palisades</button>
-{/if}
 
 <style>
     /* FIXME: Not convinced with this way of writing the grid but cannot find another working way... */
