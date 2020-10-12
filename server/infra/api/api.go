@@ -18,7 +18,6 @@ func StartApi() {
 
 	http.HandleFunc("/parties", handleGetParties)
 
-	// TODO: Manage get on specific party
 	http.HandleFunc("/parties/", handlePartyRequest)
 
 	allowedOrigin = config.GetConfiguration("ALLOWED_ORIGIN")

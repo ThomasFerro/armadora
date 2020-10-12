@@ -7,7 +7,8 @@
     import { LOADING, LOADED, ERROR } from '../loading';
     import { connectToGame, gameInformation, startGame, putWarrior, putPalisades, passTurn } from './party.service.js';
 
-    export let id = undefined;
+    export let id
+    export let nickname
 
     const dispatch = createEventDispatcher()
     const leaveParty = () => {
@@ -16,9 +17,6 @@
 
     let game
     let gameUpdateTimeout
-    // TODO: Manage real authentication
-    let connected = false
-    let nickname = ''
 
     let partyError = ''
 
@@ -47,14 +45,12 @@
     $: players = game && game.players
     $: waitingForPlayers = game && game.state && game.state === 'WaitingForPlayers'
 
-    const connectToTheGame = (userData) => {
+    const connectToTheGame = ({ character }) => {
         partyError = ''
-        // TODO: Pay tech debt after doing real authent
-        nickname = userData.username
-        connectToGame(id)(userData)
-            .then(() => {
-                connected = true
-            })
+        connectToGame(id)({
+            character,
+            username: nickname
+        })
             .catch(() => {
                 partyError = 'Unable to connect to the game'
             })
@@ -146,7 +142,7 @@
 <p class="message error-message">An error has occurred while sending your action</p>
 {/if}
 {#if waitingForPlayers}
-    {#if !connected}
+    {#if !connectedPlayer}
     <JoinAGame
         availableCharacters={availableCharacters}
         on:connect={(e) => connectToTheGame(e.detail)}
