@@ -71,7 +71,7 @@ summary {
 	margin-block-end: 0.5em;
 }
 
-details {
+details, form {
 	background-color: var(--lighten-main-color);
 
 	padding: 1em;
@@ -110,6 +110,4 @@ details {
 TODO:
 - Choose fonts
 - Manage fonts size
-- Board
-- Credits & copyrights
 */

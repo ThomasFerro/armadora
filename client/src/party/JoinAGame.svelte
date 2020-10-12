@@ -3,9 +3,8 @@
     const dispatch = createEventDispatcher()
     export let availableCharacters = []
 
-    let username;
     let character;
-    $: canConnect = username && character
+    $: canConnect = !!character
 
     $: selectableCharacters = availableCharacters.sort()
     $: {
@@ -19,17 +18,12 @@
             return
         }
         dispatch('connect', {
-            username,
             character,
         })
     }
 </script>
 
 <form class="join-a-game" on:submit|preventDefault={connectToTheGame}>
-    <label>
-        Username
-        <input type="text" bind:value={username}>
-    </label>
     <label class="character-selection">
         Select your character
         <select bind:value={character}>
