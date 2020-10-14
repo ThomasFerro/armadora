@@ -48,7 +48,8 @@
   {#if partiesLoadingState === LOADING}
   <p class="message info-message">Loading parties</p>
   {:else if partiesLoadingState === LOADED}
-  <ul>
+  <ul class="parties">
+    <button class="reload" on:click={loadParties}>Reload</button>
     {#each parties as party}
       <li>
         <button on:click={() => joinParty(party)}>Join {party}</button>
@@ -62,12 +63,13 @@
 </details>
 
 <style>
-.reload {
-  margin-inline-start: 0;
-  margin-block-end: 0;
-}
-
 .parties-listing {
   flex: 1;
+  overflow: auto;
+}
+
+.parties {
+  display: flex;
+  flex-flow: column nowrap;
 }
 </style>
