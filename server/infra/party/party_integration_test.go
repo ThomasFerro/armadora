@@ -1,9 +1,12 @@
 package party_test
 
 import (
+	"context"
 	"testing"
 
+	"github.com/ThomasFerro/armadora/infra/config"
 	"github.com/ThomasFerro/armadora/infra/party"
+	"github.com/ThomasFerro/armadora/infra/storage"
 )
 
 const PARTIES_INTEGRATION_TEST_COLLECTION = "PARTIES_INTEGRATION_TEST_COLLECTION"
@@ -71,7 +74,17 @@ func getIntegrationTestsPartiesManager() party.PartiesManager {
 }
 
 func dropIntegrationTestsPartiesDatabase() {
-	// TODO ? drop PARTIES_INTEGRATION_TEST_COLLECTION
+	mongoClient := storage.MongoClient{
+		Uri:        config.GetConfiguration("MONGO_URI"),
+		Database:   config.GetConfiguration("MONGO_DATABASE_NAME"),
+		Collection: PARTIES_INTEGRATION_TEST_COLLECTION,
+	}
+	collectionToClose, err := mongoClient.GetCollection()
+	if err != nil {
+		return
+	}
+	defer collectionToClose.Close()
+	collectionToClose.Collection.Drop(context.TODO())
 }
 
 /*
@@ -87,6 +100,7 @@ TODO:
   - Cannot get the party: third party (repository) error
   - Cannot get the party: The party does no exists
 - Close a party - Use case: Once the game is finished, the party is closed
+  - Add a "status" to the party, open by default
   - Nominal case: the party is closed
   - Cannot close the party: third party (repository) error
 
