@@ -10,19 +10,37 @@ const (
 	Private Restriction = "PRIVATE"
 )
 
+// Status The party's status
+type Status string
+
+const (
+	// Open An open party
+	Open Status = "OPEN"
+	// Close A closed party
+	Close Status = "CLOSE"
+)
+
 // PartyName The party name
 type PartyName string
 
 // Party A party
 type Party struct {
-	Restriction Restriction
 	Name        PartyName
+	Restriction Restriction
+	Status      Status
+}
+
+// Close Return the closed party
+func (p Party) Close() Party {
+	p.Status = Close
+	return p
 }
 
 // NewParty Create a new party
-func NewParty(partyName PartyName, restriction Restriction) Party {
+func NewParty(partyName PartyName, restriction Restriction, status Status) Party {
 	return Party{
 		Name:        partyName,
 		Restriction: restriction,
+		Status:      Open,
 	}
 }

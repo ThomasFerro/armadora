@@ -18,6 +18,13 @@ func (err CannotCreateAPartyWithAnAlreadyTakenName) Error() string {
 	return fmt.Sprintf("Unable to create the party, the name %v is already used", err.name)
 }
 
+// NoPartyNameProvided Error thrown when providing no party name
+type NoPartyNameProvided struct{}
+
+func (err NoPartyNameProvided) Error() string {
+	return "No party name was provided"
+}
+
 // NotFound Error thrown when the party cannot be found
 type NotFound struct {
 	partyName PartyName

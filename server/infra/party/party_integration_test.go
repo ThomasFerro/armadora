@@ -121,6 +121,40 @@ func TestGetVisibleParties(t *testing.T) {
 		t.Fatalf("Invalid second visible party. Expected %v but got this instead: %v", expectedSecondParty, parties[1])
 	}
 }
+func TestClosedPartiesNotConsideredAsVisible(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	visiblePartyName := party.PartyName("first visible party")
+	closedPartyName := party.PartyName("closed party")
+	createTestParty(t, partiesManager, visiblePartyName, true)
+	createTestParty(t, partiesManager, closedPartyName, true)
+
+	err := partiesManager.CloseAParty(closedPartyName)
+
+	if err != nil {
+		t.Fatalf("An error has occurred while closing the party: %v", err)
+	}
+
+	parties, err := partiesManager.GetVisibleParties()
+
+	if err != nil {
+		t.Fatalf("An error has occurred while getting visible parties: %v", err)
+	}
+
+	if len(parties) != 1 {
+		t.Fatalf("Only the visible and open party should have been returned. Got this instead: %v", parties)
+	}
+
+	expectedVisibleParty := party.Party{
+		Name:        visiblePartyName,
+		Restriction: party.Public,
+	}
+
+	if !partiesAreEqual(parties[0], expectedVisibleParty) {
+		t.Fatalf("Invalid only visible party. Expected %v but got this instead: %v", expectedVisibleParty, parties[0])
+	}
+}
 
 func TestGetASpecificPublicParty(t *testing.T) {
 	partiesManager := getIntegrationTestsPartiesManager()
@@ -186,6 +220,95 @@ func TestCannotGetAPartyThatDoesNotExist(t *testing.T) {
 	}
 }
 
+func TestNoPartyNameProvidedToGetTheParty(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	partyName := party.PartyName("")
+	_, err := partiesManager.GetParty(partyName)
+
+	if err == nil {
+		t.Fatalf("Should not be able to get a party that does not exists")
+	}
+
+	if _, expectedType := err.(party.NoPartyNameProvided); !expectedType {
+		t.Fatalf("The returned error is of the wrong type. Expected NoPartyNameProvided but got %v", err)
+	}
+}
+
+func TestAPartyIsOpenByDefault(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	partyName := party.PartyName("my awesome party")
+	createTestParty(t, partiesManager, partyName, true)
+
+	newParty, err := partiesManager.GetParty(partyName)
+	if err != nil {
+		t.Fatalf("An error has occurred while getting the newly created party: %v", err)
+	}
+
+	if newParty.Status != party.Open {
+		t.Fatalf("The created party should be opened. Got this instead: %v", newParty)
+	}
+}
+
+func TestCloseAParty(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	partyName := party.PartyName("my awesome party")
+	createTestParty(t, partiesManager, partyName, true)
+
+	err := partiesManager.CloseAParty(partyName)
+
+	if err != nil {
+		t.Fatalf("An error has occurred while closing the party: %v", err)
+	}
+
+	newleClosedParty, err := partiesManager.GetParty(partyName)
+
+	if err != nil {
+		t.Fatalf("An error has occurred while getting the newly closed party: %v", err)
+	}
+
+	if newleClosedParty.Status != party.Close {
+		t.Fatalf("The newly closed party's status is invalid. Expected to be closed but got this instead: %v", newleClosedParty)
+	}
+}
+
+func TestCannotFindThePartyToClose(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	partyName := party.PartyName("my awesome party")
+	err := partiesManager.CloseAParty(partyName)
+
+	if err == nil {
+		t.Fatalf("Expected not to be able to close a party that does no exists")
+	}
+
+	if _, expectedType := err.(party.NotFound); !expectedType {
+		t.Fatalf("The returned error is of the wrong type. Expected NotFound but got %v", err)
+	}
+}
+
+func TestNoPartyNameProvidedForThePartyToClose(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	partyName := party.PartyName("")
+	err := partiesManager.CloseAParty(partyName)
+
+	if err == nil {
+		t.Fatalf("Expected not to be able to close a party that does no exists")
+	}
+
+	if _, expectedType := err.(party.NoPartyNameProvided); !expectedType {
+		t.Fatalf("The returned error is of the wrong type. Expected NoPartyNameProvided but got %v", err)
+	}
+}
+
 func createTestParty(t *testing.T, partyManager party.PartiesManager, partyName party.PartyName, partyIsPublic bool) (party.PartyName, error) {
 	newPartyName, err := partyManager.CreateParty(partyName, partyIsPublic)
 
@@ -220,21 +343,6 @@ func dropIntegrationTestsPartiesDatabase() {
 }
 
 /*
-TODO:
-- Create a party:
-  - Creation date / ID ?
-  - Cannot create the party: third party (repository) error
-- Get visible parties
-  - Cannot get the parties: third party (repository) error
-- Get a party
-  - Nominal case: the party exists
-  - Cannot get the party: third party (repository) error
-  - Cannot get the party: The party does no exists
-- Close a party - Use case: Once the game is finished, the party is closed
-  - Add a "status" to the party, open by default
-  - Nominal case: the party is closed
-  - Cannot close the party: third party (repository) error
-
 Things to do elsewhere:
 - Use this party manager
 - The stream_id become the party id (MVP) ? Or a party can play many games (possibily later) ?

@@ -28,18 +28,39 @@ func (partiesManager PartiesManager) CreateParty(partyName PartyName, partyIsPub
 	if partyIsPublic {
 		restriction = Public
 	}
-	return partiesManager.repository.CreateParty(partyName, restriction)
+	return partiesManager.repository.CreateParty(partyName, restriction, Open)
 }
 
 // GetVisibleParties Get all visible parties
 func (partiesManager PartiesManager) GetVisibleParties() ([]Party, error) {
-	// TODO: Add "open / closed" information
-	return partiesManager.repository.GetParties(Public)
+	return partiesManager.repository.GetParties(Public, Open)
 }
 
 // GetParty Get a specific parties
 func (partiesManager PartiesManager) GetParty(partyName PartyName) (Party, error) {
+	if partyName == PartyName("") {
+		return Party{}, NoPartyNameProvided{}
+	}
+
 	return partiesManager.repository.GetParty(partyName)
+}
+
+// CloseAParty Close a party
+func (partiesManager PartiesManager) CloseAParty(partyName PartyName) error {
+	if partyName == PartyName("") {
+		return NoPartyNameProvided{}
+	}
+
+	partyToClose, err := partiesManager.repository.GetParty(partyName)
+
+	if err != nil {
+		return NotFound{
+			partyName,
+		}
+	}
+	closedParty := partyToClose.Close()
+
+	return partiesManager.repository.UpdateParty(closedParty)
 }
 
 // NewPartiesManager Create a new PartiesManager

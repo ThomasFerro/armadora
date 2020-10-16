@@ -13,9 +13,10 @@ import (
 
 // PartiesRepository Store the parties
 type PartiesRepository interface {
-	CreateParty(name PartyName, restriction Restriction) (PartyName, error)
-	GetParties(restriction Restriction) ([]Party, error)
+	CreateParty(name PartyName, restriction Restriction, status Status) (PartyName, error)
+	GetParties(restriction Restriction, status Status) ([]Party, error)
 	GetParty(PartyName) (Party, error)
+	UpdateParty(Party) error
 }
 
 // PartiesMongoRepository A mongo implementation of the PartiesRepository
@@ -24,17 +25,14 @@ type PartiesMongoRepository struct {
 }
 
 // CreateParty Create a new party in mongodb repository
-func (mongoRepository PartiesMongoRepository) CreateParty(name PartyName, restriction Restriction) (PartyName, error) {
+func (mongoRepository PartiesMongoRepository) CreateParty(name PartyName, restriction Restriction, status Status) (PartyName, error) {
 	collectionToClose, err := mongoRepository.client.GetCollection()
 	if err != nil {
 		return "", fmt.Errorf("An error has occurred while getting the parties collection: %w", err)
 	}
 	defer collectionToClose.Close()
 
-	partyToCreate := Party{
-		Name:        name,
-		Restriction: restriction,
-	}
+	partyToCreate := NewParty(name, restriction, status)
 
 	response, err := collectionToClose.Collection.InsertOne(context.Background(), partyToCreate)
 	if err != nil {
@@ -48,14 +46,14 @@ func (mongoRepository PartiesMongoRepository) CreateParty(name PartyName, restri
 }
 
 // GetParties Get all parties matching the provided restriction
-func (mongoRepository PartiesMongoRepository) GetParties(restriction Restriction) ([]Party, error) {
+func (mongoRepository PartiesMongoRepository) GetParties(restriction Restriction, status Status) ([]Party, error) {
 	collectionToClose, err := mongoRepository.client.GetCollection()
 	if err != nil {
 		return nil, fmt.Errorf("An error has occurred while getting the parties collection: %w", err)
 	}
 	defer collectionToClose.Close()
 
-	filter := bson.D{{"restriction", restriction}}
+	filter := bson.D{{"restriction", restriction}, {"status", status}}
 	found, err := collectionToClose.Collection.Find(context.Background(), filter)
 	if err != nil {
 		return nil, fmt.Errorf("An error has occurred while getting the %v parties: %w", restriction, err)
@@ -104,6 +102,20 @@ func (mongoRepository PartiesMongoRepository) GetParty(partyName PartyName) (Par
 	}
 
 	return returnedParty, nil
+}
+
+// UpdateParty Update a provided party
+func (mongoRepository PartiesMongoRepository) UpdateParty(partyToUpdate Party) error {
+	collectionToClose, err := mongoRepository.client.GetCollection()
+	if err != nil {
+		return fmt.Errorf("An error has occurred while getting the parties collection: %w", err)
+	}
+	defer collectionToClose.Close()
+
+	filter := bson.D{{"name", partyToUpdate.Name}}
+	_, err = collectionToClose.Collection.ReplaceOne(context.Background(), filter, partyToUpdate)
+
+	return nil
 }
 
 // NewPartiesMongoRepository Create a new PartiesMongoRepository
