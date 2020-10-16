@@ -10,17 +10,17 @@ const (
 	Private Restriction = "PRIVATE"
 )
 
-// PartyID A party identifier
-type PartyID string
+// PartyName The party name
+type PartyName string
 
 // Party A party
 type Party struct {
 	Restriction Restriction
-	Name        string
+	Name        PartyName
 }
 
 // NewParty Create a new party
-func NewParty(partyName string, restriction Restriction) Party {
+func NewParty(partyName PartyName, restriction Restriction) Party {
 	return Party{
 		Name:        partyName,
 		Restriction: restriction,

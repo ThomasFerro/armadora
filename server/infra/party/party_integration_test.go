@@ -15,12 +15,16 @@ func TestCreateAPublicParty(t *testing.T) {
 	partiesManager := getIntegrationTestsPartiesManager()
 	defer dropIntegrationTestsPartiesDatabase()
 
-	partyName := "My new party"
+	partyName := party.PartyName("My new party")
 	partyIsPublic := true
-	newPartyID, _ := createTestParty(t, partiesManager, partyName, partyIsPublic)
+	newPartyName, _ := createTestParty(t, partiesManager, partyName, partyIsPublic)
 
-	if newPartyID == "" {
-		t.Fatalf("The returned created party has no ID.")
+	if newPartyName == "" {
+		t.Fatalf("The returned created party has no name.")
+	}
+
+	if newPartyName != partyName {
+		t.Fatalf("Created party name (%v) does not match with the provided one (%v).", newPartyName, partyName)
 	}
 }
 
@@ -28,12 +32,16 @@ func TestCreateAPrivateParty(t *testing.T) {
 	partiesManager := getIntegrationTestsPartiesManager()
 	defer dropIntegrationTestsPartiesDatabase()
 
-	partyName := "My new party"
+	partyName := party.PartyName("My new party")
 	partyIsPublic := false
-	newPartyID, _ := createTestParty(t, partiesManager, partyName, partyIsPublic)
+	newPartyName, _ := createTestParty(t, partiesManager, partyName, partyIsPublic)
 
-	if newPartyID == "" {
-		t.Fatalf("The returned created party has no ID.")
+	if newPartyName == "" {
+		t.Fatalf("The returned created party has no name.")
+	}
+
+	if newPartyName != partyName {
+		t.Fatalf("Created party name (%v) does not match with the provided one (%v).", newPartyName, partyName)
 	}
 }
 
@@ -41,7 +49,7 @@ func TestCannotCreateAPartyWithoutName(t *testing.T) {
 	partiesManager := getIntegrationTestsPartiesManager()
 	defer dropIntegrationTestsPartiesDatabase()
 
-	partyName := ""
+	partyName := party.PartyName("")
 	partyIsPublic := false
 	_, err := partiesManager.CreateParty(partyName, partyIsPublic)
 
@@ -54,12 +62,32 @@ func TestCannotCreateAPartyWithoutName(t *testing.T) {
 	}
 }
 
+func TestCannotCreateAPartyWithAnAlreadyExistingName(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	alreadyExistingPartyName := party.PartyName("awesome party")
+	createTestParty(t, partiesManager, alreadyExistingPartyName, false)
+
+	newPartyName := party.PartyName("awesome party")
+	newPartyIsPublic := false
+	_, err := partiesManager.CreateParty(newPartyName, newPartyIsPublic)
+
+	if err == nil {
+		t.Fatalf("An error should have occurred while creating a party with an already taken name")
+	}
+
+	if _, expectedType := err.(party.CannotCreateAPartyWithAnAlreadyTakenName); !expectedType {
+		t.Fatalf("The returned error is of the wrong type. Expected CannotCreateAPartyWithAnAlreadyTakenName but got %v", err)
+	}
+}
+
 func TestGetVisibleParties(t *testing.T) {
 	partiesManager := getIntegrationTestsPartiesManager()
 	defer dropIntegrationTestsPartiesDatabase()
 
-	firstVisiblePartyName := "first visible party"
-	secondVisiblePartyName := "second visible party"
+	firstVisiblePartyName := party.PartyName("first visible party")
+	secondVisiblePartyName := party.PartyName("second visible party")
 
 	createTestParty(t, partiesManager, firstVisiblePartyName, true)
 	createTestParty(t, partiesManager, "first private party", false)
@@ -94,13 +122,77 @@ func TestGetVisibleParties(t *testing.T) {
 	}
 }
 
-func createTestParty(t *testing.T, partyManager party.PartiesManager, partyName string, partyIsPublic bool) (party.PartyID, error) {
-	newPartyID, err := partyManager.CreateParty(partyName, partyIsPublic)
+func TestGetASpecificPublicParty(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	partyName := party.PartyName("my awesome party")
+	partyIsPublic := true
+	createTestParty(t, partiesManager, partyName, partyIsPublic)
+
+	newlyCreatedParty, err := partiesManager.GetParty(partyName)
+
+	if err != nil {
+		t.Fatalf("Unable to get the newly created party: %v", err)
+	}
+
+	expectedParty := party.Party{
+		Name:        partyName,
+		Restriction: party.Public,
+	}
+
+	if !partiesAreEqual(newlyCreatedParty, expectedParty) {
+		t.Fatalf("Invalid public party. Expected %v but got this instead: %v", expectedParty, newlyCreatedParty)
+	}
+}
+
+func TestGetASpecificPrivateParty(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	partyName := party.PartyName("my awesome party")
+	partyIsPublic := false
+	createTestParty(t, partiesManager, partyName, partyIsPublic)
+
+	newlyCreatedParty, err := partiesManager.GetParty(partyName)
+
+	if err != nil {
+		t.Fatalf("Unable to get the newly created party: %v", err)
+	}
+
+	expectedParty := party.Party{
+		Name:        partyName,
+		Restriction: party.Private,
+	}
+
+	if !partiesAreEqual(newlyCreatedParty, expectedParty) {
+		t.Fatalf("Invalid private party. Expected %v but got this instead: %v", expectedParty, newlyCreatedParty)
+	}
+}
+
+func TestCannotGetAPartyThatDoesNotExist(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	partyName := party.PartyName("my awesome party")
+	_, err := partiesManager.GetParty(partyName)
+
+	if err == nil {
+		t.Fatalf("Should not be able to get a party that does not exists")
+	}
+
+	if _, expectedType := err.(party.NotFound); !expectedType {
+		t.Fatalf("The returned error is of the wrong type. Expected NotFound but got %v", err)
+	}
+}
+
+func createTestParty(t *testing.T, partyManager party.PartiesManager, partyName party.PartyName, partyIsPublic bool) (party.PartyName, error) {
+	newPartyName, err := partyManager.CreateParty(partyName, partyIsPublic)
 
 	if err != nil {
 		t.Fatalf("An error has occurred while creating the party: %v", err)
 	}
-	return newPartyID, nil
+	return newPartyName, nil
 }
 
 func partiesAreEqual(firstParty, secondParty party.Party) bool {
@@ -133,7 +225,6 @@ TODO:
   - Creation date / ID ?
   - Cannot create the party: third party (repository) error
 - Get visible parties
-  - Nominal case: find every public and opened parties
   - Cannot get the parties: third party (repository) error
 - Get a party
   - Nominal case: the party exists

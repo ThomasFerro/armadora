@@ -8,12 +8,14 @@ import (
 	"github.com/ThomasFerro/armadora/infra/storage"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // PartiesRepository Store the parties
 type PartiesRepository interface {
-	CreateParty(name string, restriction Restriction) (PartyID, error)
+	CreateParty(name PartyName, restriction Restriction) (PartyName, error)
 	GetParties(restriction Restriction) ([]Party, error)
+	GetParty(PartyName) (Party, error)
 }
 
 // PartiesMongoRepository A mongo implementation of the PartiesRepository
@@ -22,7 +24,7 @@ type PartiesMongoRepository struct {
 }
 
 // CreateParty Create a new party in mongodb repository
-func (mongoRepository PartiesMongoRepository) CreateParty(name string, restriction Restriction) (PartyID, error) {
+func (mongoRepository PartiesMongoRepository) CreateParty(name PartyName, restriction Restriction) (PartyName, error) {
 	collectionToClose, err := mongoRepository.client.GetCollection()
 	if err != nil {
 		return "", fmt.Errorf("An error has occurred while getting the parties collection: %w", err)
@@ -39,12 +41,13 @@ func (mongoRepository PartiesMongoRepository) CreateParty(name string, restricti
 		return "", fmt.Errorf("An error has occurred while inserting the party %v: %w", partyToCreate, err)
 	}
 
-	if partyID, ok := response.InsertedID.(primitive.ObjectID); ok {
-		return PartyID(partyID.Hex()), nil
+	if _, ok := response.InsertedID.(primitive.ObjectID); ok {
+		return name, nil
 	}
 	return "", fmt.Errorf("An error has occurred while retrieving the created party id %v: %w", partyToCreate, err)
 }
 
+// GetParties Get all parties matching the provided restriction
 func (mongoRepository PartiesMongoRepository) GetParties(restriction Restriction) ([]Party, error) {
 	collectionToClose, err := mongoRepository.client.GetCollection()
 	if err != nil {
@@ -77,6 +80,30 @@ func (mongoRepository PartiesMongoRepository) GetParties(restriction Restriction
 	}
 
 	return returnedParties, nil
+}
+
+// GetParty Get a party based on his name
+func (mongoRepository PartiesMongoRepository) GetParty(partyName PartyName) (Party, error) {
+	collectionToClose, err := mongoRepository.client.GetCollection()
+	if err != nil {
+		return Party{}, fmt.Errorf("An error has occurred while getting the parties collection: %w", err)
+	}
+	defer collectionToClose.Close()
+
+	filter := bson.D{{"name", partyName}}
+
+	var returnedParty Party
+	err = collectionToClose.Collection.FindOne(context.Background(), filter).Decode(&returnedParty)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return Party{}, NotFound{
+				partyName,
+			}
+		}
+		return Party{}, fmt.Errorf("An error has occurred while getting the partiy %v: %w", partyName, err)
+	}
+
+	return returnedParty, nil
 }
 
 // NewPartiesMongoRepository Create a new PartiesMongoRepository

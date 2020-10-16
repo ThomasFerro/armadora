@@ -1,15 +1,29 @@
 package party
 
+import (
+	"fmt"
+)
+
 // PartiesManager Exposes every possible actions on parties
 type PartiesManager struct {
 	repository PartiesRepository
 }
 
 // CreateParty Manage the creation of a a new party
-func (partiesManager PartiesManager) CreateParty(partyName string, partyIsPublic bool) (PartyID, error) {
+func (partiesManager PartiesManager) CreateParty(partyName PartyName, partyIsPublic bool) (PartyName, error) {
 	if partyName == "" {
 		return "", CannotCreateAPartyWithoutName{}
 	}
+	_, err := partiesManager.repository.GetParty(partyName)
+	if err == nil {
+		return "", CannotCreateAPartyWithAnAlreadyTakenName{
+			name: partyName,
+		}
+	}
+	if _, partyNotFound := err.(NotFound); !partyNotFound {
+		return "", fmt.Errorf("An error has occurred while checking if the party already exists: %w", err)
+	}
+
 	restriction := Private
 	if partyIsPublic {
 		restriction = Public
@@ -23,16 +37,14 @@ func (partiesManager PartiesManager) GetVisibleParties() ([]Party, error) {
 	return partiesManager.repository.GetParties(Public)
 }
 
+// GetParty Get a specific parties
+func (partiesManager PartiesManager) GetParty(partyName PartyName) (Party, error) {
+	return partiesManager.repository.GetParty(partyName)
+}
+
 // NewPartiesManager Create a new PartiesManager
 func NewPartiesManager(repository PartiesRepository) PartiesManager {
 	return PartiesManager{
 		repository,
 	}
-}
-
-// CannotCreateAPartyWithoutName Error thrown when attempting to create a party without name
-type CannotCreateAPartyWithoutName struct{}
-
-func (err CannotCreateAPartyWithoutName) Error() string {
-	return "Unable to create a party without name"
 }
