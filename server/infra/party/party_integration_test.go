@@ -344,12 +344,6 @@ func dropIntegrationTestsPartiesDatabase() {
 
 /*
 Things to do elsewhere:
-- Use this party manager
-- The stream_id become the party id (MVP) ? Or a party can play many games (possibily later) ?
-- Call the party closer when receiving a "GameFinished" event
-- Modify the API:
-  - POST /parties and not POST /games
-  - Returns name + id for each parties
 - Modify the e2e tests
 - Check that the dockerfile still works
 */

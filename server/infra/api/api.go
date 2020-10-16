@@ -18,9 +18,7 @@ var armadoraService infra.ArmadoraService
 func StartApi() {
 	armadoraService = infra.NewArmadoraService()
 
-	http.HandleFunc("/games", handleGameCreation)
-
-	http.HandleFunc("/parties", handleGetParties)
+	http.HandleFunc("/parties", handlePartiesRequest)
 
 	http.HandleFunc("/parties/", handlePartyRequest)
 
@@ -34,7 +32,47 @@ func StartApi() {
 	}
 }
 
-func handleGameCreation(w http.ResponseWriter, r *http.Request) {
+func handlePartiesRequest(w http.ResponseWriter, r *http.Request) {
+	manageCors(&w)
+
+	switch r.Method {
+	case "GET":
+		handleGetParties(w, r)
+	case "POST":
+		handlePartyCreation(w, r)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprintf(w, "invalid_http_method")
+	}
+}
+
+func handleGetParties(w http.ResponseWriter, r *http.Request) {
+	manageCors(&w)
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprintf(w, "invalid_http_method")
+		return
+	}
+
+	parties, err := armadoraService.GetVisibleParties()
+	if err != nil {
+		manageError(&w, err)
+		return
+	}
+
+	log.Printf("Returning the %v parties\n", len(parties))
+	partiesIdJson, err := json.Marshal(parties)
+	if err != nil {
+		manageError(&w, err)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(
+		partiesIdJson,
+	)
+}
+
+func handlePartyCreation(w http.ResponseWriter, r *http.Request) {
 	manageCors(&w)
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -111,32 +149,6 @@ func handlePostPartyCommand(partyName party.PartyName, w http.ResponseWriter, r 
 		return
 	}
 	handleGetPartyState(partyName, w, r)
-}
-
-func handleGetParties(w http.ResponseWriter, r *http.Request) {
-	manageCors(&w)
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(w, "invalid_http_method")
-		return
-	}
-
-	parties, err := armadoraService.GetVisibleParties()
-	if err != nil {
-		manageError(&w, err)
-		return
-	}
-
-	log.Printf("Returning the %v parties\n", len(parties))
-	partiesIdJson, err := json.Marshal(parties)
-	if err != nil {
-		manageError(&w, err)
-		return
-	}
-	w.Header().Add("Content-Type", "application/json")
-	w.Write(
-		partiesIdJson,
-	)
 }
 
 func manageError(w *http.ResponseWriter, err error) {

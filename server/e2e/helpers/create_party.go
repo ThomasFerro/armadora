@@ -12,7 +12,7 @@ type createPartyResponse struct {
 }
 
 func CreateParty() (string, error) {
-	resp, err := http.Post("http://localhost/games", "application/json", nil)
+	resp, err := http.Post("http://localhost/parties", "application/json", nil)
 	if err != nil {
 		return "", err
 	}
