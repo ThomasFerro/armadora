@@ -17,6 +17,12 @@ func (partiesManager PartiesManager) CreateParty(partyName string, partyIsPublic
 	return partiesManager.repository.CreateParty(partyName, restriction)
 }
 
+// GetVisibleParties Get all visible parties
+func (partiesManager PartiesManager) GetVisibleParties() ([]Party, error) {
+	// TODO: Add "open / closed" information
+	return partiesManager.repository.GetParties(Public)
+}
+
 // NewPartiesManager Create a new PartiesManager
 func NewPartiesManager(repository PartiesRepository) PartiesManager {
 	return PartiesManager{

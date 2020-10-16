@@ -17,11 +17,7 @@ func TestCreateAPublicParty(t *testing.T) {
 
 	partyName := "My new party"
 	partyIsPublic := true
-	newPartyID, err := partiesManager.CreateParty(partyName, partyIsPublic)
-
-	if err != nil {
-		t.Fatalf("An error has occurred while creating the party: %v", err)
-	}
+	newPartyID, _ := createTestParty(t, partiesManager, partyName, partyIsPublic)
 
 	if newPartyID == "" {
 		t.Fatalf("The returned created party has no ID.")
@@ -34,11 +30,7 @@ func TestCreateAPrivateParty(t *testing.T) {
 
 	partyName := "My new party"
 	partyIsPublic := false
-	newPartyID, err := partiesManager.CreateParty(partyName, partyIsPublic)
-
-	if err != nil {
-		t.Fatalf("An error has occurred while creating the party: %v", err)
-	}
+	newPartyID, _ := createTestParty(t, partiesManager, partyName, partyIsPublic)
 
 	if newPartyID == "" {
 		t.Fatalf("The returned created party has no ID.")
@@ -62,7 +54,55 @@ func TestCannotCreateAPartyWithoutName(t *testing.T) {
 	}
 }
 
-// TODO: Remove ?
+func TestGetVisibleParties(t *testing.T) {
+	partiesManager := getIntegrationTestsPartiesManager()
+	defer dropIntegrationTestsPartiesDatabase()
+
+	firstVisiblePartyName := "first visible party"
+	secondVisiblePartyName := "second visible party"
+
+	createTestParty(t, partiesManager, firstVisiblePartyName, true)
+	createTestParty(t, partiesManager, "first private party", false)
+	createTestParty(t, partiesManager, secondVisiblePartyName, true)
+
+	parties, err := partiesManager.GetVisibleParties()
+
+	if err != nil {
+		t.Fatalf("An error has occurred while getting visible parties: %v", err)
+	}
+
+	if len(parties) != 2 {
+		t.Fatalf("Only the two visible parties should have been returned. Got this instead: %v", parties)
+	}
+
+	expectedFirstParty := party.Party{
+		Name:        firstVisiblePartyName,
+		Restriction: party.Public,
+	}
+
+	if !partiesAreEqual(parties[0], expectedFirstParty) {
+		t.Fatalf("Invalid first visible party. Expected %v but got this instead: %v", expectedFirstParty, parties[0])
+	}
+
+	expectedSecondParty := party.Party{
+		Name:        secondVisiblePartyName,
+		Restriction: party.Public,
+	}
+
+	if !partiesAreEqual(parties[1], expectedSecondParty) {
+		t.Fatalf("Invalid second visible party. Expected %v but got this instead: %v", expectedSecondParty, parties[1])
+	}
+}
+
+func createTestParty(t *testing.T, partyManager party.PartiesManager, partyName string, partyIsPublic bool) (party.PartyID, error) {
+	newPartyID, err := partyManager.CreateParty(partyName, partyIsPublic)
+
+	if err != nil {
+		t.Fatalf("An error has occurred while creating the party: %v", err)
+	}
+	return newPartyID, nil
+}
+
 func partiesAreEqual(firstParty, secondParty party.Party) bool {
 	return firstParty.Name == secondParty.Name &&
 		firstParty.Restriction == secondParty.Restriction
