@@ -341,9 +341,3 @@ func dropIntegrationTestsPartiesDatabase() {
 	defer collectionToClose.Close()
 	collectionToClose.Collection.Drop(context.TODO())
 }
-
-/*
-Things to do elsewhere:
-- Modify the e2e tests
-- Check that the dockerfile still works
-*/
