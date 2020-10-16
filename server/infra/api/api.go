@@ -9,11 +9,15 @@ import (
 
 	"github.com/ThomasFerro/armadora/infra"
 	"github.com/ThomasFerro/armadora/infra/config"
+	"github.com/ThomasFerro/armadora/infra/party"
 )
 
 var allowedOrigin string
+var armadoraService infra.ArmadoraService
 
 func StartApi() {
+	armadoraService = infra.NewArmadoraService()
+
 	http.HandleFunc("/games", handleGameCreation)
 
 	http.HandleFunc("/parties", handleGetParties)
@@ -38,7 +42,7 @@ func handleGameCreation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newParty, err := infra.CreateParty()
+	newParty, err := armadoraService.CreateParty()
 
 	if err != nil {
 		log.Printf("Cannot create a new party: %v\n", err)
@@ -58,23 +62,23 @@ func handleGameCreation(w http.ResponseWriter, r *http.Request) {
 func handlePartyRequest(w http.ResponseWriter, r *http.Request) {
 	manageCors(&w)
 	urlParts := strings.Split(r.URL.String(), "/")
-	partyId := infra.PartyID(urlParts[len(urlParts)-1])
+	partyName := party.PartyName(urlParts[len(urlParts)-1])
 
 	switch r.Method {
 	case "GET":
-		handleGetPartyState(partyId, w, r)
+		handleGetPartyState(partyName, w, r)
 	case "POST":
-		handlePostPartyCommand(partyId, w, r)
+		handlePostPartyCommand(partyName, w, r)
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprintf(w, "invalid_http_method")
 	}
 }
 
-func handleGetPartyState(partyId infra.PartyID, w http.ResponseWriter, r *http.Request) {
-	party, err := infra.GetParty(partyId)
+func handleGetPartyState(partyName party.PartyName, w http.ResponseWriter, r *http.Request) {
+	party, err := armadoraService.GetPartyGameState(partyName)
 	if err != nil {
-		log.Printf("Cannot get the party %v: %v\n", partyId, err)
+		log.Printf("Cannot get the party %v: %v\n", partyName, err)
 		manageError(&w, err)
 		return
 	}
@@ -89,8 +93,8 @@ func handleGetPartyState(partyId infra.PartyID, w http.ResponseWriter, r *http.R
 	w.Write(partyJson)
 }
 
-func handlePostPartyCommand(partyId infra.PartyID, w http.ResponseWriter, r *http.Request) {
-	log.Printf("Command received for party %v: %v\n", partyId, r.Body)
+func handlePostPartyCommand(partyName party.PartyName, w http.ResponseWriter, r *http.Request) {
+	log.Printf("Command received for party %v: %v\n", partyName, r.Body)
 	decoder := json.NewDecoder(r.Body)
 	// TODO: Pay the tech debt when managing authent
 	// Do not trust the user with the provided player_id, but retrieve it based on the authentication token
@@ -100,13 +104,13 @@ func handlePostPartyCommand(partyId infra.PartyID, w http.ResponseWriter, r *htt
 		manageError(&w, err)
 	}
 
-	err = infra.ReceiveCommand(partyId, command)
+	err = armadoraService.ReceiveCommand(partyName, command)
 
 	if err != nil {
 		manageError(&w, err)
 		return
 	}
-	handleGetPartyState(partyId, w, r)
+	handleGetPartyState(partyName, w, r)
 }
 
 func handleGetParties(w http.ResponseWriter, r *http.Request) {
@@ -117,7 +121,7 @@ func handleGetParties(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	parties, err := infra.GetParties()
+	parties, err := armadoraService.GetVisibleParties()
 	if err != nil {
 		manageError(&w, err)
 		return

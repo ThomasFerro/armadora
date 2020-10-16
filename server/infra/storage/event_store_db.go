@@ -20,26 +20,6 @@ type mongoDbEventStore struct {
 	client MongoClient
 }
 
-func (m mongoDbEventStore) GetParties() ([]string, error) {
-	collectionToClose, err := m.client.GetCollection()
-	if err != nil {
-		return nil, fmt.Errorf("An error has occurred while getting the collection: %w", err)
-	}
-	defer collectionToClose.Close()
-
-	filter := bson.D{{}}
-	parties, err := collectionToClose.Collection.Distinct(context.TODO(), "stream_id", filter)
-	if err != nil {
-		return nil, fmt.Errorf("An error has occurred while fetching parties: %w", err)
-	}
-	returnedParties := []string{}
-	for _, party := range parties {
-		returnedParties = append(returnedParties, fmt.Sprint(party))
-	}
-
-	return returnedParties, nil
-}
-
 func (m mongoDbEventStore) GetHistory(id string) (History, error) {
 	collectionToClose, err := m.client.GetCollection()
 	if err != nil {
@@ -179,7 +159,7 @@ func NewEventStore() EventStore {
 		client: MongoClient{
 			Uri:        config.GetConfiguration("MONGO_URI"),
 			Database:   config.GetConfiguration("MONGO_DATABASE_NAME"),
-			Collection: config.GetConfiguration("MONGO_COLLECTION_NAME"),
+			Collection: config.GetConfiguration("MONGO_EVENT_COLLECTION_NAME"),
 		},
 	}
 }

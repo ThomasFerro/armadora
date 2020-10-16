@@ -1,18 +1,19 @@
 package config
 
 import (
-	"os"
 	"log"
+	"os"
 )
 
 type ConfigurationKey string
 
 var ConfigurationsWithFallback = map[ConfigurationKey]string{
-	"ALLOWED_ORIGIN": "http://localhost:8081",
-	"PORT": "80",
-	"MONGO_URI": "mongodb://localhost:27017",
-	"MONGO_DATABASE_NAME": "armadora",
-	"MONGO_COLLECTION_NAME": "events",
+	"ALLOWED_ORIGIN":              "http://localhost:8081",
+	"PORT":                        "80",
+	"MONGO_URI":                   "mongodb://localhost:27017",
+	"MONGO_DATABASE_NAME":         "armadora",
+	"MONGO_EVENT_COLLECTION_NAME": "events",
+	"MONGO_PARTY_COLLECTION_NAME": "parties",
 }
 
 func GetConfiguration(configurationKey ConfigurationKey) string {
