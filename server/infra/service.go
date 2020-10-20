@@ -11,7 +11,6 @@ import (
 	"github.com/ThomasFerro/armadora/game/event"
 	"github.com/ThomasFerro/armadora/infra/dto"
 	"github.com/ThomasFerro/armadora/infra/storage"
-	"github.com/google/uuid"
 )
 
 // ArmadoraService Service managing Armadora games
@@ -35,18 +34,22 @@ func (armadoraService ArmadoraService) GetVisibleParties() ([]party.PartyName, e
 
 // CreateParty Create a new party
 func (armadoraService ArmadoraService) CreateParty() (party.PartyName, error) {
-	// TODO: Shorter name
 	// TODO: Private parties
-	partyName := party.PartyName(uuid.New().String())
-	newPartyName, err := armadoraService.partiesManager.CreateParty(partyName, true)
+	nameOfThePartyToCreate, err := newPartyName(armadoraService.partiesManager)
+
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("An error has occurred while getting a new party name: %w", err)
+	}
+
+	newPartyName, err := armadoraService.partiesManager.CreateParty(nameOfThePartyToCreate, true)
+	if err != nil {
+		return "", fmt.Errorf("An error has occurred while creating a new party: %w", err)
 	}
 	history, err := ManageCommand([]event.Event{}, Command{
 		CommandType: "CreateGame",
 	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("An error has occurred while creating the original event for the new party: %w", err)
 	}
 	err = armadoraService.eventStore.AppendToHistory(
 		string(newPartyName),
@@ -54,7 +57,7 @@ func (armadoraService ArmadoraService) CreateParty() (party.PartyName, error) {
 		dto.ToEventsDto(history),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("An error has occurred while storing the new party: %w", err)
 	}
 	return newPartyName, nil
 }
@@ -141,6 +144,27 @@ func partyExists(partiesManager party.PartiesManager, partyName party.PartyName)
 		return false, err
 	}
 	return true, err
+}
+
+func newPartyName(partiesManager party.PartiesManager) (party.PartyName, error) {
+	tries := 1
+	maxTries := 10
+
+	for ; tries < maxTries; tries++ {
+		nextPartyNameToTry := party.PartyName(
+			generateNewName(),
+		)
+		_, err := partiesManager.GetParty(nextPartyNameToTry)
+		if err == nil {
+			continue
+		}
+		if _, partyNotFound := err.(party.NotFound); partyNotFound {
+			return nextPartyNameToTry, nil
+		}
+		return "", err
+	}
+
+	return "", fmt.Errorf("Unable to find a new party name after %v tries", tries)
 }
 
 // NewArmadoraService Create a new Armadora service
