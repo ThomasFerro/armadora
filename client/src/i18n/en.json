@@ -1,0 +1,72 @@
+{
+    "home": {
+        "connectedAs": "Connected as",
+        "changeNickname": "Change nickname"
+    },
+    "localeSelection": {
+        "select": "Select your language"
+    },
+    "licences": {
+        "basedOn": "Based on the board game created by Christwart Conrad, illustrated by Tony Rochon and edited by Blackrock Games",
+        "characterIcons": "Character icons provided by",
+        "under": "under",
+        "creativeCommons": "Creative commons 3.0 licence",
+        "madeBy": "Made with ⚔️ by",
+        "courtesy": "With the courtesy of Blackrock Games"
+    },
+    "nickname": {
+        "authenticationWarning": "The game is still in active development and does not yet provide a full authentication flow.",
+        "linkedToNickname": "For now, your parties are linked to the nickname you choose.",
+        "nicknameUseCase": "Two players with the same nickname will act as if they play on the same account.",
+        "nickname": "Nickname",
+        "validate": "Validate nickname"
+    },
+    "joinAGame": {
+        "selectYourCharacter": "Select your character",
+        "selectACharacter": "Select a character",
+        "connect": "Connect to the game"
+    },
+    "party": {
+        "cannotLoadGameStatus": "Cannot load the game's status",
+        "unableToConnect": "Unable to connect to the game",
+        "unableToStart": "Unable to start the game",
+        "starting": "Starting the new game...",
+        "start": "Start the game",
+        "sendingAction": "Sending your action...",
+        "sendingActionError": "An error has occurred while sending your action",
+        "party": "Party"
+    },
+    "partySelection": {
+        "create": "Create party",
+        "creationError": "An error has occurred while creating the party",
+        "join": "Join a party",
+        "joinByName": "Already know the name of the game you want to join ?",
+        "loadingParties": "Loading parties",
+        "loadingPartiesError": "An error has occurred while loading the parties",
+        "reloadParties": "Reload",
+        "joinParty": "Join"
+    },
+    "board": {
+        "noCurrentPlayer": "No current player",
+        "playing": "is playing..."
+    },
+    "palisadeSelection": {
+        "validate": "Validate palisades",
+        "clear": "Clear palisades"
+    },
+    "passTurn": {
+        "pass": "Pass your turn",
+        "validate": "Validate (You will not be able to play again for the rest of the game)",
+        "cancel": "Cancel"
+    },
+    "warriorSelection": {
+        "validation": "Do you really want to put a warrior of strength",
+        "validate": "Validate",
+        "cancel": "Cancel"
+    },
+    "scores": {
+        "username": "Nickname",
+        "character": "Character",
+        "totalGold": "Total gold"
+    }
+}

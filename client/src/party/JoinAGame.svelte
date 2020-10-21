@@ -1,5 +1,6 @@
 <script>
     import { createEventDispatcher } from 'svelte'
+    import { i18n } from '../i18n';
     const dispatch = createEventDispatcher()
     export let availableCharacters = []
 
@@ -25,15 +26,15 @@
 
 <form class="join-a-game" on:submit|preventDefault={connectToTheGame}>
     <label class="character-selection">
-        Select your character
+        {$i18n('joinAGame.selectYourCharacter')}
         <select bind:value={character}>
-            <option disabled>Select a character</option>
+            <option disabled>{$i18n('joinAGame.selectACharacter')}</option>
             {#each selectableCharacters as selectableCharacter (selectableCharacter)}
             <option value={selectableCharacter}>{selectableCharacter}</option>
             {/each}
         </select>
     </label>
-    <input type="submit" value="Connect to the game" disabled={!canConnect}>
+    <input type="submit" value={$i18n('joinAGame.connect')} disabled={!canConnect}>
 </form>
 
 <style>

@@ -4,6 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import replace from '@rollup/plugin-replace';
+import json from '@rollup/plugin-json';
 
 const production = !process.env.ROLLUP_WATCH;
 const API_URL = process.env.API_URL || 'http://localhost:8080';
@@ -58,7 +59,8 @@ export default {
 					API_URL,
 				}
 			})
-		})
+		}),
+		json()
 	],
 	watch: {
 		clearScreen: false

@@ -1,5 +1,6 @@
 <script>
     import { createEventDispatcher } from 'svelte'
+    import { i18n } from '../../i18n'
     export let palisadesLeft = 0
     export let palisadeSelection = []
     
@@ -33,8 +34,8 @@
     </g>
 </svg>
 {#if ongoingPalisadeSelection}
-<button on:click={validatePalisades}>Validate palisades</button>
-<button on:click={clearPalisades}>Clear palisades</button>
+<button on:click={validatePalisades}>{$i18n('palisadeSelection.validate')}</button>
+<button on:click={clearPalisades}>{$i18n('palisadeSelection.clear')}</button>
 {/if}
 
 <style>

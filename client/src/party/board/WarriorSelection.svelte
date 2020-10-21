@@ -1,5 +1,6 @@
 <script>
     import { createEventDispatcher, onMount } from 'svelte'
+    import { i18n } from '../../i18n';
 
     export let warriors = {}
     export let selectedWarrior
@@ -59,9 +60,9 @@
 
 <article class="warrior-selection">
     {#if warriorToPut}
-    Do you really want to put a warrior of strength { selectedWarrior } ?
-    <button on:click={validateWarriorToPut}>Validate</button>
-    <button on:click={cancelWarriorToPut}>Cancel</button>
+    {$i18n('warriorSelection.validation')} { selectedWarrior } ?
+    <button on:click={validateWarriorToPut}>{$i18n('warriorSelection.validate')}</button>
+    <button on:click={cancelWarriorToPut}>{$i18n('warriorSelection.cancel')}</button>
     {:else}
     <section class="warrior-selection__strength warrior-selection__strength--one-warriors">
         {#each Array(warriors.one_point || 0) as _}

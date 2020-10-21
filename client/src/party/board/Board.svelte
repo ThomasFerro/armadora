@@ -1,5 +1,6 @@
 <script>
     import { createEventDispatcher } from 'svelte'
+    import { i18n } from '../../i18n';
     import Grid from './Grid.svelte'
     import PalisadeSelection from './PalisadeSelection.svelte'
     import PassTurn from './PassTurn.svelte'
@@ -11,8 +12,8 @@
     export let currentPlayer = null
 
     $: currentPlayerDisplayedInformation = currentPlayer ?
-        `${currentPlayer.nickname}'s (${currentPlayer.character}) turns`
-        : "No current player..."
+        `${currentPlayer.nickname} (${currentPlayer.character}) ${$i18n('board.playing')}`
+        : $i18n('board.noCurrentPlayer')
 
     let selectedWarrior
 

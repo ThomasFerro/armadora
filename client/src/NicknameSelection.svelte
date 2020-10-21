@@ -1,5 +1,6 @@
 <script>
     import { createEventDispatcher, onMount } from 'svelte';
+    import { i18n } from './i18n';
     export let getConnectedPlayerInformation
 
     const dispatch = createEventDispatcher();
@@ -24,15 +25,15 @@
 
 <form on:submit|preventDefault={() => nicknameSelected(nicknameInput)}>
     <p>🚨🚨</p>
-    <p>The game is still in active development and does not yet provide a full authentication flow.</p>
+    <p>{$i18n('nickname.authenticationWarning')}</p>
 
-    <p>For now, your parties are linked to the nickname you choose.</p>
+    <p>{$i18n('nickname.linkedToNickname')}</p>
 
-    <p><strong>Two players with the same nickname will act as if they play on the same account.</strong></p>
+    <p><strong>{$i18n('nickname.nicknameUseCase')}</strong></p>
 
     <label>
-        Nickname:
+        {$i18n('nickname.nickname')}:
         <input type="text" bind:value={nicknameInput}>
     </label>
-    <input type="submit" value="Validate nickname">
+    <input type="submit" value={$i18n('nickname.validate')}>
 </form>

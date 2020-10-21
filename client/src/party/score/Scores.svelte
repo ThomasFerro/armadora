@@ -1,4 +1,6 @@
 <script>
+    import { i18n } from "../../i18n";
+
     export let value = {}
     export let players = []
 </script>
@@ -7,9 +9,9 @@
     <thead>
         <tr>
             <th></th>
-            <th>Username</th>
-            <th>Character</th>
-            <th>Total gold</th>
+            <th>{$i18n('scores.username')}</th>
+            <th>{$i18n('scores.character')}</th>
+            <th>{$i18n('scores.totalGold')}</th>
         </tr>
     </thead>
     <tbody>
