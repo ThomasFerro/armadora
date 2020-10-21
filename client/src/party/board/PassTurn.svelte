@@ -1,6 +1,8 @@
 <!-- TODO: Extract the validation process -->
 <script>
     import { createEventDispatcher } from 'svelte'
+    import { i18n } from '../../i18n'
+
     let validationProcess = false
 
     const dipatch = createEventDispatcher()
@@ -11,8 +13,8 @@
 </script>
 
 {#if !validationProcess}
-<button class="player-action" on:click={passTurn}>Pass your turn</button>
+<button class="player-action" on:click={passTurn}>{$i18n('passTurn.pass')}</button>
 {:else}
-<button class="player-action" on:click={validate}>Validate (You will not be able to play again for the rest of the game)</button>
-<button class="player-action" on:click={cancel}>Cancel</button>
+<button class="player-action" on:click={validate}>{$i18n('passTurn.validate')}</button>
+<button class="player-action" on:click={cancel}>{$i18n('passTurn.cancel')}</button>
 {/if}

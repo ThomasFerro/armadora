@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
+import { i18n } from '../i18n/index.js';
   import { LOADING, LOADED, ERROR } from '../loading.js';
   import { createNewParty, getParties } from './party.service.js';
   const dispatch = createEventDispatcher();
@@ -41,36 +42,36 @@
   let partyNameInput = ''
 </script>
 
-<button on:click={createParty}>Create party</button>
+<button on:click={createParty}>{$i18n('partySelection.create')}</button>
 {#if creationError}
-<p class="message error-message">An error has occurred while creating the party</p>
+<p class="message error-message">{$i18n('partySelection.creationError')}</p>
 {/if}
 <details open class="parties-listing">
-  <summary>Join a party</summary>
+  <summary>{$i18n('partySelection.join')}</summary>
   
   <form on:submit|preventDefault={() => joinParty(partyNameInput)}>
     <label>
-      Already know the name of the game you want to join ?
+      {$i18n('partySelection.joinByName')}
       <input type="text" bind:value={partyNameInput}>
     </label>
-    <input type="submit" value="Join">
+    <input type="submit" value={$i18n('partySelection.joinParty')}>
   </form>
 
 
   {#if partiesLoadingState === LOADING}
-  <p class="message info-message">Loading parties</p>
+  <p class="message info-message">{$i18n('partySelection.loadingParties')}</p>
   {:else if partiesLoadingState === LOADED}
   <ul class="parties">
-    <button class="reload" on:click={loadParties}>Reload</button>
+    <button class="reload" on:click={loadParties}>{$i18n('partySelection.reloadParties')}</button>
     {#each parties as party}
       <li>
-        <button on:click={() => joinParty(party)}>Join {party}</button>
+        <button on:click={() => joinParty(party)}>{$i18n('partySelection.joinParty')} {party}</button>
       </li>
     {/each}
   </ul>
   {:else if partiesLoadingState === ERROR}
-  <p class="message error-message">An error has occurred while loading the parties</p>
-  <button class="reload" on:click={loadParties}>Reload</button>
+  <p class="message error-message">{$i18n('partySelection.loadingPartiesError')}</p>
+  <button class="reload" on:click={loadParties}>{$i18n('partySelection.reloadParties')}</button>
   {/if}
 </details>
 

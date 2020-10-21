@@ -1,5 +1,72 @@
 {
     "home": {
-        "connectedAs": "Connecté en tant que"
+        "connectedAs": "Connecté en tant que",
+        "changeNickname": "Changer de pseudonyme"
+    },
+    "localeSelection": {
+        "select": "Sélectionner votre langue"
+    },
+    "licences": {
+        "basedOn": "Tiré du jeu de plateau créé par Christwart Conrad, illustré par Tony Rochon et édité par Blackrock Games",
+        "characterIcons": "Images de personnages fournies par",
+        "under": "sous",
+        "creativeCommons": "licence Creative commons 3.0",
+        "madeBy": "Forgé par",
+        "courtesy": "Avec l'aimable autorisation de Blackrock Games"
+    },
+    "nickname": {
+        "authenticationWarning": "Le jeu est en cours de développement et ne fournit pour le moment pas de gestion de l'authentification.",
+        "linkedToNickname": "Vos parties sont pour l'instant liées au pseudonyme que vous choisissez.",
+        "nicknameUseCase": "Deux joueurs avec le même pseudonyme agiront comme s'ils étaient sur le même compte.",
+        "nickname": "Pseudonyme",
+        "validate": "Valider pseudonyme"
+    },
+    "joinAGame": {
+        "selectYourCharacter": "Sélectionner votre personnage",
+        "selectACharacter": "Sélectionner un personnage",
+        "connect": "Se connecter à la partie"
+    },
+    "party": {
+        "cannotLoadGameStatus": "Impossible de charger l'état de la partie",
+        "unableToConnect": "Impossible de se connecter à la partie",
+        "unableToStart": "Impossible de démarrer la partie",
+        "starting": "Démarrage de la partie...",
+        "start": "Démarrer la partie",
+        "sendingAction": "Envoi de votre action en cours...",
+        "sendingActionError": "Une erreur est survenue lors de l'envoi de votre action",
+        "party": "Partie"
+    },
+    "partySelection": {
+        "create": "Nouvelle partie",
+        "creationError": "Une erreur est survenue lors de la création de la nouvelle partie",
+        "join": "Rejoindre une partie",
+        "joinByName": "Vous connaissez déjà le nom de la partie que vous voulez rejoindre ?",
+        "loadingParties": "Chargement des parties",
+        "loadingPartiesError": "Une erreur est survenue lors du changement des parties",
+        "reloadParties": "Recharger",
+        "joinParty": "Rejoindre"
+    },
+    "board": {
+        "noCurrentPlayer": "Personne n'est en train de jouer",
+        "playing": "est en train de jouer..."
+    },
+    "palisadeSelection": {
+        "validate": "Valider les palisades",
+        "clear": "Supprimer les palisades"
+    },
+    "passTurn": {
+        "pass": "Passer votre tour",
+        "validate": "Valider (vous ne pourrez plus jouer pour le reste de la partie)",
+        "cancel": "Annuler"
+    },
+    "warriorSelection": {
+        "validation": "Voulez-vous vraiment poser un guerrier de force",
+        "validate": "Valider",
+        "cancel": "Annuler"
+    },
+    "scores": {
+        "username": "Pseudonyme",
+        "character": "Personnage",
+        "totalGold": "Or total"
     }
 }

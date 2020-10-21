@@ -6,6 +6,7 @@
     import Player from './Player.svelte';
     import { LOADING, LOADED, ERROR } from '../loading';
     import { connectToGame, gameInformation, startGame, putWarrior, putPalisades, passTurn } from './party.service.js';
+    import { i18n } from '../i18n';
 
     export let id
     export let nickname
@@ -27,7 +28,7 @@
                 game = updatedGame
             })
             .catch(() => {
-                partyError = 'Cannot load the game\'s status'
+                partyError = 'party.cannotLoadGameStatus'
             })
     }
 
@@ -52,13 +53,13 @@
             username: nickname
         })
             .catch(() => {
-                partyError = 'Unable to connect to the game'
+                partyError = 'party.unableToConnect'
             })
     }
 
     let startTheGameStatus = ''
     $: gameIsStarting = startTheGameStatus === LOADING
-    $: startTheGameLabel = gameIsStarting ? 'Starting the new game...' : 'Start the game'
+    $: startTheGameLabel = gameIsStarting ? 'party.starting' : 'party.start'
     const startTheGame = () => {
         partyError = ''
         startTheGameStatus = LOADING
@@ -67,7 +68,7 @@
                 startTheGameStatus = LOADED
             })
             .catch(() => {
-                partyError = 'Unable to start the game'
+                partyError = 'party.unableToStart'
                 startTheGameStatus = ERROR
             })
     }
@@ -136,14 +137,14 @@
     })
 </script>
 
-<h2 class="party-title">Party {id} <button on:click={leaveParty}>⍇</button></h2>
+<h2 class="party-title">{$i18n('party.party')} {id} <button on:click={leaveParty}>⍇</button></h2>
 {#if partyError}
-<p class="message error-message">{partyError}</p>
+<p class="message error-message">{$i18n(partyError)}</p>
 {/if}
 {#if actionPending}
-<p class="message info-message">Sending your action...</p>
+<p class="message info-message">{$i18n('party.sendingAction')}</p>
 {:else if actionError}
-<p class="message error-message">An error has occurred while sending your action</p>
+<p class="message error-message">{$i18n('party.sendingActionError')}</p>
 {/if}
 {#if waitingForPlayers}
     {#if !connectedPlayer}
@@ -152,7 +153,7 @@
         on:connect={(e) => connectToTheGame(e.detail)}
     ></JoinAGame>
     {:else}
-    <button on:click={startTheGame} disabled={gameIsStarting}>{startTheGameLabel}</button>
+    <button on:click={startTheGame} disabled={gameIsStarting}>{$i18n(startTheGameLabel)}</button>
     {/if}
     <ul class="players">
         {#each players as player}
