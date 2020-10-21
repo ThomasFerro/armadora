@@ -1,5 +1,5 @@
 <script>
-    import { createEventDispatcher } from 'svelte'
+    import { createEventDispatcher, onDestroy } from 'svelte'
     import JoinAGame from './JoinAGame.svelte';
     import Board from './board/Board.svelte';
     import Scores from './score/Scores.svelte';
@@ -130,6 +130,10 @@
         }
     }
     $: scores = game && game.scores
+
+    onDestroy(() => {
+        clearTimeout(gameUpdateTimeout)
+    })
 </script>
 
 <h2 class="party-title">Party {id} <button on:click={leaveParty}>⍇</button></h2>

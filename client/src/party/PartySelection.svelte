@@ -37,6 +37,8 @@
   };
 
   onMount(loadParties);
+
+  let partyNameInput = ''
 </script>
 
 <button on:click={createParty}>Create party</button>
@@ -45,6 +47,16 @@
 {/if}
 <details open class="parties-listing">
   <summary>Join a party</summary>
+  
+  <form on:submit|preventDefault={() => joinParty(partyNameInput)}>
+    <label>
+      Already know the name of the game you want to join ?
+      <input type="text" bind:value={partyNameInput}>
+    </label>
+    <input type="submit" value="Join">
+  </form>
+
+
   {#if partiesLoadingState === LOADING}
   <p class="message info-message">Loading parties</p>
   {:else if partiesLoadingState === LOADED}
