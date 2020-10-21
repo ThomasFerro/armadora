@@ -8,7 +8,7 @@ const fetchWithDefaultCheck = (url, options) => fetch(url, options)
         return response.json()
     });
 
-export const createNewParty = () => fetchWithDefaultCheck(`${url}/games`,{ method: "POST" })
+export const createNewParty = () => fetchWithDefaultCheck(`${url}/parties`,{ method: "POST" })
 
 export const getParties = () => fetchWithDefaultCheck(`${url}/parties`)
 

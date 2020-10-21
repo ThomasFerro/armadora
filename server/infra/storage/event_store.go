@@ -17,5 +17,4 @@ type History struct {
 type EventStore interface {
 	GetHistory(id string) (History, error)
 	AppendToHistory(id string, sequenceNumber SequenceNumber, events []dto.EventDto) error
-	GetParties() ([]string, error)
 }
