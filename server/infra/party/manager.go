@@ -1,6 +1,7 @@
 package party
 
 import (
+	"context"
 	"fmt"
 )
 
@@ -10,7 +11,7 @@ type PartiesManager struct {
 }
 
 // CreateParty Manage the creation of a a new party
-func (partiesManager PartiesManager) CreateParty(partyName PartyName, partyIsPublic bool) (PartyName, error) {
+func (partiesManager PartiesManager) CreateParty(ctx context.Context, partyName PartyName, partyIsPublic bool) (PartyName, error) {
 	if partyName == "" {
 		return "", CannotCreateAPartyWithoutName{}
 	}
@@ -28,7 +29,7 @@ func (partiesManager PartiesManager) CreateParty(partyName PartyName, partyIsPub
 	if partyIsPublic {
 		restriction = Public
 	}
-	return partiesManager.repository.CreateParty(partyName, restriction, Open)
+	return partiesManager.repository.CreateParty(ctx, partyName, restriction, Open)
 }
 
 // GetVisibleParties Get all visible parties
