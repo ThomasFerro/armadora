@@ -48,7 +48,6 @@ func newArmadoraService() (infra.ArmadoraService, *storage.ConnectionToClose, er
 		Uri:      config.GetConfiguration("MONGO_URI"),
 		Database: config.GetConfiguration("MONGO_DATABASE_NAME"),
 	}
-	// TODO: Manage connection closing
 	mongoConnectionToClose, err := mongoClient.GetConnection()
 	if err != nil {
 		return infra.ArmadoraService{}, nil, fmt.Errorf("Cannot get mongo connection: %w", err)
