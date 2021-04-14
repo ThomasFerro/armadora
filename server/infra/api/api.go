@@ -27,6 +27,14 @@ func StartApi() {
 	}
 	defer connectionToClose.Close()
 
+	var connectionToClose *storage.ConnectionToClose
+	var err error
+	armadoraService, connectionToClose, err = newArmadoraService()
+	if err != nil {
+		log.Fatalf("Cannot start the server: cannot create armadora service %v\n", err)
+	}
+	defer connectionToClose.Close()
+
 	http.HandleFunc("/parties", handlePartiesRequest)
 
 	http.HandleFunc("/parties/", handlePartyRequest)
@@ -48,6 +56,8 @@ func newArmadoraService() (infra.ArmadoraService, *storage.ConnectionToClose, er
 		Uri:      config.GetConfiguration("MONGO_URI"),
 		Database: config.GetConfiguration("MONGO_DATABASE_NAME"),
 	}
+
+	// TODO: Manage connection closing
 	mongoConnectionToClose, err := mongoClient.GetConnection()
 	if err != nil {
 		return infra.ArmadoraService{}, nil, fmt.Errorf("Cannot get mongo connection: %w", err)

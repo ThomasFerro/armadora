@@ -137,6 +137,7 @@ func (armadoraService ArmadoraService) ReceiveCommand(partyName party.PartyName,
 			return nil, fmt.Errorf("An error has occurred while managing the command %v, %w", command, err)
 		}
 
+		// TODO: Put AppendToHistory + CloseAParty in a transaction
 		err = armadoraService.eventStore.AppendToHistory(string(partyName), history.SequenceNumber, dto.ToEventsDto(newEvents))
 
 		if err != nil {
