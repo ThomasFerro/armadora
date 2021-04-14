@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ThomasFerro/armadora/infra/config"
 	"github.com/ThomasFerro/armadora/infra/dto"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -17,18 +16,13 @@ type eventWithStreamID struct {
 }
 
 type mongoDbEventStore struct {
-	client MongoClient
+	connection *ConnectionToClose
+	collection string
 }
 
 func (m mongoDbEventStore) GetHistory(id string) (History, error) {
-	collectionToClose, err := m.client.GetCollection()
-	if err != nil {
-		return History{}, fmt.Errorf("An error has occurred while getting the collection: %w", err)
-	}
-	defer collectionToClose.Close()
-
 	filter := bson.D{{"stream_id", id}}
-	found, err := collectionToClose.Collection.Find(context.TODO(), filter)
+	found, err := m.connection.Database.Collection(m.collection).Find(context.TODO(), filter)
 	if err != nil {
 		return History{}, fmt.Errorf("An error has occurred while getting the party %v's history: %w", id, err)
 	}
@@ -73,15 +67,9 @@ func (m *mongoDbEventStore) AppendToHistory(id string, sequenceNumber SequenceNu
 	if currentHistory.SequenceNumber != sequenceNumber {
 		return fmt.Errorf("Cannot append events to the history, sequence numbers mismatch. Expected %v but got %v", currentHistory.SequenceNumber, sequenceNumber)
 	}
-	collectionToClose, err := m.client.GetCollection()
-	if err != nil {
-		return fmt.Errorf("An error has occurred while getting the collection: %w", err)
-	}
-	defer collectionToClose.Close()
-
 	eventsToSave := toEventsToSave(id, events)
 
-	_, err = collectionToClose.Collection.InsertMany(context.Background(), eventsToSave)
+	_, err = m.connection.Database.Collection(m.collection).InsertMany(context.Background(), eventsToSave)
 	if err != nil {
 		return fmt.Errorf("An error has occurred while inserting the events %v: %w", eventsToSave, err)
 	}
@@ -154,12 +142,9 @@ func toEventDto(eventType, rawEvent bson.RawValue) (dto.EventDto, error) {
 }
 
 // NewEventStore Create a new MongoDB based event store
-func NewEventStore() EventStore {
+func NewMongoEventStore(connection *ConnectionToClose, collection string) EventStore {
 	return &mongoDbEventStore{
-		client: MongoClient{
-			Uri:        config.GetConfiguration("MONGO_URI"),
-			Database:   config.GetConfiguration("MONGO_DATABASE_NAME"),
-			Collection: config.GetConfiguration("MONGO_EVENT_COLLECTION_NAME"),
-		},
+		connection,
+		collection,
 	}
 }

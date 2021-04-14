@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	"github.com/ThomasFerro/armadora/e2e/helpers"
 	"github.com/ThomasFerro/armadora/infra/api"
@@ -9,6 +10,8 @@ import (
 
 func TestEndToEnd(t *testing.T) {
 	go api.StartApi()
+
+	time.Sleep(5 * time.Second)
 
 	partyId, err := helpers.CreateParty()
 	if err != nil {

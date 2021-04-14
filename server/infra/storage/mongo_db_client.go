@@ -12,15 +12,15 @@ import (
 
 // MongoClient A mongodb client
 type MongoClient struct {
-	Uri        string
-	Database   string
-	Collection string
+	Uri      string
+	Database string
 }
 
 // ConnectionToClose A database connection to close
 type ConnectionToClose struct {
-	client *mongo.Client
-	close  func()
+	Client   *mongo.Client
+	Database *mongo.Database
+	Close    func()
 }
 
 func closeClientConnection(ctx context.Context, client *mongo.Client) {
@@ -29,7 +29,8 @@ func closeClientConnection(ctx context.Context, client *mongo.Client) {
 	}
 }
 
-func (m MongoClient) getConnection() (*ConnectionToClose, error) {
+// GetConnection Get the mongo connection
+func (m MongoClient) GetConnection() (*ConnectionToClose, error) {
 	// Set client options
 	clientOptions := options.Client().ApplyURI(m.Uri)
 
@@ -51,29 +52,11 @@ func (m MongoClient) getConnection() (*ConnectionToClose, error) {
 	}
 
 	return &ConnectionToClose{
-		client: client,
-		close: func() {
+		Client:   client,
+		Database: client.Database(m.Database),
+		Close: func() {
 			closeClientConnection(ctx, client)
 			cancel()
 		},
-	}, nil
-}
-
-// CollectionToCloseAfterUse A collection to close
-type CollectionToCloseAfterUse struct {
-	Collection *mongo.Collection
-	Close      func()
-}
-
-// GetCollection Get the mongo collection
-func (m MongoClient) GetCollection() (*CollectionToCloseAfterUse, error) {
-	connection, err := m.getConnection()
-
-	if err != nil {
-		return nil, fmt.Errorf("Cannot connect the client: %w", err)
-	}
-	return &CollectionToCloseAfterUse{
-		Collection: connection.client.Database(m.Database).Collection(m.Collection),
-		Close:      connection.close,
 	}, nil
 }
