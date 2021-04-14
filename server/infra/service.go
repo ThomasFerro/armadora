@@ -108,52 +108,61 @@ func (armadoraService ArmadoraService) GetPartyGameState(partyName party.PartyNa
 
 // ReceiveCommand Manage a received command
 func (armadoraService ArmadoraService) ReceiveCommand(partyName party.PartyName, command Command) error {
-	requestedPartyExists, err := partyExists(armadoraService.partiesManager, partyName)
+	receiveCommandContext := context.Background()
+	receiveCommandWorkflow := func(ctx context.Context) (interface{}, error) {
+		requestedPartyExists, err := partyExists(armadoraService.partiesManager, partyName)
 
-	if err != nil {
-		return fmt.Errorf("An error has occurred while checking if the party %v exists: %w", partyName, err)
-	}
-
-	if !requestedPartyExists {
-		return fmt.Errorf("The party %v does not exists", partyName)
-	}
-
-	log.Printf("Receiving the following command for party %v: %v\n", partyName, command)
-
-	history, err := armadoraService.eventStore.GetHistory(string(partyName))
-
-	if err != nil {
-		return fmt.Errorf("An error has occurred while retrieving the history before managing the command %v, %w", command, err)
-	}
-
-	newEvents, err := ManageCommand(
-		dto.FromEventsDto(history.Events),
-		command,
-	)
-
-	if err != nil {
-		return fmt.Errorf("An error has occurred while managing the command %v, %w", command, err)
-	}
-
-	// TODO: Put AppendToHistory + CloseAParty in a transaction
-	err = armadoraService.eventStore.AppendToHistory(string(partyName), history.SequenceNumber, dto.ToEventsDto(newEvents))
-
-	if err != nil {
-		return fmt.Errorf("An error has occurred while appending the events to the party's %v history, %w", partyName, err)
-	}
-
-	partyNeedsToBeClosed := false
-
-	for _, newEvent := range newEvents {
-		if _, isOfRightEventType := newEvent.(event.GameFinished); isOfRightEventType {
-			partyNeedsToBeClosed = true
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while checking if the party %v exists: %w", partyName, err)
 		}
+
+		if !requestedPartyExists {
+			return nil, fmt.Errorf("The party %v does not exists", partyName)
+		}
+
+		log.Printf("Receiving the following command for party %v: %v\n", partyName, command)
+
+		history, err := armadoraService.eventStore.GetHistory(string(partyName))
+
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while retrieving the history before managing the command %v, %w", command, err)
+		}
+
+		newEvents, err := ManageCommand(
+			dto.FromEventsDto(history.Events),
+			command,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while managing the command %v, %w", command, err)
+		}
+
+		err = armadoraService.eventStore.AppendToHistory(string(partyName), history.SequenceNumber, dto.ToEventsDto(newEvents))
+
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while appending the events to the party's %v history, %w", partyName, err)
+		}
+
+		partyNeedsToBeClosed := false
+
+		for _, newEvent := range newEvents {
+			if _, isOfRightEventType := newEvent.(event.GameFinished); isOfRightEventType {
+				partyNeedsToBeClosed = true
+			}
+		}
+
+		if partyNeedsToBeClosed {
+			return nil, armadoraService.partiesManager.CloseAParty(partyName)
+		}
+
+		return nil, nil
 	}
 
-	if partyNeedsToBeClosed {
-		return armadoraService.partiesManager.CloseAParty(partyName)
-	}
+	_, err := armadoraService.transactionManager.RunTransation(receiveCommandContext, receiveCommandWorkflow)
 
+	if err != nil {
+		return fmt.Errorf("An error has occurred in the command management transaction: %w", err)
+	}
 	return nil
 }
 
