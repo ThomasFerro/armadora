@@ -3,12 +3,19 @@ package storage_test
 import (
 	"context"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/ThomasFerro/armadora/infra/config"
 	"github.com/ThomasFerro/armadora/infra/storage"
 	"go.mongodb.org/mongo-driver/bson"
 )
+
+func ignoreIntegrationTests(t *testing.T) {
+	if os.Getenv("IGNORE_INTEGRATION_TESTS") == "true" {
+		t.Skip("Skipping integration tests")
+	}
+}
 
 const TRANSACTION_INTEGRATION_FIRST_TEST_COLLECTION = "TRANSACTION_INTEGRATION_FIRST_TEST_COLLECTION"
 const TRANSACTION_INTEGRATION_SECOND_TEST_COLLECTION = "TRANSACTION_INTEGRATION_SECOND_TEST_COLLECTION"
@@ -38,6 +45,7 @@ type SampleDocument struct {
 }
 
 func TestSingleActionTransaction(t *testing.T) {
+	ignoreIntegrationTests(t)
 	transactionManager, connectionToClose, err := getIntegrationTestsTransactionManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -76,6 +84,7 @@ func TestSingleActionTransaction(t *testing.T) {
 }
 
 func TestShouldNotCommitAnyActionInAFailedTransaction(t *testing.T) {
+	ignoreIntegrationTests(t)
 	transactionManager, connectionToClose, err := getIntegrationTestsTransactionManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
