@@ -2,12 +2,19 @@ package party_test
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/ThomasFerro/armadora/infra/config"
 	"github.com/ThomasFerro/armadora/infra/party"
 	"github.com/ThomasFerro/armadora/infra/storage"
 )
+
+func ignoreIntegrationTests(t *testing.T) {
+	if os.Getenv("IGNORE_INTEGRATION_TESTS") == "true" {
+		t.Skip("Skipping integration tests")
+	}
+}
 
 const PARTIES_INTEGRATION_TEST_COLLECTION = "PARTIES_INTEGRATION_TEST_COLLECTION"
 
@@ -30,6 +37,7 @@ func dropIntegrationTestsPartiesDatabase(connectionToClose *storage.ConnectionTo
 }
 
 func TestCreateAPublicParty(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -50,6 +58,7 @@ func TestCreateAPublicParty(t *testing.T) {
 }
 
 func TestCreateAPrivateParty(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -70,6 +79,7 @@ func TestCreateAPrivateParty(t *testing.T) {
 }
 
 func TestCannotCreateAPartyWithoutName(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -91,6 +101,7 @@ func TestCannotCreateAPartyWithoutName(t *testing.T) {
 }
 
 func TestCannotCreateAPartyWithAnAlreadyExistingName(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -115,6 +126,7 @@ func TestCannotCreateAPartyWithAnAlreadyExistingName(t *testing.T) {
 }
 
 func TestGetVisibleParties(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -157,6 +169,7 @@ func TestGetVisibleParties(t *testing.T) {
 	}
 }
 func TestClosedPartiesNotConsideredAsVisible(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -195,6 +208,7 @@ func TestClosedPartiesNotConsideredAsVisible(t *testing.T) {
 }
 
 func TestGetASpecificPublicParty(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -222,6 +236,7 @@ func TestGetASpecificPublicParty(t *testing.T) {
 }
 
 func TestGetASpecificPrivateParty(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -249,6 +264,7 @@ func TestGetASpecificPrivateParty(t *testing.T) {
 }
 
 func TestCannotGetAPartyThatDoesNotExist(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -268,6 +284,7 @@ func TestCannotGetAPartyThatDoesNotExist(t *testing.T) {
 }
 
 func TestNoPartyNameProvidedToGetTheParty(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -287,6 +304,7 @@ func TestNoPartyNameProvidedToGetTheParty(t *testing.T) {
 }
 
 func TestAPartyIsOpenByDefault(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -307,6 +325,7 @@ func TestAPartyIsOpenByDefault(t *testing.T) {
 }
 
 func TestCloseAParty(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -334,6 +353,7 @@ func TestCloseAParty(t *testing.T) {
 }
 
 func TestCannotFindThePartyToClose(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)
@@ -353,6 +373,7 @@ func TestCannotFindThePartyToClose(t *testing.T) {
 }
 
 func TestNoPartyNameProvidedForThePartyToClose(t *testing.T) {
+	ignoreIntegrationTests(t)
 	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
 	if err != nil {
 		t.Fatalf("Cannot initialize the test: %v", err)

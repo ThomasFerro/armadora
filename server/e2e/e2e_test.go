@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -8,7 +9,14 @@ import (
 	"github.com/ThomasFerro/armadora/infra/api"
 )
 
+func ignoreIntegrationTests(t *testing.T) {
+	if os.Getenv("IGNORE_INTEGRATION_TESTS") == "true" {
+		t.Skip("Skipping integration tests")
+	}
+}
+
 func TestEndToEnd(t *testing.T) {
+	ignoreIntegrationTests(t)
 	go api.StartApi()
 
 	time.Sleep(5 * time.Second)
