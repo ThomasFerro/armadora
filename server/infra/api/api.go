@@ -66,6 +66,7 @@ func newArmadoraService() (infra.ArmadoraService, *storage.ConnectionToClose, er
 	eventStore := storage.NewMongoEventStore(
 		mongoConnectionToClose,
 		config.GetConfiguration("MONGO_EVENT_COLLECTION_NAME"),
+		config.GetConfiguration("MONGO_PROJECTION_COLLECTION_NAME"),
 	)
 	partiesRepository := party.NewPartiesMongoRepository(
 		mongoConnectionToClose,

@@ -80,7 +80,7 @@ func (mongoRepository PartiesMongoRepository) GetParty(partyName PartyName) (Par
 				partyName,
 			}
 		}
-		return Party{}, fmt.Errorf("An error has occurred while getting the partiy %v: %w", partyName, err)
+		return Party{}, fmt.Errorf("An error has occurred while getting the party %v: %w", partyName, err)
 	}
 
 	return returnedParty, nil

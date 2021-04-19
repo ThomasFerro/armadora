@@ -15,56 +15,56 @@ type StateDto string
 type CharacterDto string
 
 type WarriorsDto struct {
-	OnePoint    int `json:"one_point"`
-	TwoPoints   int `json:"two_points"`
-	ThreePoints int `json:"three_points"`
-	FourPoints  int `json:"four_points"`
-	FivePoints  int `json:"five_points"`
+	OnePoint    int `json:"one_point" bson:"one_point"`
+	TwoPoints   int `json:"two_points" bson:"two_points"`
+	ThreePoints int `json:"three_points" bson:"three_points"`
+	FourPoints  int `json:"four_points" bson:"four_points"`
+	FivePoints  int `json:"five_points" bson:"five_points"`
 }
 
 type PlayerDto struct {
-	Nickname   string       `json:"nickname"`
-	Character  CharacterDto `json:"character"`
-	Warriors   WarriorsDto  `json:"warriors"`
-	TurnPassed bool         `json:"turn_passed"`
+	Nickname   string       `json:"nickname" bson:"nickname"`
+	Character  CharacterDto `json:"character" bson:"character"`
+	Warriors   WarriorsDto  `json:"warriors" bson:"warriors"`
+	TurnPassed bool         `json:"turn_passed" bson:"turn_passed"`
 }
 
 type CellType string
 
 type CellDto struct {
-	Type      CellType `json:"type"`
-	Character string   `json:"character"`
-	Gold      int      `json:"gold"`
+	Type      CellType `json:"type" bson:"type"`
+	Character string   `json:"character" bson:"character"`
+	Gold      int      `json:"gold" bson:"gold"`
 }
 
 type PalisadeDto struct {
-	X1 int `json:"x1"`
-	Y1 int `json:"y1"`
-	X2 int `json:"x2"`
-	Y2 int `json:"y2"`
+	X1 int `json:"x1" bson:"x1"`
+	Y1 int `json:"y1" bson:"y1"`
+	X2 int `json:"x2" bson:"x2"`
+	Y2 int `json:"y2" bson:"y2"`
 }
 
 type BoardDto struct {
-	Cells         [][]CellDto   `json:"cells"`
-	Palisades     []PalisadeDto `json:"palisades"`
-	PalisadesLeft int           `json:"palisades_left"`
+	Cells         [][]CellDto   `json:"cells" bson:"cells"`
+	Palisades     []PalisadeDto `json:"palisades" bson:"palisades"`
+	PalisadesLeft int           `json:"palisades_left" bson:"palisades_left"`
 }
 
 type ScoresDto map[int]ScoreDto
 
 type ScoreDto struct {
-	Player     int   `json:"player"`
-	TotalGold  int   `json:"gold"`
-	GoldStacks []int `json:"stacks"`
+	Player     int   `json:"player" bson:"player"`
+	TotalGold  int   `json:"gold" bson:"gold"`
+	GoldStacks []int `json:"stacks" bson:"stacks"`
 }
 
 type GameDto struct {
-	State               StateDto    `json:"state"`
-	Players             []PlayerDto `json:"players"`
-	CurrentPlayer       int         `json:"current_player"`
-	Board               BoardDto    `json:"board"`
-	AvailableCharacters []string    `json:"available_characters"`
-	Scores              ScoresDto   `json:"scores"`
+	State               StateDto    `json:"state" bson:"state"`
+	Players             []PlayerDto `json:"players" bson:"players"`
+	CurrentPlayer       int         `json:"current_player" bson:"current_player"`
+	Board               BoardDto    `json:"board" bson:"board"`
+	AvailableCharacters []string    `json:"available_characters" bson:"available_characters"`
+	Scores              ScoresDto   `json:"scores" bson:"scores"`
 }
 
 func toCellDto(boardToMap board.Board, players []PlayerDto, x, y int) CellDto {

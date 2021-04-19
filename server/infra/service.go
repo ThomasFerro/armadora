@@ -16,7 +16,7 @@ import (
 
 // ArmadoraService Service managing Armadora games
 type ArmadoraService struct {
-	eventStore         storage.EventStore
+	eventStore         storage.EventStoreWithProjection
 	partiesManager     party.PartiesManager
 	transactionManager storage.TransactionManager
 }
@@ -50,6 +50,8 @@ func (armadoraService ArmadoraService) CreateParty() (party.PartyName, error) {
 		if err != nil {
 			return nil, fmt.Errorf("An error has occurred while creating a new party: %w", err)
 		}
+
+		// TODO: extract ManageCommand + AppendToHistory + PersistProjection and reuse it in ReceiveCommand
 		history, err := ManageCommand([]event.Event{}, Command{
 			CommandType: "CreateGame",
 		})
@@ -61,9 +63,21 @@ func (armadoraService ArmadoraService) CreateParty() (party.PartyName, error) {
 			"",
 			dto.ToEventsDto(history),
 		)
-		// TODO: Persist the game's projection in the party
 		if err != nil {
 			return nil, fmt.Errorf("An error has occurred while storing the new party: %w", err)
+		}
+		gameState := dto.ToGameDto(
+			game.ReplayHistory(
+				history,
+			),
+		)
+		err = armadoraService.eventStore.PersistProjection(
+			ctx,
+			string(newPartyName),
+			gameState,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("an error has occurred while storing the party's projection: %w", err)
 		}
 		return newPartyName, nil
 	}
@@ -87,23 +101,22 @@ func (armadoraService ArmadoraService) GetPartyGameState(partyName party.PartyNa
 	requestedPartyExists, err := partyExists(armadoraService.partiesManager, partyName)
 
 	if err != nil {
-		return dto.GameDto{}, fmt.Errorf("An error has occurred while checking if the party %v exists: %w", partyName, err)
+		return dto.GameDto{}, fmt.Errorf("an error has occurred while checking if the party %v exists: %w", partyName, err)
 	}
 
 	if !requestedPartyExists {
-		return dto.GameDto{}, fmt.Errorf("The party %v does not exists", partyName)
+		return dto.GameDto{}, fmt.Errorf("the party %v does not exists", partyName)
 	}
 
-	// TODO: Replace with a fetch from the games projection
-	history, err := armadoraService.eventStore.GetHistory(string(partyName))
+	gameDtoToCheck, err := armadoraService.eventStore.GetProjection(context.Background(), string(partyName))
 	if err != nil {
-		return dto.GameDto{}, err
+		return dto.GameDto{}, fmt.Errorf("an error has occurred while getting the party %v state: %w", partyName, err)
 	}
-	return dto.ToGameDto(
-		game.ReplayHistory(
-			dto.FromEventsDto(history.Events),
-		),
-	), nil
+	// gameDto, castingFailed := gameDtoToCheck.(dto.GameDto)
+	// if !castingFailed {
+	// 	return dto.GameDto{}, fmt.Errorf("party %v state type mismatch %v %v", partyName, gameDto, gameDtoToCheck)
+	// }
+	return gameDtoToCheck, nil
 }
 
 // ReceiveCommand Manage a received command
@@ -113,11 +126,11 @@ func (armadoraService ArmadoraService) ReceiveCommand(partyName party.PartyName,
 		requestedPartyExists, err := partyExists(armadoraService.partiesManager, partyName)
 
 		if err != nil {
-			return nil, fmt.Errorf("An error has occurred while checking if the party %v exists: %w", partyName, err)
+			return nil, fmt.Errorf("an error has occurred while checking if the party %v exists: %w", partyName, err)
 		}
 
 		if !requestedPartyExists {
-			return nil, fmt.Errorf("The party %v does not exists", partyName)
+			return nil, fmt.Errorf("the party %v does not exists", partyName)
 		}
 
 		log.Printf("Receiving the following command for party %v: %v\n", partyName, command)
@@ -125,23 +138,36 @@ func (armadoraService ArmadoraService) ReceiveCommand(partyName party.PartyName,
 		history, err := armadoraService.eventStore.GetHistory(string(partyName))
 
 		if err != nil {
-			return nil, fmt.Errorf("An error has occurred while retrieving the history before managing the command %v, %w", command, err)
+			return nil, fmt.Errorf("an error has occurred while retrieving the history before managing the command %v, %w", command, err)
 		}
 
+		historyEvents := dto.FromEventsDto(history.Events)
 		newEvents, err := ManageCommand(
-			dto.FromEventsDto(history.Events),
+			historyEvents,
 			command,
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("An error has occurred while managing the command %v, %w", command, err)
+			return nil, fmt.Errorf("an error has occurred while managing the command %v, %w", command, err)
 		}
 
 		// TODO: Put AppendToHistory + CloseAParty in a transaction
 		err = armadoraService.eventStore.AppendToHistory(string(partyName), history.SequenceNumber, dto.ToEventsDto(newEvents))
 
 		if err != nil {
-			return nil, fmt.Errorf("An error has occurred while appending the events to the party's %v history, %w", partyName, err)
+			return nil, fmt.Errorf("an error has occurred while appending the events to the party's %v history, %w", partyName, err)
+		}
+
+		newGameHistory := append(historyEvents, newEvents...)
+		gameState := dto.ToGameDto(game.ReplayHistory(newGameHistory))
+
+		err = armadoraService.eventStore.PersistProjection(
+			ctx,
+			string(partyName),
+			gameState,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("an error has occurred while storing the party's projection: %w", err)
 		}
 
 		partyNeedsToBeClosed := false
@@ -200,7 +226,7 @@ func generateNewPartyName(partiesManager party.PartiesManager) (party.PartyName,
 }
 
 // NewArmadoraService Create a new Armadora service
-func NewArmadoraService(eventStore storage.EventStore, partiesRepository party.PartiesRepository, transactionManager storage.TransactionManager) ArmadoraService {
+func NewArmadoraService(eventStore storage.EventStoreWithProjection, partiesRepository party.PartiesRepository, transactionManager storage.TransactionManager) ArmadoraService {
 	return ArmadoraService{
 		eventStore:         eventStore,
 		partiesManager:     party.NewPartiesManager(partiesRepository),

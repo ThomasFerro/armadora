@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/ThomasFerro/armadora/infra/dto"
 )
 
@@ -17,4 +19,15 @@ type History struct {
 type EventStore interface {
 	GetHistory(id string) (History, error)
 	AppendToHistory(id string, sequenceNumber SequenceNumber, events []dto.EventDto) error
+}
+
+// FIXME: Move in a armadora-specific file if the gameDto cannot be abstracted
+type EventProjection interface {
+	GetProjection(ctx context.Context, id string) (dto.GameDto, error)
+	PersistProjection(ctx context.Context, id string, projection dto.GameDto) error
+}
+
+type EventStoreWithProjection interface {
+	EventStore
+	EventProjection
 }

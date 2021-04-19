@@ -7,6 +7,7 @@ import (
 
 	"github.com/ThomasFerro/armadora/infra/dto"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type eventWithStreamID struct {
@@ -15,14 +16,20 @@ type eventWithStreamID struct {
 	Event     dto.EventDto `bson:"event"`
 }
 
-type mongoDbEventStore struct {
-	connection *ConnectionToClose
-	collection string
+type projectionWithStreamID struct {
+	StreamID   string      `bson:"stream_id"`
+	Projection dto.GameDto `bson:"projection"`
 }
 
-func (m mongoDbEventStore) GetHistory(id string) (History, error) {
+type mongoDbEventStoreWithProjection struct {
+	connection            *ConnectionToClose
+	eventsCollection      string
+	projectionsCollection string
+}
+
+func (m mongoDbEventStoreWithProjection) GetHistory(id string) (History, error) {
 	filter := bson.D{{"stream_id", id}}
-	found, err := m.connection.Database.Collection(m.collection).Find(context.TODO(), filter)
+	found, err := m.connection.Database.Collection(m.eventsCollection).Find(context.TODO(), filter)
 	if err != nil {
 		return History{}, fmt.Errorf("An error has occurred while getting the party %v's history: %w", id, err)
 	}
@@ -58,7 +65,7 @@ func (m mongoDbEventStore) GetHistory(id string) (History, error) {
 	}, nil
 }
 
-func (m *mongoDbEventStore) AppendToHistory(id string, sequenceNumber SequenceNumber, events []dto.EventDto) error {
+func (m *mongoDbEventStoreWithProjection) AppendToHistory(id string, sequenceNumber SequenceNumber, events []dto.EventDto) error {
 	currentHistory, err := m.GetHistory(id)
 	if err != nil {
 		return fmt.Errorf("An error has occurred while getting the current history: %w", err)
@@ -69,11 +76,41 @@ func (m *mongoDbEventStore) AppendToHistory(id string, sequenceNumber SequenceNu
 	}
 	eventsToSave := toEventsToSave(id, events)
 
-	_, err = m.connection.Database.Collection(m.collection).InsertMany(context.Background(), eventsToSave)
+	// TODO: Should use the context sent by the caller
+	_, err = m.connection.Database.Collection(m.eventsCollection).InsertMany(context.Background(), eventsToSave)
 	if err != nil {
 		return fmt.Errorf("An error has occurred while inserting the events %v: %w", eventsToSave, err)
 	}
 	return nil
+}
+
+func (m *mongoDbEventStoreWithProjection) GetProjection(ctx context.Context, id string) (dto.GameDto, error) {
+	filter := bson.D{{"stream_id", id}}
+
+	var returnedProjection projectionWithStreamID
+
+	err := m.connection.Database.Collection(m.projectionsCollection).FindOne(ctx, filter).Decode(&returnedProjection)
+	if err != nil {
+		return dto.GameDto{}, fmt.Errorf("an error has occurred while getting the projection %v: %w", id, err)
+	}
+
+	return returnedProjection.Projection, nil
+}
+
+func (m *mongoDbEventStoreWithProjection) PersistProjection(ctx context.Context, id string, projection dto.GameDto) error {
+	filter := bson.D{{"stream_id", id}}
+	projectionToSave := projectionWithStreamID{
+		StreamID:   id,
+		Projection: projection,
+	}
+	update := bson.M{"$set": projectionToSave}
+	options := options.Update().SetUpsert(true)
+
+	_, err := m.connection.Database.Collection(m.projectionsCollection).UpdateOne(ctx, filter, update, options)
+	if err != nil {
+		return fmt.Errorf("an error has occurred while inserting the projection %v: %w", projectionToSave, err)
+	}
+	return err
 }
 
 func toEventsToSave(streamID string, events []dto.EventDto) []interface{} {
@@ -142,9 +179,10 @@ func toEventDto(eventType, rawEvent bson.RawValue) (dto.EventDto, error) {
 }
 
 // NewEventStore Create a new MongoDB based event store
-func NewMongoEventStore(connection *ConnectionToClose, collection string) EventStore {
-	return &mongoDbEventStore{
+func NewMongoEventStore(connection *ConnectionToClose, eventsCollection string, projectionsCollection string) EventStoreWithProjection {
+	return &mongoDbEventStoreWithProjection{
 		connection,
-		collection,
+		eventsCollection,
+		projectionsCollection,
 	}
 }
