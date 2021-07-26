@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/ThomasFerro/armadora/infra/dto"
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,9 +12,10 @@ import (
 )
 
 type eventWithStreamID struct {
-	StreamID  string       `bson:"stream_id"`
-	EventType string       `bson:"event_type"`
-	Event     dto.EventDto `bson:"event"`
+	StreamID    string       `bson:"stream_id"`
+	EventType   string       `bson:"event_type"`
+	Event       dto.EventDto `bson:"event"`
+	CreatedDate string       `bson:"created_date"`
 }
 
 type projectionWithStreamID struct {
@@ -118,9 +120,10 @@ func toEventsToSave(streamID string, events []dto.EventDto) []interface{} {
 
 	for _, nextEvent := range events {
 		nexteventWithStreamID := &eventWithStreamID{
-			StreamID:  streamID,
-			Event:     nextEvent,
-			EventType: fmt.Sprintf("%T", nextEvent),
+			StreamID:    streamID,
+			Event:       nextEvent,
+			EventType:   fmt.Sprintf("%T", nextEvent),
+			CreatedDate: time.Now().Local().String(),
 		}
 		returnedEvents = append(returnedEvents, nexteventWithStreamID)
 	}

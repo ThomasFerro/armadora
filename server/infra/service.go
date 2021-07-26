@@ -175,7 +175,7 @@ func generateNewPartyName(partiesManager party.PartiesManager) (party.PartyName,
 		return "", err
 	}
 
-	return "", fmt.Errorf("Unable to find a new party name after %v tries", tries)
+	return "", fmt.Errorf("unable to find a new party name after %v tries", tries)
 }
 
 func manageCommand(ctx context.Context, armadoraService ArmadoraService, partyName party.PartyName, eventsHistory []event.Event, sequenceNumber storage.SequenceNumber, command Command) ([]event.Event, error) {
@@ -188,7 +188,7 @@ func manageCommand(ctx context.Context, armadoraService ArmadoraService, partyNa
 	err = armadoraService.eventStore.AppendToHistory(
 		string(partyName),
 		sequenceNumber,
-		dto.ToEventsDto(newHistory),
+		dto.ToEventsDto(newEvents),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("an error has occurred while storing the new events for the party %v: %w", partyName, err)
