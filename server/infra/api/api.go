@@ -99,7 +99,7 @@ func handleGetParties(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	parties, err := armadoraService.GetVisibleParties()
+	parties, err := armadoraService.GetVisibleParties(r.Context())
 	if err != nil {
 		manageError(&w, err)
 		return
@@ -125,7 +125,7 @@ func handlePartyCreation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newParty, err := armadoraService.CreateParty()
+	newParty, err := armadoraService.CreateParty(r.Context())
 
 	if err != nil {
 		log.Printf("Cannot create a new party: %v\n", err)
@@ -159,7 +159,7 @@ func handlePartyRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetPartyState(partyName party.PartyName, w http.ResponseWriter, r *http.Request) {
-	party, err := armadoraService.GetPartyGameState(partyName)
+	party, err := armadoraService.GetPartyGameState(r.Context(), partyName)
 	if err != nil {
 		log.Printf("Cannot get the party %v: %v\n", partyName, err)
 		manageError(&w, err)
@@ -187,7 +187,7 @@ func handlePostPartyCommand(partyName party.PartyName, w http.ResponseWriter, r 
 		manageError(&w, err)
 	}
 
-	err = armadoraService.ReceiveCommand(partyName, command)
+	err = armadoraService.ReceiveCommand(r.Context(), partyName, command)
 
 	if err != nil {
 		manageError(&w, err)

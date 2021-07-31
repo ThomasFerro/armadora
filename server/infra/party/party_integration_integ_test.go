@@ -140,7 +140,8 @@ func TestGetVisibleParties(t *testing.T) {
 	createTestParty(t, partiesManager, "first private party", false)
 	createTestParty(t, partiesManager, secondVisiblePartyName, true)
 
-	parties, err := partiesManager.GetVisibleParties()
+	getVisiblePartiesContext := context.Background()
+	parties, err := partiesManager.GetVisibleParties(getVisiblePartiesContext)
 
 	if err != nil {
 		t.Fatalf("An error has occurred while getting visible parties: %v", err)
@@ -181,13 +182,15 @@ func TestClosedPartiesNotConsideredAsVisible(t *testing.T) {
 	createTestParty(t, partiesManager, visiblePartyName, true)
 	createTestParty(t, partiesManager, closedPartyName, true)
 
-	err = partiesManager.CloseAParty(closedPartyName)
+	closePartyContext := context.Background()
+	err = partiesManager.CloseAParty(closePartyContext, closedPartyName)
 
 	if err != nil {
 		t.Fatalf("An error has occurred while closing the party: %v", err)
 	}
 
-	parties, err := partiesManager.GetVisibleParties()
+	getVisiblePartiesContext := context.Background()
+	parties, err := partiesManager.GetVisibleParties(getVisiblePartiesContext)
 
 	if err != nil {
 		t.Fatalf("An error has occurred while getting visible parties: %v", err)
@@ -219,7 +222,8 @@ func TestGetASpecificPublicParty(t *testing.T) {
 	partyIsPublic := true
 	createTestParty(t, partiesManager, partyName, partyIsPublic)
 
-	newlyCreatedParty, err := partiesManager.GetParty(partyName)
+	getPartyContext := context.Background()
+	newlyCreatedParty, err := partiesManager.GetParty(getPartyContext, partyName)
 
 	if err != nil {
 		t.Fatalf("Unable to get the newly created party: %v", err)
@@ -247,7 +251,8 @@ func TestGetASpecificPrivateParty(t *testing.T) {
 	partyIsPublic := false
 	createTestParty(t, partiesManager, partyName, partyIsPublic)
 
-	newlyCreatedParty, err := partiesManager.GetParty(partyName)
+	getPartyContext := context.Background()
+	newlyCreatedParty, err := partiesManager.GetParty(getPartyContext, partyName)
 
 	if err != nil {
 		t.Fatalf("Unable to get the newly created party: %v", err)
@@ -271,8 +276,9 @@ func TestCannotGetAPartyThatDoesNotExist(t *testing.T) {
 	}
 	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
+	getPartyContext := context.Background()
 	partyName := party.PartyName("my awesome party")
-	_, err = partiesManager.GetParty(partyName)
+	_, err = partiesManager.GetParty(getPartyContext, partyName)
 
 	if err == nil {
 		t.Fatalf("Should not be able to get a party that does not exists")
@@ -291,8 +297,9 @@ func TestNoPartyNameProvidedToGetTheParty(t *testing.T) {
 	}
 	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
+	getPartyContext := context.Background()
 	partyName := party.PartyName("")
-	_, err = partiesManager.GetParty(partyName)
+	_, err = partiesManager.GetParty(getPartyContext, partyName)
 
 	if err == nil {
 		t.Fatalf("Should not be able to get a party that does not exists")
@@ -314,7 +321,8 @@ func TestAPartyIsOpenByDefault(t *testing.T) {
 	partyName := party.PartyName("my awesome party")
 	createTestParty(t, partiesManager, partyName, true)
 
-	newParty, err := partiesManager.GetParty(partyName)
+	getPartyContext := context.Background()
+	newParty, err := partiesManager.GetParty(getPartyContext, partyName)
 	if err != nil {
 		t.Fatalf("An error has occurred while getting the newly created party: %v", err)
 	}
@@ -335,13 +343,15 @@ func TestCloseAParty(t *testing.T) {
 	partyName := party.PartyName("my awesome party")
 	createTestParty(t, partiesManager, partyName, true)
 
-	err = partiesManager.CloseAParty(partyName)
+	closePartyContext := context.Background()
+	err = partiesManager.CloseAParty(closePartyContext, partyName)
 
 	if err != nil {
 		t.Fatalf("An error has occurred while closing the party: %v", err)
 	}
 
-	newleClosedParty, err := partiesManager.GetParty(partyName)
+	getPartyContext := context.Background()
+	newleClosedParty, err := partiesManager.GetParty(getPartyContext, partyName)
 
 	if err != nil {
 		t.Fatalf("An error has occurred while getting the newly closed party: %v", err)
@@ -360,8 +370,9 @@ func TestCannotFindThePartyToClose(t *testing.T) {
 	}
 	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
+	closePartyContext := context.Background()
 	partyName := party.PartyName("my awesome party")
-	err = partiesManager.CloseAParty(partyName)
+	err = partiesManager.CloseAParty(closePartyContext, partyName)
 
 	if err == nil {
 		t.Fatalf("Expected not to be able to close a party that does no exists")
@@ -380,8 +391,9 @@ func TestNoPartyNameProvidedForThePartyToClose(t *testing.T) {
 	}
 	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
+	closePartyContext := context.Background()
 	partyName := party.PartyName("")
-	err = partiesManager.CloseAParty(partyName)
+	err = partiesManager.CloseAParty(closePartyContext, partyName)
 
 	if err == nil {
 		t.Fatalf("Expected not to be able to close a party that does no exists")

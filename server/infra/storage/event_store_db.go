@@ -29,23 +29,23 @@ type mongoDbEventStoreWithProjection struct {
 	projectionsCollection string
 }
 
-func (m mongoDbEventStoreWithProjection) GetHistory(id string) (History, error) {
+func (m mongoDbEventStoreWithProjection) GetHistory(ctx context.Context, id string) (History, error) {
 	filter := bson.D{{"stream_id", id}}
-	found, err := m.connection.Database.Collection(m.eventsCollection).Find(context.TODO(), filter)
+	found, err := m.connection.Database.Collection(m.eventsCollection).Find(ctx, filter)
 	if err != nil {
-		return History{}, fmt.Errorf("An error has occurred while getting the party %v's history: %w", id, err)
+		return History{}, fmt.Errorf("an error has occurred while getting the party %v's history: %w", id, err)
 	}
 
 	var history []dto.EventDto
 	var sequenceNumber string
 
-	for found.Next(context.TODO()) {
+	for found.Next(ctx) {
 		eventType := found.Current.Lookup("event_type")
 		rawEvent := found.Current.Lookup("event")
 		event, err := toEventDto(eventType, rawEvent)
 		if err != nil {
 			return History{}, fmt.Errorf(
-				"An error has occurred while trying to convert the database entry to an event: %w",
+				"an error has occurred while trying to convert the database entry to an event: %w",
 				err,
 			)
 		}
@@ -57,31 +57,30 @@ func (m mongoDbEventStoreWithProjection) GetHistory(id string) (History, error) 
 	}
 
 	if err := found.Err(); err != nil {
-		return History{}, fmt.Errorf("An error has occurred while iterating through the events: %w", err)
+		return History{}, fmt.Errorf("an error has occurred while iterating through the events: %w", err)
 	}
 
-	found.Close(context.TODO())
+	found.Close(ctx)
 	return History{
 		SequenceNumber: SequenceNumber(sequenceNumber),
 		Events:         history,
 	}, nil
 }
 
-func (m *mongoDbEventStoreWithProjection) AppendToHistory(id string, sequenceNumber SequenceNumber, events []dto.EventDto) error {
-	currentHistory, err := m.GetHistory(id)
+func (m *mongoDbEventStoreWithProjection) AppendToHistory(ctx context.Context, id string, sequenceNumber SequenceNumber, events []dto.EventDto) error {
+	currentHistory, err := m.GetHistory(ctx, id)
 	if err != nil {
-		return fmt.Errorf("An error has occurred while getting the current history: %w", err)
+		return fmt.Errorf("an error has occurred while getting the current history: %w", err)
 	}
 
 	if currentHistory.SequenceNumber != sequenceNumber {
-		return fmt.Errorf("Cannot append events to the history, sequence numbers mismatch. Expected %v but got %v", currentHistory.SequenceNumber, sequenceNumber)
+		return fmt.Errorf("cannot append events to the history, sequence numbers mismatch. Expected %v but got %v", currentHistory.SequenceNumber, sequenceNumber)
 	}
 	eventsToSave := toEventsToSave(id, events)
 
-	// TODO: Should use the context sent by the caller
-	_, err = m.connection.Database.Collection(m.eventsCollection).InsertMany(context.Background(), eventsToSave)
+	_, err = m.connection.Database.Collection(m.eventsCollection).InsertMany(ctx, eventsToSave)
 	if err != nil {
-		return fmt.Errorf("An error has occurred while inserting the events %v: %w", eventsToSave, err)
+		return fmt.Errorf("an error has occurred while inserting the events %v: %w", eventsToSave, err)
 	}
 	return nil
 }
@@ -178,7 +177,7 @@ func toEventDto(eventType, rawEvent bson.RawValue) (dto.EventDto, error) {
 		err := rawEvent.Unmarshal(&event)
 		return event, err
 	}
-	return nil, errors.New("Unimplemented event type")
+	return nil, errors.New("unimplemented event type")
 }
 
 // NewEventStore Create a new MongoDB based event store

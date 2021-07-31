@@ -15,14 +15,14 @@ func (partiesManager PartiesManager) CreateParty(ctx context.Context, partyName 
 	if partyName == "" {
 		return "", CannotCreateAPartyWithoutName{}
 	}
-	_, err := partiesManager.repository.GetParty(partyName)
+	_, err := partiesManager.repository.GetParty(ctx, partyName)
 	if err == nil {
 		return "", CannotCreateAPartyWithAnAlreadyTakenName{
 			name: partyName,
 		}
 	}
 	if _, partyNotFound := err.(NotFound); !partyNotFound {
-		return "", fmt.Errorf("An error has occurred while checking if the party already exists: %w", err)
+		return "", fmt.Errorf("an error has occurred while checking if the party already exists: %w", err)
 	}
 
 	restriction := Private
@@ -33,26 +33,26 @@ func (partiesManager PartiesManager) CreateParty(ctx context.Context, partyName 
 }
 
 // GetVisibleParties Get all visible parties
-func (partiesManager PartiesManager) GetVisibleParties() ([]Party, error) {
-	return partiesManager.repository.GetParties(Public, Open)
+func (partiesManager PartiesManager) GetVisibleParties(ctx context.Context) ([]Party, error) {
+	return partiesManager.repository.GetParties(ctx, Public, Open)
 }
 
 // GetParty Get a specific parties
-func (partiesManager PartiesManager) GetParty(partyName PartyName) (Party, error) {
+func (partiesManager PartiesManager) GetParty(ctx context.Context, partyName PartyName) (Party, error) {
 	if partyName == PartyName("") {
 		return Party{}, NoPartyNameProvided{}
 	}
 
-	return partiesManager.repository.GetParty(partyName)
+	return partiesManager.repository.GetParty(ctx, partyName)
 }
 
 // CloseAParty Close a party
-func (partiesManager PartiesManager) CloseAParty(partyName PartyName) error {
+func (partiesManager PartiesManager) CloseAParty(ctx context.Context, partyName PartyName) error {
 	if partyName == PartyName("") {
 		return NoPartyNameProvided{}
 	}
 
-	partyToClose, err := partiesManager.repository.GetParty(partyName)
+	partyToClose, err := partiesManager.repository.GetParty(ctx, partyName)
 
 	if err != nil {
 		return NotFound{
@@ -61,7 +61,7 @@ func (partiesManager PartiesManager) CloseAParty(partyName PartyName) error {
 	}
 	closedParty := partyToClose.Close()
 
-	return partiesManager.repository.UpdateParty(closedParty)
+	return partiesManager.repository.UpdateParty(ctx, closedParty)
 }
 
 // NewPartiesManager Create a new PartiesManager

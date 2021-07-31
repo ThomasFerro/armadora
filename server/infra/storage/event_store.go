@@ -17,8 +17,8 @@ type History struct {
 
 // EventStore Store the events instead of a state
 type EventStore interface {
-	GetHistory(id string) (History, error)
-	AppendToHistory(id string, sequenceNumber SequenceNumber, events []dto.EventDto) error
+	GetHistory(ctx context.Context, id string) (History, error)
+	AppendToHistory(ctx context.Context, id string, sequenceNumber SequenceNumber, events []dto.EventDto) error
 }
 
 // FIXME: Move in a armadora-specific file if the gameDto cannot be abstracted (can work by passing the dto to fill in parameters ?)

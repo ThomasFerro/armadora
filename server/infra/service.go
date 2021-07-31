@@ -22,8 +22,8 @@ type ArmadoraService struct {
 }
 
 // GetVisibleParties Retrieve every available parties
-func (armadoraService ArmadoraService) GetVisibleParties() ([]party.PartyName, error) {
-	parties, err := armadoraService.partiesManager.GetVisibleParties()
+func (armadoraService ArmadoraService) GetVisibleParties(getVisiblePartiesContext context.Context) ([]party.PartyName, error) {
+	parties, err := armadoraService.partiesManager.GetVisibleParties(getVisiblePartiesContext)
 	if err != nil {
 		return nil, err
 	}
@@ -35,12 +35,10 @@ func (armadoraService ArmadoraService) GetVisibleParties() ([]party.PartyName, e
 }
 
 // CreateParty Create a new party
-func (armadoraService ArmadoraService) CreateParty() (party.PartyName, error) {
+func (armadoraService ArmadoraService) CreateParty(createPartyContext context.Context) (party.PartyName, error) {
 	// TODO: Private parties
-	createPartyContext := context.Background()
-
 	createPartyWorkflow := func(ctx context.Context) (interface{}, error) {
-		nameOfThePartyToCreate, err := generateNewPartyName(armadoraService.partiesManager)
+		nameOfThePartyToCreate, err := generateNewPartyName(ctx, armadoraService.partiesManager)
 
 		if err != nil {
 			return nil, fmt.Errorf("an error has occurred while getting a new party name: %w", err)
@@ -72,8 +70,8 @@ func (armadoraService ArmadoraService) CreateParty() (party.PartyName, error) {
 }
 
 // GetPartyGameState Get the current state of a party's game
-func (armadoraService ArmadoraService) GetPartyGameState(partyName party.PartyName) (dto.GameDto, error) {
-	requestedPartyExists, err := partyExists(armadoraService.partiesManager, partyName)
+func (armadoraService ArmadoraService) GetPartyGameState(getPartyGameStateContext context.Context, partyName party.PartyName) (dto.GameDto, error) {
+	requestedPartyExists, err := partyExists(getPartyGameStateContext, armadoraService.partiesManager, partyName)
 
 	if err != nil {
 		return dto.GameDto{}, fmt.Errorf("an error has occurred while checking if the party %v exists: %w", partyName, err)
@@ -83,7 +81,7 @@ func (armadoraService ArmadoraService) GetPartyGameState(partyName party.PartyNa
 		return dto.GameDto{}, fmt.Errorf("the party %v does not exists", partyName)
 	}
 
-	gameDtoToCheck, err := armadoraService.eventStore.GetProjection(context.Background(), string(partyName))
+	gameDtoToCheck, err := armadoraService.eventStore.GetProjection(getPartyGameStateContext, string(partyName))
 	if err != nil {
 		return dto.GameDto{}, fmt.Errorf("an error has occurred while getting the party %v state: %w", partyName, err)
 	}
@@ -96,10 +94,9 @@ func (armadoraService ArmadoraService) GetPartyGameState(partyName party.PartyNa
 }
 
 // ReceiveCommand Manage a received command
-func (armadoraService ArmadoraService) ReceiveCommand(partyName party.PartyName, command Command) error {
-	receiveCommandContext := context.Background()
+func (armadoraService ArmadoraService) ReceiveCommand(receiveCommandContext context.Context, partyName party.PartyName, command Command) error {
 	receiveCommandWorkflow := func(ctx context.Context) (interface{}, error) {
-		requestedPartyExists, err := partyExists(armadoraService.partiesManager, partyName)
+		requestedPartyExists, err := partyExists(ctx, armadoraService.partiesManager, partyName)
 
 		if err != nil {
 			return nil, fmt.Errorf("an error has occurred while checking if the party %v exists: %w", partyName, err)
@@ -111,7 +108,7 @@ func (armadoraService ArmadoraService) ReceiveCommand(partyName party.PartyName,
 
 		log.Printf("Receiving the following command for party %v: %v\n", partyName, command)
 
-		history, err := armadoraService.eventStore.GetHistory(string(partyName))
+		history, err := armadoraService.eventStore.GetHistory(ctx, string(partyName))
 
 		if err != nil {
 			return nil, fmt.Errorf("an error has occurred while retrieving the history before managing the command %v, %w", command, err)
@@ -132,7 +129,7 @@ func (armadoraService ArmadoraService) ReceiveCommand(partyName party.PartyName,
 		}
 
 		if partyNeedsToBeClosed {
-			return nil, armadoraService.partiesManager.CloseAParty(partyName)
+			return nil, armadoraService.partiesManager.CloseAParty(ctx, partyName)
 		}
 
 		return nil, nil
@@ -146,8 +143,8 @@ func (armadoraService ArmadoraService) ReceiveCommand(partyName party.PartyName,
 	return nil
 }
 
-func partyExists(partiesManager party.PartiesManager, partyName party.PartyName) (bool, error) {
-	_, err := partiesManager.GetParty(partyName)
+func partyExists(ctx context.Context, partiesManager party.PartiesManager, partyName party.PartyName) (bool, error) {
+	_, err := partiesManager.GetParty(ctx, partyName)
 	if _, partyNotFound := err.(party.NotFound); partyNotFound {
 		return false, nil
 	}
@@ -157,7 +154,7 @@ func partyExists(partiesManager party.PartiesManager, partyName party.PartyName)
 	return true, err
 }
 
-func generateNewPartyName(partiesManager party.PartiesManager) (party.PartyName, error) {
+func generateNewPartyName(ctx context.Context, partiesManager party.PartiesManager) (party.PartyName, error) {
 	tries := 1
 	maxTries := 10
 
@@ -165,7 +162,7 @@ func generateNewPartyName(partiesManager party.PartiesManager) (party.PartyName,
 		nextPartyNameToTry := party.PartyName(
 			generateNewName(),
 		)
-		_, err := partiesManager.GetParty(nextPartyNameToTry)
+		_, err := partiesManager.GetParty(ctx, nextPartyNameToTry)
 		if err == nil {
 			continue
 		}
@@ -186,6 +183,7 @@ func manageCommand(ctx context.Context, armadoraService ArmadoraService, partyNa
 
 	newHistory := append(eventsHistory, newEvents...)
 	err = armadoraService.eventStore.AppendToHistory(
+		ctx,
 		string(partyName),
 		sequenceNumber,
 		dto.ToEventsDto(newEvents),
