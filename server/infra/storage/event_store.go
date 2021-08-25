@@ -23,8 +23,8 @@ type EventStore interface {
 
 // FIXME: Move in a armadora-specific file if the gameDto cannot be abstracted (can work by passing the dto to fill in parameters ?)
 type EventProjection interface {
-	GetProjection(ctx context.Context, id string) (dto.GameDto, error)
-	PersistProjection(ctx context.Context, id string, projection dto.GameDto) error
+	GetProjection(ctx context.Context, id string) (interface{}, error)
+	PersistProjection(ctx context.Context, id string, projection interface{}) error
 }
 
 type EventStoreWithProjection interface {

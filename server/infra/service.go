@@ -81,16 +81,15 @@ func (armadoraService ArmadoraService) GetPartyGameState(getPartyGameStateContex
 		return dto.GameDto{}, fmt.Errorf("the party %v does not exists", partyName)
 	}
 
-	gameDtoToCheck, err := armadoraService.eventStore.GetProjection(getPartyGameStateContext, string(partyName))
+	projection, err := armadoraService.eventStore.GetProjection(getPartyGameStateContext, string(partyName))
 	if err != nil {
 		return dto.GameDto{}, fmt.Errorf("an error has occurred while getting the party %v state: %w", partyName, err)
 	}
-	// TODO: Using an interface{} in the projection store make the cast not working :/
-	// gameDto, castingFailed := gameDtoToCheck.(dto.GameDto)
-	// if !castingFailed {
-	// 	return dto.GameDto{}, fmt.Errorf("party %v state type mismatch %v %v", partyName, gameDto, gameDtoToCheck)
-	// }
-	return gameDtoToCheck, nil
+	gameDto, castingFailed := projection.(dto.GameDto)
+	if !castingFailed {
+		return dto.GameDto{}, fmt.Errorf("party %v state type mismatch gameDto: %v, projection: %v", partyName, gameDto, projection)
+	}
+	return gameDto, nil
 }
 
 // ReceiveCommand Manage a received command
@@ -191,7 +190,6 @@ func manageCommand(ctx context.Context, armadoraService ArmadoraService, partyNa
 	if err != nil {
 		return nil, fmt.Errorf("an error has occurred while storing the new events for the party %v: %w", partyName, err)
 	}
-
 	gameState := dto.ToGameDto(
 		game.ReplayHistory(
 			newHistory,

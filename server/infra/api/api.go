@@ -19,13 +19,6 @@ var infraInitializer infra.InfraInitializer
 
 func StartApi() {
 	infraInitializer = infra.NewInfraInitializer()
-	var connectionToClose *storage.ConnectionToClose
-	var err error
-	armadoraService, connectionToClose, err = newArmadoraService()
-	if err != nil {
-		log.Fatalf("Cannot start the server: cannot create armadora service %v\n", err)
-	}
-	defer connectionToClose.Close()
 
 	var connectionToClose *storage.ConnectionToClose
 	var err error

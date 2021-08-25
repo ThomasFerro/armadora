@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"fmt"
+
 	"github.com/ThomasFerro/armadora/game"
 	"github.com/ThomasFerro/armadora/game/board"
 	"github.com/ThomasFerro/armadora/game/board/cell"
@@ -65,6 +67,10 @@ type GameDto struct {
 	Board               BoardDto    `json:"board" bson:"board"`
 	AvailableCharacters []string    `json:"available_characters" bson:"available_characters"`
 	Scores              ScoresDto   `json:"scores" bson:"scores"`
+}
+
+func (gameDto GameDto) String() string {
+	return fmt.Sprintf("GameDto [ State: %v, Players: %v, CurrentPlayer: %v, Board: %v, AvailableCharacters: %v, Scores: %v ]", gameDto.State, gameDto.Players, gameDto.CurrentPlayer, gameDto.Board, gameDto.AvailableCharacters, gameDto.Scores)
 }
 
 func toCellDto(boardToMap board.Board, players []PlayerDto, x, y int) CellDto {
@@ -229,7 +235,6 @@ func toScoresDto(scores score.Scores) ScoresDto {
 	return mappedScores
 }
 
-// FIXME: Still used ?
 func ToGameDto(game game.Game) GameDto {
 	playersDto := toPlayersDto(game.Players())
 	return GameDto{

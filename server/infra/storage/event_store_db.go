@@ -20,7 +20,7 @@ type eventWithStreamID struct {
 
 type projectionWithStreamID struct {
 	StreamID   string      `bson:"stream_id"`
-	Projection dto.GameDto `bson:"projection"`
+	Projection interface{} `bson:"projection"`
 }
 
 type mongoDbEventStoreWithProjection struct {
@@ -85,7 +85,7 @@ func (m *mongoDbEventStoreWithProjection) AppendToHistory(ctx context.Context, i
 	return nil
 }
 
-func (m *mongoDbEventStoreWithProjection) GetProjection(ctx context.Context, id string) (dto.GameDto, error) {
+func (m *mongoDbEventStoreWithProjection) GetProjection(ctx context.Context, id string) (interface{}, error) {
 	filter := bson.D{{"stream_id", id}}
 
 	var returnedProjection projectionWithStreamID
@@ -98,7 +98,7 @@ func (m *mongoDbEventStoreWithProjection) GetProjection(ctx context.Context, id 
 	return returnedProjection.Projection, nil
 }
 
-func (m *mongoDbEventStoreWithProjection) PersistProjection(ctx context.Context, id string, projection dto.GameDto) error {
+func (m *mongoDbEventStoreWithProjection) PersistProjection(ctx context.Context, id string, projection interface{}) error {
 	filter := bson.D{{"stream_id", id}}
 	projectionToSave := projectionWithStreamID{
 		StreamID:   id,
