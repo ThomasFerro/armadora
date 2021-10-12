@@ -14,13 +14,17 @@ import (
 
 var allowedOrigin string
 var armadoraService infra.ArmadoraService
+var infraInitializer infra.InfraInitializer
 
 func StartApi() {
 	armadoraService = infra.NewArmadoraService()
+	infraInitializer = infra.NewInfraInitializer()
 
 	http.HandleFunc("/parties", handlePartiesRequest)
 
 	http.HandleFunc("/parties/", handlePartyRequest)
+
+	http.HandleFunc("/init", handleInitializationRequest)
 
 	allowedOrigin = config.GetConfiguration("ALLOWED_ORIGIN")
 
@@ -149,6 +153,34 @@ func handlePostPartyCommand(partyName party.PartyName, w http.ResponseWriter, r 
 		return
 	}
 	handleGetPartyState(partyName, w, r)
+}
+
+func handleInitializationRequest(w http.ResponseWriter, r *http.Request) {
+	manageCors(&w)
+
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprintf(w, "invalid_http_method")
+		return
+	}
+
+	err := infraInitializer.InitializeInfra(r.Context())
+
+	if err != nil {
+		manageError(&w, err)
+		return
+	}
+
+	response := make(map[string]string)
+	response["message"] = "Initialization done"
+	jsonResponse, err := json.Marshal(response)
+
+	if err != nil {
+		manageError(&w, err)
+		return
+	}
+
+	w.Write(jsonResponse)
 }
 
 func manageError(w *http.ResponseWriter, err error) {
