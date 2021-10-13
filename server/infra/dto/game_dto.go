@@ -229,6 +229,7 @@ func toScoresDto(scores score.Scores) ScoresDto {
 	return mappedScores
 }
 
+// FIXME: Still used ?
 func ToGameDto(game game.Game) GameDto {
 	playersDto := toPlayersDto(game.Players())
 	return GameDto{

@@ -10,6 +10,7 @@ import (
 	"github.com/ThomasFerro/armadora/infra"
 	"github.com/ThomasFerro/armadora/infra/config"
 	"github.com/ThomasFerro/armadora/infra/party"
+	"github.com/ThomasFerro/armadora/infra/storage"
 )
 
 var allowedOrigin string
@@ -17,8 +18,14 @@ var armadoraService infra.ArmadoraService
 var infraInitializer infra.InfraInitializer
 
 func StartApi() {
-	armadoraService = infra.NewArmadoraService()
 	infraInitializer = infra.NewInfraInitializer()
+	var connectionToClose *storage.ConnectionToClose
+	var err error
+	armadoraService, connectionToClose, err = newArmadoraService()
+	if err != nil {
+		log.Fatalf("Cannot start the server: cannot create armadora service %v\n", err)
+	}
+	defer connectionToClose.Close()
 
 	http.HandleFunc("/parties", handlePartiesRequest)
 
@@ -30,10 +37,33 @@ func StartApi() {
 
 	port := config.GetConfiguration("PORT")
 	log.Printf("Serving Armadora on port: %v\n", port)
-	err := http.ListenAndServe(":"+port, nil)
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Fatalf("Cannot start the server: %v\n", err)
 	}
+}
+
+func newArmadoraService() (infra.ArmadoraService, *storage.ConnectionToClose, error) {
+	mongoClient := storage.MongoClient{
+		Uri:      config.GetConfiguration("MONGO_URI"),
+		Database: config.GetConfiguration("MONGO_DATABASE_NAME"),
+	}
+	mongoConnectionToClose, err := mongoClient.GetConnection()
+	if err != nil {
+		return infra.ArmadoraService{}, nil, fmt.Errorf("Cannot get mongo connection: %w", err)
+	}
+
+	eventStore := storage.NewMongoEventStore(
+		mongoConnectionToClose,
+		config.GetConfiguration("MONGO_EVENT_COLLECTION_NAME"),
+	)
+	partiesRepository := party.NewPartiesMongoRepository(
+		mongoConnectionToClose,
+		config.GetConfiguration("MONGO_PARTY_COLLECTION_NAME"),
+	)
+	transactionManager := storage.NewMongoTransactionManager(mongoConnectionToClose.Client)
+
+	return infra.NewArmadoraService(eventStore, partiesRepository, transactionManager), mongoConnectionToClose, nil
 }
 
 func handlePartiesRequest(w http.ResponseWriter, r *http.Request) {

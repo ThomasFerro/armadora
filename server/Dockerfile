@@ -9,8 +9,7 @@ ADD main.go .
 ADD game ./game
 ADD infra ./infra
 
-# Not running tests on /infra/party since they are integration tests that need a mongodb
-RUN go test `go list ./... | grep -v /infra/party`
+RUN IGNORE_INTEGRATION_TESTS=true go test ./...
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /dist/armadora
 

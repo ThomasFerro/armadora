@@ -1,10 +1,11 @@
 package infra
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 
-	"github.com/ThomasFerro/armadora/infra/config"
 	"github.com/ThomasFerro/armadora/infra/party"
 
 	"github.com/ThomasFerro/armadora/game"
@@ -15,8 +16,9 @@ import (
 
 // ArmadoraService Service managing Armadora games
 type ArmadoraService struct {
-	eventStore     storage.EventStore
-	partiesManager party.PartiesManager
+	eventStore         storage.EventStore
+	partiesManager     party.PartiesManager
+	transactionManager storage.TransactionManager
 }
 
 // GetVisibleParties Retrieve every available parties
@@ -35,30 +37,48 @@ func (armadoraService ArmadoraService) GetVisibleParties() ([]party.PartyName, e
 // CreateParty Create a new party
 func (armadoraService ArmadoraService) CreateParty() (party.PartyName, error) {
 	// TODO: Private parties
-	nameOfThePartyToCreate, err := newPartyName(armadoraService.partiesManager)
+	createPartyContext := context.Background()
+
+	createPartyWorkflow := func(ctx context.Context) (interface{}, error) {
+		nameOfThePartyToCreate, err := generateNewPartyName(armadoraService.partiesManager)
+
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while getting a new party name: %w", err)
+		}
+
+		newPartyName, err := armadoraService.partiesManager.CreateParty(ctx, nameOfThePartyToCreate, true)
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while creating a new party: %w", err)
+		}
+		history, err := ManageCommand([]event.Event{}, Command{
+			CommandType: "CreateGame",
+		})
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while creating the original event for the new party: %w", err)
+		}
+		err = armadoraService.eventStore.AppendToHistory(
+			string(newPartyName),
+			"",
+			dto.ToEventsDto(history),
+		)
+		// TODO: Persist the game's projection in the party
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while storing the new party: %w", err)
+		}
+		return newPartyName, nil
+	}
+
+	returnedNewPartyName, err := armadoraService.transactionManager.RunTransation(createPartyContext, createPartyWorkflow)
 
 	if err != nil {
-		return "", fmt.Errorf("An error has occurred while getting a new party name: %w", err)
+		return "", fmt.Errorf("An error has occurred in the party creation transaction: %w", err)
 	}
 
-	newPartyName, err := armadoraService.partiesManager.CreateParty(nameOfThePartyToCreate, true)
-	if err != nil {
-		return "", fmt.Errorf("An error has occurred while creating a new party: %w", err)
+	newPartyName, returnedNewPartyNameOfTheRightType := returnedNewPartyName.(party.PartyName)
+	if !returnedNewPartyNameOfTheRightType {
+		return "", errors.New("Created party name type mismatch")
 	}
-	history, err := ManageCommand([]event.Event{}, Command{
-		CommandType: "CreateGame",
-	})
-	if err != nil {
-		return "", fmt.Errorf("An error has occurred while creating the original event for the new party: %w", err)
-	}
-	err = armadoraService.eventStore.AppendToHistory(
-		string(newPartyName),
-		"",
-		dto.ToEventsDto(history),
-	)
-	if err != nil {
-		return "", fmt.Errorf("An error has occurred while storing the new party: %w", err)
-	}
+
 	return newPartyName, nil
 }
 
@@ -74,6 +94,7 @@ func (armadoraService ArmadoraService) GetPartyGameState(partyName party.PartyNa
 		return dto.GameDto{}, fmt.Errorf("The party %v does not exists", partyName)
 	}
 
+	// TODO: Replace with a fetch from the games projection
 	history, err := armadoraService.eventStore.GetHistory(string(partyName))
 	if err != nil {
 		return dto.GameDto{}, err
@@ -87,51 +108,61 @@ func (armadoraService ArmadoraService) GetPartyGameState(partyName party.PartyNa
 
 // ReceiveCommand Manage a received command
 func (armadoraService ArmadoraService) ReceiveCommand(partyName party.PartyName, command Command) error {
-	requestedPartyExists, err := partyExists(armadoraService.partiesManager, partyName)
+	receiveCommandContext := context.Background()
+	receiveCommandWorkflow := func(ctx context.Context) (interface{}, error) {
+		requestedPartyExists, err := partyExists(armadoraService.partiesManager, partyName)
 
-	if err != nil {
-		return fmt.Errorf("An error has occurred while checking if the party %v exists: %w", partyName, err)
-	}
-
-	if !requestedPartyExists {
-		return fmt.Errorf("The party %v does not exists", partyName)
-	}
-
-	log.Printf("Receiving the following command for party %v: %v\n", partyName, command)
-
-	history, err := armadoraService.eventStore.GetHistory(string(partyName))
-
-	if err != nil {
-		return fmt.Errorf("An error has occurred while retrieving the history before managing the command %v, %w", command, err)
-	}
-
-	newEvents, err := ManageCommand(
-		dto.FromEventsDto(history.Events),
-		command,
-	)
-
-	if err != nil {
-		return fmt.Errorf("An error has occurred while managing the command %v, %w", command, err)
-	}
-
-	err = armadoraService.eventStore.AppendToHistory(string(partyName), history.SequenceNumber, dto.ToEventsDto(newEvents))
-
-	if err != nil {
-		return fmt.Errorf("An error has occurred while appending the events to the party's %v history, %w", partyName, err)
-	}
-
-	partyNeedsToBeClosed := false
-
-	for _, newEvent := range newEvents {
-		if _, isOfRightEventType := newEvent.(event.GameFinished); isOfRightEventType {
-			partyNeedsToBeClosed = true
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while checking if the party %v exists: %w", partyName, err)
 		}
+
+		if !requestedPartyExists {
+			return nil, fmt.Errorf("The party %v does not exists", partyName)
+		}
+
+		log.Printf("Receiving the following command for party %v: %v\n", partyName, command)
+
+		history, err := armadoraService.eventStore.GetHistory(string(partyName))
+
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while retrieving the history before managing the command %v, %w", command, err)
+		}
+
+		newEvents, err := ManageCommand(
+			dto.FromEventsDto(history.Events),
+			command,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while managing the command %v, %w", command, err)
+		}
+
+		err = armadoraService.eventStore.AppendToHistory(string(partyName), history.SequenceNumber, dto.ToEventsDto(newEvents))
+
+		if err != nil {
+			return nil, fmt.Errorf("An error has occurred while appending the events to the party's %v history, %w", partyName, err)
+		}
+
+		partyNeedsToBeClosed := false
+
+		for _, newEvent := range newEvents {
+			if _, isOfRightEventType := newEvent.(event.GameFinished); isOfRightEventType {
+				partyNeedsToBeClosed = true
+			}
+		}
+
+		if partyNeedsToBeClosed {
+			return nil, armadoraService.partiesManager.CloseAParty(partyName)
+		}
+
+		return nil, nil
 	}
 
-	if partyNeedsToBeClosed {
-		return armadoraService.partiesManager.CloseAParty(partyName)
-	}
+	_, err := armadoraService.transactionManager.RunTransation(receiveCommandContext, receiveCommandWorkflow)
 
+	if err != nil {
+		return fmt.Errorf("An error has occurred in the command management transaction: %w", err)
+	}
 	return nil
 }
 
@@ -146,7 +177,7 @@ func partyExists(partiesManager party.PartiesManager, partyName party.PartyName)
 	return true, err
 }
 
-func newPartyName(partiesManager party.PartiesManager) (party.PartyName, error) {
+func generateNewPartyName(partiesManager party.PartiesManager) (party.PartyName, error) {
 	tries := 1
 	maxTries := 10
 
@@ -168,13 +199,10 @@ func newPartyName(partiesManager party.PartiesManager) (party.PartyName, error) 
 }
 
 // NewArmadoraService Create a new Armadora service
-func NewArmadoraService() ArmadoraService {
-	partiesRepository := party.NewPartiesMongoRepository(
-		config.GetConfiguration("MONGO_PARTY_COLLECTION_NAME"),
-	)
-
+func NewArmadoraService(eventStore storage.EventStore, partiesRepository party.PartiesRepository, transactionManager storage.TransactionManager) ArmadoraService {
 	return ArmadoraService{
-		eventStore:     storage.NewEventStore(),
-		partiesManager: party.NewPartiesManager(partiesRepository),
+		eventStore:         eventStore,
+		partiesManager:     party.NewPartiesManager(partiesRepository),
+		transactionManager: transactionManager,
 	}
 }

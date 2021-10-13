@@ -2,6 +2,7 @@ package party_test
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/ThomasFerro/armadora/infra/config"
@@ -9,11 +10,39 @@ import (
 	"github.com/ThomasFerro/armadora/infra/storage"
 )
 
+func ignoreIntegrationTests(t *testing.T) {
+	if os.Getenv("IGNORE_INTEGRATION_TESTS") == "true" {
+		t.Skip("Skipping integration tests")
+	}
+}
+
 const PARTIES_INTEGRATION_TEST_COLLECTION = "PARTIES_INTEGRATION_TEST_COLLECTION"
 
+func getIntegrationTestsPartiesManager() (error, party.PartiesManager, *storage.ConnectionToClose) {
+	mongoClient := storage.MongoClient{
+		Uri:      config.GetConfiguration("MONGO_URI"),
+		Database: config.GetConfiguration("MONGO_DATABASE_NAME"),
+	}
+	connectionToClose, err := mongoClient.GetConnection()
+	if err != nil {
+		return err, party.PartiesManager{}, nil
+	}
+	partiesRepository := party.NewPartiesMongoRepository(connectionToClose, PARTIES_INTEGRATION_TEST_COLLECTION)
+	return nil, party.NewPartiesManager(partiesRepository), connectionToClose
+}
+
+func dropIntegrationTestsPartiesDatabase(connectionToClose *storage.ConnectionToClose) {
+	defer connectionToClose.Close()
+	connectionToClose.Database.Collection(PARTIES_INTEGRATION_TEST_COLLECTION).Drop(context.TODO())
+}
+
 func TestCreateAPublicParty(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("My new party")
 	partyIsPublic := true
@@ -29,8 +58,12 @@ func TestCreateAPublicParty(t *testing.T) {
 }
 
 func TestCreateAPrivateParty(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("My new party")
 	partyIsPublic := false
@@ -46,12 +79,17 @@ func TestCreateAPrivateParty(t *testing.T) {
 }
 
 func TestCannotCreateAPartyWithoutName(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("")
 	partyIsPublic := false
-	_, err := partiesManager.CreateParty(partyName, partyIsPublic)
+	createPartyContext := context.Background()
+	_, err = partiesManager.CreateParty(createPartyContext, partyName, partyIsPublic)
 
 	if err == nil {
 		t.Fatalf("An error should have occurred while creating a party without name")
@@ -63,15 +101,20 @@ func TestCannotCreateAPartyWithoutName(t *testing.T) {
 }
 
 func TestCannotCreateAPartyWithAnAlreadyExistingName(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	alreadyExistingPartyName := party.PartyName("awesome party")
 	createTestParty(t, partiesManager, alreadyExistingPartyName, false)
 
 	newPartyName := party.PartyName("awesome party")
 	newPartyIsPublic := false
-	_, err := partiesManager.CreateParty(newPartyName, newPartyIsPublic)
+	createPartyContext := context.Background()
+	_, err = partiesManager.CreateParty(createPartyContext, newPartyName, newPartyIsPublic)
 
 	if err == nil {
 		t.Fatalf("An error should have occurred while creating a party with an already taken name")
@@ -83,8 +126,12 @@ func TestCannotCreateAPartyWithAnAlreadyExistingName(t *testing.T) {
 }
 
 func TestGetVisibleParties(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	firstVisiblePartyName := party.PartyName("first visible party")
 	secondVisiblePartyName := party.PartyName("second visible party")
@@ -122,15 +169,19 @@ func TestGetVisibleParties(t *testing.T) {
 	}
 }
 func TestClosedPartiesNotConsideredAsVisible(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	visiblePartyName := party.PartyName("first visible party")
 	closedPartyName := party.PartyName("closed party")
 	createTestParty(t, partiesManager, visiblePartyName, true)
 	createTestParty(t, partiesManager, closedPartyName, true)
 
-	err := partiesManager.CloseAParty(closedPartyName)
+	err = partiesManager.CloseAParty(closedPartyName)
 
 	if err != nil {
 		t.Fatalf("An error has occurred while closing the party: %v", err)
@@ -157,8 +208,12 @@ func TestClosedPartiesNotConsideredAsVisible(t *testing.T) {
 }
 
 func TestGetASpecificPublicParty(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("my awesome party")
 	partyIsPublic := true
@@ -181,8 +236,12 @@ func TestGetASpecificPublicParty(t *testing.T) {
 }
 
 func TestGetASpecificPrivateParty(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("my awesome party")
 	partyIsPublic := false
@@ -205,11 +264,15 @@ func TestGetASpecificPrivateParty(t *testing.T) {
 }
 
 func TestCannotGetAPartyThatDoesNotExist(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("my awesome party")
-	_, err := partiesManager.GetParty(partyName)
+	_, err = partiesManager.GetParty(partyName)
 
 	if err == nil {
 		t.Fatalf("Should not be able to get a party that does not exists")
@@ -221,11 +284,15 @@ func TestCannotGetAPartyThatDoesNotExist(t *testing.T) {
 }
 
 func TestNoPartyNameProvidedToGetTheParty(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("")
-	_, err := partiesManager.GetParty(partyName)
+	_, err = partiesManager.GetParty(partyName)
 
 	if err == nil {
 		t.Fatalf("Should not be able to get a party that does not exists")
@@ -237,8 +304,12 @@ func TestNoPartyNameProvidedToGetTheParty(t *testing.T) {
 }
 
 func TestAPartyIsOpenByDefault(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("my awesome party")
 	createTestParty(t, partiesManager, partyName, true)
@@ -254,13 +325,17 @@ func TestAPartyIsOpenByDefault(t *testing.T) {
 }
 
 func TestCloseAParty(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("my awesome party")
 	createTestParty(t, partiesManager, partyName, true)
 
-	err := partiesManager.CloseAParty(partyName)
+	err = partiesManager.CloseAParty(partyName)
 
 	if err != nil {
 		t.Fatalf("An error has occurred while closing the party: %v", err)
@@ -278,11 +353,15 @@ func TestCloseAParty(t *testing.T) {
 }
 
 func TestCannotFindThePartyToClose(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("my awesome party")
-	err := partiesManager.CloseAParty(partyName)
+	err = partiesManager.CloseAParty(partyName)
 
 	if err == nil {
 		t.Fatalf("Expected not to be able to close a party that does no exists")
@@ -294,11 +373,15 @@ func TestCannotFindThePartyToClose(t *testing.T) {
 }
 
 func TestNoPartyNameProvidedForThePartyToClose(t *testing.T) {
-	partiesManager := getIntegrationTestsPartiesManager()
-	defer dropIntegrationTestsPartiesDatabase()
+	ignoreIntegrationTests(t)
+	err, partiesManager, connectionToClose := getIntegrationTestsPartiesManager()
+	if err != nil {
+		t.Fatalf("Cannot initialize the test: %v", err)
+	}
+	defer dropIntegrationTestsPartiesDatabase(connectionToClose)
 
 	partyName := party.PartyName("")
-	err := partiesManager.CloseAParty(partyName)
+	err = partiesManager.CloseAParty(partyName)
 
 	if err == nil {
 		t.Fatalf("Expected not to be able to close a party that does no exists")
@@ -309,8 +392,9 @@ func TestNoPartyNameProvidedForThePartyToClose(t *testing.T) {
 	}
 }
 
-func createTestParty(t *testing.T, partyManager party.PartiesManager, partyName party.PartyName, partyIsPublic bool) (party.PartyName, error) {
-	newPartyName, err := partyManager.CreateParty(partyName, partyIsPublic)
+func createTestParty(t *testing.T, partiesManager party.PartiesManager, partyName party.PartyName, partyIsPublic bool) (party.PartyName, error) {
+	createPartyContext := context.Background()
+	newPartyName, err := partiesManager.CreateParty(createPartyContext, partyName, partyIsPublic)
 
 	if err != nil {
 		t.Fatalf("An error has occurred while creating the party: %v", err)
@@ -321,23 +405,4 @@ func createTestParty(t *testing.T, partyManager party.PartiesManager, partyName 
 func partiesAreEqual(firstParty, secondParty party.Party) bool {
 	return firstParty.Name == secondParty.Name &&
 		firstParty.Restriction == secondParty.Restriction
-}
-
-func getIntegrationTestsPartiesManager() party.PartiesManager {
-	partiesRepository := party.NewPartiesMongoRepository(PARTIES_INTEGRATION_TEST_COLLECTION)
-	return party.NewPartiesManager(partiesRepository)
-}
-
-func dropIntegrationTestsPartiesDatabase() {
-	mongoClient := storage.MongoClient{
-		Uri:        config.GetConfiguration("MONGO_URI"),
-		Database:   config.GetConfiguration("MONGO_DATABASE_NAME"),
-		Collection: PARTIES_INTEGRATION_TEST_COLLECTION,
-	}
-	collectionToClose, err := mongoClient.GetCollection()
-	if err != nil {
-		return
-	}
-	defer collectionToClose.Close()
-	collectionToClose.Collection.Drop(context.TODO())
 }
